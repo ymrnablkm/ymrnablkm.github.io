@@ -1,99 +1,185 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AY - 个人作品集</title>
-  <!-- 正确 Bootstrap CDN -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-  <!-- Ionicons 图标 CDN -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AY - 个人主页</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { 
-      background: #111; 
-      color: #fff; 
-      font-family: sans-serif; 
-      margin: 0; 
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .sidebar { 
-      position: fixed; 
-      width: 300px; 
-      height: 100%; 
-      background: #000; 
-      padding: 40px; 
-      overflow-y: auto; 
-      transition: all 0.3s; 
-      z-index: 1030; 
+    body {
+      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0f17 0%, #1a1a2e 100%);
+      color: #f5f5f7;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .content { 
-      margin-left: 300px; 
-      padding: 40px; 
-      min-height: 100vh; 
+    /* 毛玻璃容器通用类 */
+    .glass {
+      background: rgba(30, 30, 46, 0.35);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+      overflow: hidden;
     }
-    @media (max-width: 992px) {
-      .sidebar { 
-        width: 0; 
-        padding: 0; 
-        overflow: hidden; 
-      }
-      .content { 
-        margin-left: 0; 
-        padding: 20px; 
-      }
-      .sidebar.show { 
-        width: 300px; 
-        padding: 40px; 
-      }
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 16px 24px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-    h1, h2 { color: #fff; }
-    a { color: #2c7be5; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .progress { height: 10px; background: #333; margin-bottom: 10px; }
-    .progress-bar { background: #2c7be5; }
+    nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+    }
+    .nav-links a {
+      color: #d1d1d6;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: #ffffff;
+    }
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 140px 24px 80px;
+    }
+    h1 {
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1.05;
+      margin-bottom: 24px;
+      background: linear-gradient(90deg, #ffffff, #a0a0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .intro {
+      font-size: 1.3rem;
+      color: #a1a1aa;
+      max-width: 680px;
+      margin-bottom: 60px;
+      line-height: 1.6;
+    }
+    .photos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+      margin-bottom: 80px;
+    }
+    .photo-card {
+      aspect-ratio: 4/5;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+    .photo-card:hover {
+      transform: translateY(-12px);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    }
+    .photo-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    section {
+      margin-bottom: 100px;
+    }
+    h2 {
+      font-size: 2.8rem;
+      font-weight: 600;
+      margin-bottom: 32px;
+      color: #ffffff;
+    }
+    .about-text {
+      font-size: 1.2rem;
+      line-height: 1.7;
+      color: #d1d1d6;
+      max-width: 780px;
+    }
+    .about-text strong {
+      color: #ffffff;
+    }
+    /* 手机底部安全区 */
+    @media (max-width: 768px) {
+      main { padding-top: 120px; padding-bottom: 120px; }
+      .nav-links { gap: 20px; font-size: 0.95rem; }
+      h1 { font-size: clamp(2.8rem, 10vw, 5rem); }
+    }
   </style>
 </head>
 <body>
 
-  <!-- 手机汉堡菜单按钮（小屏显示） -->
-  <button class="btn btn-dark d-lg-none position-fixed m-3" type="button" data-toggle="collapse" data-target="#sidebar" aria-expanded="false" aria-controls="sidebar" style="z-index: 1040;">
-    ☰ 菜单
-  </button>
+  <header>
+    <nav>
+      <div class="logo">AY</div>
+      <div class="nav-links">
+        <a href="#" class="active">首页</a>
+        <a href="#about">关于</a>
+        <a href="#works">作品</a>
+        <a href="#contact">联系</a>
+      </div>
+    </nav>
+  </header>
 
-  <!-- 左侧 sidebar -->
-  <div class="sidebar collapse" id="sidebar">
-    <h1>AY</h1>
-    <h3>自由设计师 / 内容创作者</h3>
-    <p>大阪 / 东京</p>
-    <ul class="nav flex-column">
-      <li><a href="#about">关于我</a></li>
-      <li><a href="#resume">简历</a></li>
-      <li><a href="#services">服务</a></li>
-      <li><a href="#skills">技能</a></li>
-      <li><a href="#projects">作品</a></li>
-      <li><a href="#blog">博客</a></li>
-      <li><a href="#contact">联系我</a></li>
-    </ul>
-    <p><a href="https://x.com/ymrnablkm">X: @ymrnablkm</a></p>
-  </div>
+  <main>
+    <h1>你好，我是 AY</h1>
+    <p class="intro">自由设计师 & 内容创作者<br>追求极致美学与流动体验</p>
 
-  <!-- 主要内容 -->
-  <div class="content">
-    <section id="home">
-      <h1>欢迎！我是 AY</h1>
-      <h2>大阪的自由设计师 & 内容爱好者</h2>
-      <p>欢迎访问我的个人页面，正在建设中～ 喜欢旅行、摄影、分享生活。</p>
-    </section>
+    <div class="photos">
+      <div class="photo-card glass">
+        <img src="https://images.unsplash.com/photo-1540959733332-eab4c0e3bcaf?auto=format&fit=crop&w=800&q=80" alt="东京街头夜景">
+      </div>
+      <div class="photo-card glass">
+        <img src="https://images.unsplash.com/photo-1542051841855-5f3d8b0d9d4e?auto=format&fit=crop&w=800&q=80" alt="东京塔与城市">
+      </div>
+    </div>
 
     <section id="about">
       <h2>关于我</h2>
-      <p>来自大阪的 AY，目前在日本生活。热爱设计、网页开发和记录日常。</p>
+      <div class="about-text">
+        <p>来自 <strong>日本 东京</strong> 的自由设计师与内容创作者。</p>
+        <p>热爱将流动的美学融入数字与现实，探索极简、透明与光影的边界。日常沉浸于设计、摄影、城市漫步与深夜代码。目前专注于个人项目与品牌视觉叙事。</p>
+        <p>欢迎随时通过 X <a href="https://x.com/ymrnablkm" style="color:#60a5fa; text-decoration:none;">@ymrnablkm</a> 联系～</p>
+      </div>
     </section>
 
-    <!-- 加其他 section 如技能、作品等，自己扩展 -->
-  </div>
+    <!-- 你可以在这里继续加其他 section，如作品、联系等 -->
+  </main>
 
-  <!-- Bootstrap JS（必须，用于 collapse 菜单） -->
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
 </body>
 </html>
