@@ -4,28 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AY - 个人作品集</title>
-  <!-- Bootstrap CSS CDN（保持响应式） -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Ionicons 图标（原模板用的） -->
+  <!-- 正确 Bootstrap CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+  <!-- Ionicons 图标 CDN -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
   <style>
-    body { background: #111; color: #fff; font-family: 'Helvetica Neue', sans-serif; }
-    .sidebar { position: fixed; width: 300px; height: 100%; background: #000; padding: 40px; }
-    .content { margin-left: 300px; padding: 40px; }
+    body { 
+      background: #111; 
+      color: #fff; 
+      font-family: sans-serif; 
+      margin: 0; 
+    }
+    .sidebar { 
+      position: fixed; 
+      width: 300px; 
+      height: 100%; 
+      background: #000; 
+      padding: 40px; 
+      overflow-y: auto; 
+      transition: all 0.3s; 
+      z-index: 1030; 
+    }
+    .content { 
+      margin-left: 300px; 
+      padding: 40px; 
+      min-height: 100vh; 
+    }
+    @media (max-width: 992px) {
+      .sidebar { 
+        width: 0; 
+        padding: 0; 
+        overflow: hidden; 
+      }
+      .content { 
+        margin-left: 0; 
+        padding: 20px; 
+      }
+      .sidebar.show { 
+        width: 300px; 
+        padding: 40px; 
+      }
+    }
     h1, h2 { color: #fff; }
-    .progress { height: 10px; background: #333; }
+    a { color: #2c7be5; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .progress { height: 10px; background: #333; margin-bottom: 10px; }
     .progress-bar { background: #2c7be5; }
-    a { color: #2c7be5; }
-    /* 加更多自定义样式... */
   </style>
 </head>
 <body>
 
-  <!-- 左侧导航栏 -->
-  <div class="sidebar">
+  <!-- 手机汉堡菜单按钮（小屏显示） -->
+  <button class="btn btn-dark d-lg-none position-fixed m-3" type="button" data-toggle="collapse" data-target="#sidebar" aria-expanded="false" aria-controls="sidebar" style="z-index: 1040;">
+    ☰ 菜单
+  </button>
+
+  <!-- 左侧 sidebar -->
+  <div class="sidebar collapse" id="sidebar">
     <h1>AY</h1>
     <h3>自由设计师 / 内容创作者</h3>
-    <p>东京 / 东京</p>
+    <p>大阪 / 东京</p>
     <ul class="nav flex-column">
       <li><a href="#about">关于我</a></li>
       <li><a href="#resume">简历</a></li>
@@ -38,64 +76,24 @@
     <p><a href="https://x.com/ymrnablkm">X: @ymrnablkm</a></p>
   </div>
 
-  <!-- 主要内容区 -->
+  <!-- 主要内容 -->
   <div class="content">
-
-    <!-- 首页/欢迎 -->
     <section id="home">
       <h1>欢迎！我是 AY</h1>
       <h2>大阪的自由设计师 & 内容爱好者</h2>
       <p>欢迎访问我的个人页面，正在建设中～ 喜欢旅行、摄影、分享生活。</p>
-      <a href="#contact" class="btn btn-primary">联系我</a>
     </section>
 
-    <!-- 关于我 -->
     <section id="about">
       <h2>关于我</h2>
-      <p>来自东京的 AY，目前在日本生活。热爱设计、网页开发和记录日常。希望通过这个页面展示我的作品和想法。</p>
-      <ul>
-        <li>姓名：AY</li>
-        <li>位置：东京，日本</li>
-        <li>邮箱：你的邮箱（ymrnablkm@gmail.com）</li>
-        <li>X：@ymrnablkm</li>
-      </ul>
+      <p>来自大阪的 AY，目前在日本生活。热爱设计、网页开发和记录日常。</p>
     </section>
 
-    <!-- 简历（可自定义） -->
-    <section id="resume">
-      <h2>简历 / 经历</h2>
-      <p>（这里放你的教育、工作经历）</p>
-      <div>2020 - 现在：自由设计师</div>
-      <div>2018 - 2020：某公司前端实习</div>
-    </section>
-
-    <!-- 技能 -->
-    <section id="skills">
-      <h2>我的技能</h2>
-      <div>HTML/CSS <div class="progress"><div class="progress-bar" style="width:95%"></div></div></div>
-      <div>JavaScript <div class="progress"><div class="progress-bar" style="width:80%"></div></div></div>
-      <div>Photoshop <div class="progress"><div class="progress-bar" style="width:85%"></div></div></div>
-      <!-- 加更多技能条 -->
-    </section>
-
-    <!-- 作品（可加图片） -->
-    <section id="projects">
-      <h2>作品集</h2>
-      <p>（上传你的照片/截图到仓库，用 <img src="作品1.jpg"> 显示）</p>
-      <!-- 示例： -->
-      <!-- <img src="project1.jpg" alt="作品1"> -->
-    </section>
-
-    <!-- 联系 -->
-    <section id="contact">
-      <h2>联系我</h2>
-      <p>有合作需求？随时 X 私信我 @ymrnablkm</p>
-    </section>
-
+    <!-- 加其他 section 如技能、作品等，自己扩展 -->
   </div>
 
-  <!-- Bootstrap JS（可选，导航滚动等） -->
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Bootstrap JS（必须，用于 collapse 菜单） -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
 </body>
 </html>
