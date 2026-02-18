@@ -23,6 +23,7 @@
       -moz-osx-font-smoothing: grayscale;
       scroll-behavior: smooth;
     }
+    /* 毛玻璃容器通用类 */
     .glass {
       background: rgba(30, 30, 46, 0.35);
       backdrop-filter: blur(20px) saturate(180%);
@@ -34,28 +35,36 @@
     }
     header {
       position: fixed;
-      top: 16px;
+      top: 16px;                    /* ← 从顶部往下一点，像 iOS 浮动栏 */
       left: 16px;
       right: 16px;
       z-index: 1000;
-      border-radius: 32px;                /* ← 这里加大圆角，让导航栏变圆润 */
+      max-width: 1200px;
+      margin: 0 auto;               /* 居中 */
+      border-radius: 32px;          /* ← 大圆角，iOS 26 风格 */
       overflow: hidden;
-      background: rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(32px);  /* 更强模糊 */
+      -webkit-backdrop-filter: blur(32px);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 
+        0 8px 32px rgba(0,0,0,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.08); /* 内发光 */
+      transition: all 0.3s ease;
+    }
+    header:hover {
+      box-shadow: 0 12px 48px rgba(0,0,0,0.5); /* hover 抬升感 */
     }
     nav {
-      padding: 12px 24px;
+      padding: 12px 24px;           /* 内部留白更圆润 */
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     .logo {
-      font-size: 1.4rem;
+      font-size: 1.5rem;
       font-weight: 700;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.6px;
     }
     .nav-links {
       display: flex;
@@ -67,16 +76,21 @@
       font-weight: 500;
       font-size: 1rem;
       transition: color 0.3s;
+      padding: 8px 12px;            /* 每个链接加内边距，像按钮 */
+      border-radius: 16px;          /* 链接本身圆润 */
+      transition: all 0.25s ease;
     }
     .nav-links a:hover,
     .nav-links a.active {
       color: #ffffff;
+      background: rgba(255,255,255,0.08); /* 轻微高亮背景 */
     }
     main {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 140px 24px 80px;
+      padding: 140px 24px 80px;     /* 顶部 padding 加大，避免被圆角 header 挡 */
     }
+    /* 其余样式保持原样（h1, intro, photos, section 等全部不变） */
     h1 {
       font-size: clamp(3rem, 8vw, 6.5rem);
       font-weight: 700;
@@ -143,12 +157,12 @@
     @media (max-width: 768px) {
       main { padding-top: 120px; padding-bottom: 120px; }
       .nav-links { gap: 20px; font-size: 0.95rem; }
-      header {
-        top: 12px;
-        left: 12px;
-        right: 12px;
-        border-radius: 28px;
+      header { 
+        top: 12px; left: 12px; right: 12px; 
+        border-radius: 28px; 
+        padding: 10px 20px; 
       }
+      nav { padding: 8px 16px; }
     }
   </style>
 </head>
