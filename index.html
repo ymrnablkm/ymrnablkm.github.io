@@ -8,110 +8,80 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* 原有样式保持不变，这里只新增/改联系表单相关 */
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      max-width: 600px;
+    /* 原有所有样式保持不变，这里只补充一点间距和链接样式 */
+    body {
+      scroll-behavior: smooth;  /* 平滑滚动 */
     }
-    input, textarea {
-      padding: 14px 18px;
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 16px;
-      background: rgba(30,30,46,0.5);
-      color: #fff;
-      font-size: 1rem;
-      transition: border 0.3s;
+    .contact-text a {
+      color: #60a5fa;
+      text-decoration: none;
     }
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: #60a5fa;
-      box-shadow: 0 0 0 3px rgba(96,165,250,0.2);
+    .contact-text a:hover {
+      text-decoration: underline;
     }
-    button {
-      padding: 14px;
-      background: linear-gradient(90deg, #60a5fa, #a5b4fc);
-      color: #000;
-      border: none;
-      border-radius: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s;
+    .email-link {
+      color: #60a5fa;
+      font-weight: 500;
     }
-    button:hover {
-      transform: translateY(-2px);
+    .email-link:hover {
+      text-decoration: underline;
     }
-    .success-msg, .error-msg {
-      padding: 12px;
-      border-radius: 12px;
-      text-align: center;
-      margin-top: 16px;
-    }
-    .success-msg { background: rgba(34,197,94,0.2); color: #86efac; }
-    .error-msg { background: rgba(239,68,68,0.2); color: #fca5a5; }
+    /* 其他原有样式... */
   </style>
 </head>
 <body>
-  <!-- 原 header 和 nav 保持不变 -->
+
+  <header>
+    <nav>
+      <div class="logo">AY</div>
+      <div class="nav-links">
+        <a href="#" class="active">首页</a>
+        <a href="#works">作品</a>
+        <a href="#about">关于</a>
+        <a href="#contact">联系</a>
+      </div>
+    </nav>
+  </header>
 
   <main>
-    <!-- 原首页标题、intro、photos、about 保持不变 -->
+    <h1>你好，我是 AY</h1>
+    <p class="intro">自由设计师 & 内容创作者<br>追求极致美学与流动体验</p>
 
+    <div class="photos" id="works">
+      <div class="photo-card glass">
+        <img src="grok_image_pnn3w0.jpg" alt="我的照片 1">
+      </div>
+      <div class="photo-card glass">
+        <img src="1765571745664.png" alt="我的照片 2">
+      </div>
+    </div>
+
+    <section id="about">
+      <h2>关于我</h2>
+      <div class="about-text">
+        <p>来自 <strong>日本 东京</strong> 的自由设计师与内容创作者。</p>
+        <p>热爱将流动的美学融入数字与现实，探索极简、透明与光影的边界。日常沉浸于设计、摄影、城市漫步与深夜代码。目前专注于个人项目与品牌视觉叙事。</p>
+        <p>欢迎随时通过 X <a href="https://x.com/ymrnablkm">@ymrnablkm</a> 联系～</p>
+      </div>
+    </section>
+
+    <!-- 联系 section：添加邮箱 -->
     <section id="contact">
       <h2>联系我</h2>
       <div class="contact-text">
-        <p>有合作、反馈或想聊天？填下面表单或直接 X 私信我～</p>
-        <p>X： <a href="https://x.com/ymrnablkm" class="contact-link" target="_blank">@ymrnablkm</a></p>
+        <p>有合作想法、想聊天或反馈？随时找我～</p>
+        <p>
+          X（Twitter）： 
+          <a href="https://x.com/ymrnablkm" target="_blank" rel="noopener noreferrer">@ymrnablkm</a>
+        </p>
+        <p>
+          电子邮件： 
+          <a href="mailto:ymrnablkm@gmail.com" class="email-link">ymrnablkm@gmail.com</a>
+        </p>
+        <p>（点击邮箱地址可直接发邮件）</p>
       </div>
-
-      <!-- 电子邮件联系表单 -->
-      <form id="contact-form" action="https://api.web3forms.com/submit" method="POST">
-        <!-- 你的 Web3Forms Access Key（替换成你自己的） -->
-        <input type="hidden" name="access_key" value="YOUR_ACCESS_KEY_HERE">
-
-        <!-- 可选：自定义邮件主题/接收邮箱 -->
-        <input type="hidden" name="subject" value="来自 AY 网站的联系消息">
-        <input type="hidden" name="from_name" value="AY 网站访客">
-
-        <input type="text" name="name" placeholder="你的姓名" required>
-        <input type="email" name="email" placeholder="你的邮箱" required>
-        <textarea name="message" rows="6" placeholder="你的消息..." required></textarea>
-
-        <!-- 防机器人（可选，Web3Forms 自带简单验证；如需 reCAPTCHA 加这里） -->
-        <button type="submit">发送消息</button>
-      </form>
-
-      <div id="form-response" style="margin-top: 20px;"></div>
     </section>
   </main>
 
-  <!-- 新增 JS：处理表单提交反馈（平滑、无刷新） -->
-  <script>
-    const form = document.getElementById('contact-form');
-    const responseDiv = document.getElementById('form-response');
-
-    form.addEventListener('submit', function(e) {
-      e.preventDefault(); // 阻止默认提交
-
-      const formData = new FormData(form);
-      fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          responseDiv.innerHTML = '<div class="success-msg">消息发送成功！谢谢～ 我会尽快回复。</div>';
-          form.reset(); // 清空表单
-        } else {
-          responseDiv.innerHTML = '<div class="error-msg">发送失败：' + (data.message || '请稍后重试') + '</div>';
-        }
-      })
-      .catch(() => {
-        responseDiv.innerHTML = '<div class="error-msg">网络问题，请检查连接或稍后重试。</div>';
-      });
-    });
-  </script>
 </body>
 </html>
