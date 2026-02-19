@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AY - 个人主页</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
     * {
       margin: 0;
@@ -88,7 +86,7 @@
     main {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 140px 24px 80px;     /* 顶部 padding 加大，避免被圆角 header 挡 */
+      padding: 140px 24px 300px;     /* 顶部 padding 加大，避免被圆角 header 挡；底部增加 300px 确保能滚动到联系我们 */
     }
     /* 其余样式保持原样（h1, intro, photos, section 等全部不变） */
     h1 {
@@ -216,5 +214,40 @@
     </section>
   </main>
 
+  <script>
+    // 监听滚动事件，实现导航栏高亮跟随
+    window.addEventListener('scroll', () => {
+      let current = '#'; // 默认为首页
+      const sections = document.querySelectorAll('[id]'); // 获取所有带 id 的区块 (#works, #about, #contact)
+      
+      // 遍历所有区块，判断当前滚动位置在哪个区块范围内
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        // 这里的 300 是一个偏移量，保证滚动到区块大概位置时就高亮
+        if (window.scrollY >= (sectionTop - 300)) {
+          current = '#' + section.getAttribute('id');
+        }
+      });
+
+      // 如果滚动条在页面最顶部，强制设为首页
+      if (window.scrollY < 100) {
+        current = '#';
+      }
+
+      // 强制修正：如果滚动到了页面底部，则高亮最后一个（联系）
+      // 判断条件：window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
+        current = '#contact';
+      }
+
+      // 更新导航链接的 active 类
+      document.querySelectorAll('.nav-links a').forEach(a => {
+        a.classList.remove('active');
+        if (a.getAttribute('href') === current) {
+          a.classList.add('active');
+        }
+      });
+    });
+  </script>
 </body>
 </html>
