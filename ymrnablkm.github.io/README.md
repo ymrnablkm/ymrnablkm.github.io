@@ -1,1 +1,0 @@
-# ymrnablkm.github.io
