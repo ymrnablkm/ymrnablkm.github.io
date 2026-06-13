@@ -219,7 +219,6 @@
     nav {
       padding: 12px 24px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
     }
     .logo {
@@ -229,21 +228,6 @@
       background: linear-gradient(90deg, #fff, #a0a0ff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-    }
-    .nav-links { display: flex; gap: 32px; }
-    .nav-links a {
-      color: #d1d1d6;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 1rem;
-      padding: 8px 12px;
-      border-radius: 16px;
-      transition: all 0.25s ease;
-    }
-    .nav-links a:hover,
-    .nav-links a.active {
-      color: #ffffff;
-      background: rgba(255,255,255,0.08);
     }
 
     /* ===== 主体 ===== */
@@ -751,15 +735,12 @@
       header { top: 12px; left: 88px; right: 12px; border-radius: 24px; }
       nav { padding: 10px 16px; }
       .logo { font-size: 1.2rem; }
-      .nav-links { gap: 10px; font-size: 0.9rem; }
-      .nav-links a { padding: 6px 10px; }
       .menu-btn { top: 14px; left: 14px; width: 50px; height: 50px; border-radius: 16px; }
       .sidebar { width: 85vw; padding: 90px 24px 32px; }
       .detail-body { padding: 24px 20px 28px; }
       .detail-modal .detail-cover { height: 140px; font-size: 4rem; }
     }
     @media (max-width: 560px) {
-      .nav-links a:not(.active) { display: none; }
       .resource-grid { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; }
       .toolbar { flex-direction: column; align-items: stretch; }
       .category-tabs { justify-content: flex-start; }
@@ -802,16 +783,10 @@
     </div>
   </aside>
 
-  <!-- 顶部导航 -->
+  <!-- 顶部导航（Logo + 侧边栏入口） -->
   <header>
     <nav>
       <div class="logo">AY · 资源分享</div>
-      <div class="nav-links" id="topNav">
-        <a href="index.html">首页</a>
-        <a href="posts.html" class="active">资源库</a>
-        <a href="index.html#about">关于</a>
-        <a href="index.html#contact">联系</a>
-      </div>
     </nav>
   </header>
 

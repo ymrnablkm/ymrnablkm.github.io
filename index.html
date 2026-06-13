@@ -304,7 +304,6 @@
     nav {
       padding: 12px 24px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
     }
     .logo {
@@ -314,21 +313,6 @@
       background: linear-gradient(90deg, #fff, #a0a0ff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-    }
-    .nav-links { display: flex; gap: 32px; }
-    .nav-links a {
-      color: #d1d1d6;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 1rem;
-      padding: 8px 12px;
-      border-radius: 16px;
-      transition: all 0.25s ease;
-    }
-    .nav-links a:hover,
-    .nav-links a.active {
-      color: #ffffff;
-      background: rgba(255,255,255,0.08);
     }
 
     /* ===== 主体 ===== */
@@ -1042,31 +1026,18 @@
     }
 
     /* ===== 响应式 ===== */
-    @media (max-width: 900px) {
-      .resource-grid { grid-template-columns: repeat(2, 1fr); }
-    }
     @media (max-width: 768px) {
       main { padding-top: 120px; padding-bottom: 120px; }
       header { top: 12px; left: 88px; right: 12px; border-radius: 24px; }
       nav { padding: 10px 16px; }
       .logo { font-size: 1.2rem; }
-      .nav-links { gap: 10px; font-size: 0.9rem; }
-      .nav-links a { padding: 6px 10px; }
       .menu-btn { top: 14px; left: 14px; width: 50px; height: 50px; border-radius: 16px; }
       .sidebar { width: 85vw; padding: 90px 24px 32px; }
-      .detail-body { padding: 24px 20px 28px; }
-      .detail-modal .detail-cover { height: 140px; font-size: 4rem; }
       .section-title { font-size: 2rem; }
       h1 { font-size: clamp(2.5rem, 9vw, 4.5rem); }
     }
     @media (max-width: 560px) {
-      .nav-links a:not(.active) { display: none; }
-      .nav-links a.active { display: inline-block; }
-      .resource-grid { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; }
       .toolbar { flex-direction: column; align-items: stretch; }
-      .category-tabs { justify-content: flex-start; }
-      .drive-item { flex-direction: column; align-items: flex-start; }
-      .drive-actions { width: 100%; justify-content: flex-end; }
     }
 
     /* 禁止滚动 */
@@ -1109,16 +1080,10 @@
     </div>
   </aside>
 
-  <!-- 顶部导航 -->
+  <!-- 顶部导航（Logo + 侧边栏入口） -->
   <header>
     <nav>
       <div class="logo">AY · 资源分享</div>
-      <div class="nav-links" id="topNav">
-        <a href="#" class="active">首页</a>
-        <a href="posts.html">资源库</a>
-        <a href="#about">关于</a>
-        <a href="#contact">联系</a>
-      </div>
     </nav>
   </header>
 
@@ -1419,46 +1384,33 @@
       });
     })();
 
-    /* ===== 顶部导航 / 侧边栏激活状态同步 ===== */
-    function updateActiveLink(currentHref) {
-      document.querySelectorAll('#topNav a').forEach(a => {
-        a.classList.remove('active');
-        if (a.getAttribute('href') === currentHref) a.classList.add('active');
-      });
-      document.querySelectorAll('#sidebarNav a').forEach(a => {
-        a.classList.remove('active');
-        if (a.getAttribute('data-target') === currentHref) a.classList.add('active');
-      });
-    }
+    /* ===== 侧边栏激活状态（首页锚点滚动时高亮侧边栏） ===== */
     window.addEventListener('scroll', () => {
-      let current = '#';
       const sections = document.querySelectorAll('section[id]');
+      let current = '#';
       sections.forEach(section => {
         if (window.scrollY >= (section.offsetTop - 300)) {
           current = '#' + section.getAttribute('id');
         }
       });
       if (window.scrollY < 100) current = '#';
-      if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 50) {
-        current = '#contact';
-      }
-      updateActiveLink(current);
+      document.querySelectorAll('#sidebarNav a').forEach(a => {
+        a.classList.remove('active');
+        const target = a.getAttribute('href') || a.getAttribute('data-target') || '';
+        if (target === current) a.classList.add('active');
+      });
     });
 
-    /* ===== 导航点击：平滑滚动 + 关闭侧边栏 ===== */
-    function handleNavClick(e, href) {
-      // 外链 / 子页面：直接跳转
+    /* ===== 侧边栏导航点击：平滑滚动 + 关闭侧边栏 ===== */
+    function handleSidebarNavClick(e, href) {
+      // 子页面跳转：直接跳转并关闭侧边栏
       if (href && !href.startsWith('#')) {
-        // 由浏览器默认行为处理，这里仅关闭侧边栏
-        if (sidebar.classList.contains('open')) {
-          e.preventDefault();
-          toggleSidebar(true);
-          setTimeout(() => { window.location.href = href; }, 200);
-        }
+        e.preventDefault();
+        if (sidebar.classList.contains('open')) toggleSidebar(true);
+        setTimeout(() => { window.location.href = href; }, 200);
         return;
       }
       e.preventDefault();
-      updateActiveLink(href);
       if (href === '#') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
@@ -1473,11 +1425,10 @@
         setTimeout(() => toggleSidebar(true), 250);
       }
     }
-    document.querySelectorAll('#topNav a').forEach(link => {
-      link.addEventListener('click', (e) => handleNavClick(e, link.getAttribute('href')));
-    });
     document.querySelectorAll('#sidebarNav a').forEach(link => {
-      link.addEventListener('click', (e) => handleNavClick(e, link.getAttribute('href')));
+      link.addEventListener('click', (e) => {
+        handleSidebarNavClick(e, link.getAttribute('href'));
+      });
     });
 
     /* ===== 鼠标视差：背景光斑 ===== */
