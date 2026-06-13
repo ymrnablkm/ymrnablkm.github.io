@@ -369,13 +369,14 @@
 
     .photos {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 32px;
-      margin-bottom: 120px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      max-width: 780px;
+      margin: 0 auto 120px;
     }
     .photo-card {
-      aspect-ratio: 4/5;
-      border-radius: 32px;
+      aspect-ratio: 3/4;
+      border-radius: 24px;
       overflow: hidden;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5);
       transition: transform 0.5s cubic-bezier(0.16,1,0.3,1), box-shadow 0.5s ease;
@@ -481,6 +482,8 @@
     @media (max-width: 560px) {
       .nav-links a:not(.active) { display: none; }
       .nav-links a.active { display: inline-block; }
+      .photos { grid-template-columns: 1fr; max-width: 360px; gap: 18px; }
+      .photo-card { border-radius: 20px; }
     }
 
     /* 防止侧边栏打开时主体滚动 */
