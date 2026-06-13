@@ -57,15 +57,16 @@ def _normalize_url(raw):
 def extract_fields(text):
     fields = {}
     drives_raw = []
+    images_raw = []
 
     lines = text.split('\n')
     i = 0
     while i < len(lines):
         line = lines[i].strip()
 
-        # 单行 key: value（支持中文冒号）
+        # 单行 key: value（支持中文冒号，新增更多网盘和图片）
         single = re.match(
-            r'^(标题|标题 title|分类|category|大小|size|图标|emoji|简介|desc|详情|fullDesc|description|置顶|pin|pinned|百度网盘|百度|baidu|夸克网盘|夸克|quark|阿里云盘|阿里|aliyun)\s*[：:]\s*(.*)$',
+            r'^(标题|标题 title|分类|category|大小|size|图标|emoji|简介|desc|详情|fullDesc|description|置顶|pin|pinned|图片|image|img|百度网盘|百度|baidu|夸克网盘|夸克|quark|阿里云盘|阿里|aliyun|123云盘|123|蓝奏云|蓝奏|lanzou|天翼云盘|天翼|ty|迅雷云盘|迅雷|xunlei)\s*[：:]\s*(.*)$',
             line, re.I)
         if single:
             key = single.group(1).lower()
@@ -77,7 +78,7 @@ def extract_fields(text):
                 while j < len(lines):
                     nxt = lines[j].strip()
                     if re.match(
-                        r'^(分类|category|大小|size|图标|emoji|简介|desc|百度网盘|夸克网盘|阿里云盘|置顶|pin|pinned|百度|夸克|阿里)\s*[：:]',
+                        r'^(分类|category|大小|size|图标|emoji|简介|desc|百度网盘|夸克网盘|阿里云盘|123云盘|蓝奏云|天翼云盘|迅雷云盘|置顶|pin|pinned|图片|image|百度|夸克|阿里|123|蓝奏|天翼|迅雷)\s*[：:]',
                         nxt, re.I):
                         break
                     full_lines.append(lines[j])
@@ -85,13 +86,38 @@ def extract_fields(text):
                 fields['fulldesc'] = '\n'.join(full_lines).strip()
                 i = j
                 continue
+            # 处理 图片: 的多行内容
+            if key in ('图片', 'image', 'img'):
+                img_lines = [value] if value else []
+                j = i + 1
+                while j < len(lines):
+                    nxt = lines[j].strip()
+                    if re.match(
+                        r'^(分类|category|大小|size|图标|emoji|简介|desc|详情|fulldesc|百度网盘|夸克网盘|阿里云盘|123云盘|蓝奏云|天翼云盘|迅雷云盘|置顶|pin|pinned|百度|夸克|阿里|123|蓝奏|天翼|迅雷)\s*[：:]',
+                        nxt, re.I):
+                        break
+                    if nxt.startswith('http'):
+                        img_lines.append(nxt)
+                    j += 1
+                images_raw.extend(img_lines)
+                i = j
+                continue
 
+            # 网盘类型
             if key in ('百度网盘', '百度', 'baidu'):
                 drives_raw.append(('百度网盘', value))
             elif key in ('夸克网盘', '夸克', 'quark'):
                 drives_raw.append(('夸克网盘', value))
             elif key in ('阿里云盘', '阿里', 'aliyun'):
                 drives_raw.append(('阿里云盘', value))
+            elif key in ('123云盘', '123'):
+                drives_raw.append(('123云盘', value))
+            elif key in ('蓝奏云', '蓝奏', 'lanzou'):
+                drives_raw.append(('蓝奏云', value))
+            elif key in ('天翼云盘', '天翼', 'ty'):
+                drives_raw.append(('天翼云盘', value))
+            elif key in ('迅雷云盘', '迅雷', 'xunlei'):
+                drives_raw.append(('迅雷云盘', value))
             else:
                 fields[key] = value
             i += 1
@@ -101,13 +127,24 @@ def extract_fields(text):
         url_match = re.search(r'https?://[^\s)，。；;）\]\}\'"]+', line)
         if url_match:
             link = url_match.group(0)
-            # 尝试猜测网盘类型
-            if 'pan.baidu' in link or ('baidu' in link and 'http' in link):
+            # 图片链接（常见图片格式）
+            if re.search(r'\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$', link, re.I):
+                images_raw.append(link)
+            # 网盘链接
+            elif 'pan.baidu' in link or ('baidu' in link and 'http' in link):
                 drives_raw.append(('百度网盘', line))
             elif 'pan.quark' in link or ('quark' in link and 'http' in link):
                 drives_raw.append(('夸克网盘', line))
             elif 'aliyundrive' in link or 'alipan' in link or ('aliyun' in link and 'http' in link):
                 drives_raw.append(('阿里云盘', line))
+            elif '123pan' in link or ('123' in link and 'http' in link):
+                drives_raw.append(('123云盘', line))
+            elif 'lanzou' in link or ('lanzou' in link and 'http' in link):
+                drives_raw.append(('蓝奏云', line))
+            elif 'cloud.189' in link or ('189' in link and 'http' in link):
+                drives_raw.append(('天翼云盘', line))
+            elif 'pan.xunlei' in link or ('xunlei' in link and 'http' in link):
+                drives_raw.append(('迅雷云盘', line))
         i += 1
 
     # 提取每个 drive 的 url 与 code
@@ -128,7 +165,9 @@ def extract_fields(text):
             if d['code'] == '—':
                 d['code'] = all_codes_in_body[0][1]
 
-    return fields, drives
+    # 图片去重
+    images = list(set(images_raw))
+    return fields, drives, images
 
 
 def infer_category_from_labels(labels_raw):
@@ -157,7 +196,7 @@ def main():
         _set_output(False, '忽略：空 Issue')
         return
 
-    fields, drives = extract_fields(body)
+    fields, drives, images = extract_fields(body)
 
     # 分类：优先 body 中字段，其次 labels
     cat_input = (fields.get('分类') or fields.get('category') or '').strip()
@@ -213,6 +252,7 @@ def main():
         'size': size,
         'date': today,
         'drives': drives,
+        'images': images,
         'pinned': pinned,
     }
 

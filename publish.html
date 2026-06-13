@@ -131,17 +131,107 @@
     transform: scale(1.1);
   }
 
-  .drive-box {
+  /* 网盘区块 */
+  .drive-section {
     background: rgba(0,0,0,0.25);
     border: 1px dashed rgba(255,255,255,0.15);
     border-radius: 14px;
-    padding: 14px;
+    padding: 16px;
     margin-top: 8px;
   }
-  .drive-title { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 10px; }
-  .drive-item { display: flex; gap: 8px; margin-bottom: 8px; }
-  .drive-item input { flex: 1; font-size: 0.9rem; padding: 10px 12px; border-radius: 10px; }
-  .drive-item input.code { width: 110px; flex: none; }
+  .drive-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 640px) {
+    .drive-grid { grid-template-columns: 1fr; }
+  }
+  .drive-item {
+    background: rgba(255,255,255,0.03);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .drive-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .drive-inputs {
+    display: flex;
+    gap: 8px;
+  }
+  .drive-inputs input {
+    flex: 1;
+    font-size: 0.88rem;
+    padding: 9px 11px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.35);
+  }
+  .drive-inputs input.code {
+    width: 90px;
+    flex: none;
+  }
+
+  /* 图片区块 */
+  .images-section {
+    background: rgba(0,0,0,0.25);
+    border: 1px dashed rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 8px;
+  }
+  .image-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+  .image-row input {
+    flex: 1;
+    font-size: 0.88rem;
+    padding: 9px 11px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.35);
+  }
+  .add-img-btn, .remove-img-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(168,85,247,0.2);
+    border: 1px solid rgba(168,85,247,0.3);
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .add-img-btn:hover { background: rgba(168,85,247,0.35); }
+  .remove-img-btn {
+    background: rgba(239,68,68,0.15);
+    border-color: rgba(239,68,68,0.3);
+  }
+  .remove-img-btn:hover { background: rgba(239,68,68,0.25); }
+  .img-preview {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .img-preview-item {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    object-fit: cover;
+  }
 
   .toggle-row {
     display: flex;
@@ -212,7 +302,6 @@
   .help-box ol { padding-left: 18px; margin: 4px 0; }
   .help-box li { margin-bottom: 4px; }
 
-  /* 侧边栏按钮 */
   .menu-btn {
     position: fixed;
     top: 20px;
@@ -293,6 +382,9 @@
         <span class="emoji-chip" data-emoji="🎵">🎵</span>
         <span class="emoji-chip" data-emoji="💾">💾</span>
         <span class="emoji-chip" data-emoji="📦">📦</span>
+        <span class="emoji-chip" data-emoji="⚡">⚡</span>
+        <span class="emoji-chip" data-emoji="🔥">🔥</span>
+        <span class="emoji-chip" data-emoji="✨">✨</span>
       </div>
     </div>
 
@@ -311,23 +403,73 @@
       <textarea id="f-fulldesc" rows="4" placeholder="• 分辨率：均为 4K&#10;• 已按季节分类&#10;• 解压后直接使用"></textarea>
     </div>
 
+    <!-- 资源图片 -->
     <div class="field">
-      <label>网盘链接 <span class="hint">(任选 1~3 个，没有的留空)</span></label>
-      <div class="drive-box">
-        <div class="drive-title">☁️ 百度网盘</div>
-        <div class="drive-item">
-          <input type="text" id="f-baidu" placeholder="https://pan.baidu.com/s/xxxxxx">
-          <input type="text" id="f-baidu-code" class="code" placeholder="提取码">
+      <label>资源图片 <span class="hint">(可选，添加图片URL让帖子更直观)</span></label>
+      <div class="images-section" id="imagesSection">
+        <div class="image-row" id="imgRow0">
+          <input type="text" id="f-img0" placeholder="图片URL（例如：https://xxx.com/image.jpg）" oninput="previewImages()">
+          <button class="remove-img-btn" onclick="removeImage(0)" style="visibility:hidden;">×</button>
         </div>
-        <div class="drive-title" style="margin-top:10px;">☁️ 夸克网盘</div>
-        <div class="drive-item">
-          <input type="text" id="f-quark" placeholder="https://pan.quark.cn/s/xxxxxx">
-          <input type="text" id="f-quark-code" class="code" placeholder="提取码（可选）">
-        </div>
-        <div class="drive-title" style="margin-top:10px;">☁️ 阿里云盘</div>
-        <div class="drive-item">
-          <input type="text" id="f-ali" placeholder="https://www.aliyundrive.com/s/xxxxxx">
-          <input type="text" id="f-ali-code" class="code" placeholder="提取码（可选）">
+        <button class="add-img-btn" onclick="addImageInput()" style="width:100%;margin-top:8px;">+ 添加更多图片</button>
+        <div class="img-preview" id="imgPreview"></div>
+      </div>
+    </div>
+
+    <!-- 网盘链接（更多选项） -->
+    <div class="field">
+      <label>网盘链接 <span class="hint">(任选 1~7 个，没有的留空)</span></label>
+      <div class="drive-section">
+        <div class="drive-grid">
+          <div class="drive-item">
+            <div class="drive-label">☁️ 百度网盘</div>
+            <div class="drive-inputs">
+              <input type="text" id="f-baidu" placeholder="链接">
+              <input type="text" id="f-baidu-code" class="code" placeholder="提取码">
+            </div>
+          </div>
+          <div class="drive-item">
+            <div class="drive-label">☁️ 夸克网盘</div>
+            <div class="drive-inputs">
+              <input type="text" id="f-quark" placeholder="链接">
+              <input type="text" id="f-quark-code" class="code" placeholder="提取码">
+            </div>
+          </div>
+          <div class="drive-item">
+            <div class="drive-label">☁️ 阿里云盘</div>
+            <div class="drive-inputs">
+              <input type="text" id="f-ali" placeholder="链接">
+              <input type="text" id="f-ali-code" class="code" placeholder="提取码">
+            </div>
+          </div>
+          <div class="drive-item">
+            <div class="drive-label">☁️ 123云盘</div>
+            <div class="drive-inputs">
+              <input type="text" id="f-123" placeholder="链接">
+              <input type="text" id="f-123-code" class="code" placeholder="提取码">
+            </div>
+          </div>
+          <div class="drive-item">
+            <div class="drive-label">☁️ 蓝奏云</div>
+            <div class="drive-inputs">
+              <input type="text" id="f-lanzou" placeholder="链接">
+              <input type="text" id="f-lanzou-code" class="code" placeholder="密码">
+            </div>
+          </div>
+          <div class="drive-item">
+            <div class="drive-label">☁️ 天翼云盘</div>
+            <div class="drive-inputs">
+              <input type="text" id="f-ty" placeholder="链接">
+              <input type="text" id="f-ty-code" class="code" placeholder="提取码">
+            </div>
+          </div>
+          <div class="drive-item">
+            <div class="drive-label">☁️ 迅雷云盘</div>
+            <div class="drive-inputs">
+              <input type="text" id="f-xunlei" placeholder="链接">
+              <input type="text" id="f-xunlei-code" class="code" placeholder="提取码">
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -356,7 +498,7 @@
 </main>
 
 <script>
-  // 选中 emoji
+  // emoji 选择
   document.querySelectorAll('.emoji-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       document.querySelectorAll('.emoji-chip').forEach(c => c.classList.remove('active'));
@@ -364,7 +506,50 @@
     });
   });
 
-  function $(id) { return document.getElementById(id).value.trim(); }
+  // 图片输入管理
+  let imageCount = 1;
+  function addImageInput() {
+    if (imageCount >= 5) return;
+    const section = document.getElementById('imagesSection');
+    const newRow = document.createElement('div');
+    newRow.className = 'image-row';
+    newRow.id = `imgRow${imageCount}`;
+    newRow.innerHTML = `
+      <input type="text" id="f-img${imageCount}" placeholder="图片URL" oninput="previewImages()">
+      <button class="remove-img-btn" onclick="removeImage(${imageCount})">×</button>
+    `;
+    section.insertBefore(newRow, section.querySelector('.add-img-btn'));
+    imageCount++;
+    updateRemoveButtons();
+  }
+  function removeImage(idx) {
+    const row = document.getElementById(`imgRow${idx}`);
+    if (row) row.remove();
+    imageCount--;
+    updateRemoveButtons();
+    previewImages();
+  }
+  function updateRemoveButtons() {
+    document.querySelectorAll('.remove-img-btn').forEach(btn => {
+      btn.style.visibility = imageCount > 1 ? 'visible' : 'hidden';
+    });
+  }
+  function previewImages() {
+    const preview = document.getElementById('imgPreview');
+    preview.innerHTML = '';
+    for (let i = 0; i < imageCount; i++) {
+      const input = document.getElementById(`f-img${i}`);
+      if (input && input.value.trim()) {
+        const img = document.createElement('img');
+        img.className = 'img-preview-item';
+        img.src = input.value.trim();
+        img.onerror = () => img.style.opacity = '0.3';
+        preview.appendChild(img);
+      }
+    }
+  }
+
+  function $(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
   function activeEmoji() {
     const active = document.querySelector('.emoji-chip.active');
     return active ? active.dataset.emoji : '📦';
@@ -377,19 +562,45 @@
     const size = $('f-size') || '—';
     const desc = $('f-desc') || '—';
     const fulldesc = $('f-fulldesc') || '—';
-    const baidu = $('f-baidu'); const baiduCode = $('f-baidu-code');
-    const quark = $('f-quark'); const quarkCode = $('f-quark-code');
-    const ali = $('f-ali'); const aliCode = $('f-ali-code');
     const pinned = document.getElementById('sw-pinned').classList.contains('on');
 
+    // 收集图片
+    const images = [];
+    for (let i = 0; i < imageCount; i++) {
+      const url = $('f-img' + i);
+      if (url) images.push(url);
+    }
+
+    // 收集网盘
+    const drives = [];
+    const driveMap = [
+      ['f-baidu', 'f-baidu-code', '百度网盘'],
+      ['f-quark', 'f-quark-code', '夸克网盘'],
+      ['f-ali', 'f-ali-code', '阿里云盘'],
+      ['f-123', 'f-123-code', '123云盘'],
+      ['f-lanzou', 'f-lanzou-code', '蓝奏云'],
+      ['f-ty', 'f-ty-code', '天翼云盘'],
+      ['f-xunlei', 'f-xunlei-code', '迅雷云盘'],
+    ];
+    driveMap.forEach(([urlId, codeId, name]) => {
+      const url = $(urlId);
+      if (url) drives.push({ name, url, code: $(codeId) || '—' });
+    });
+
+    // 构建 body
     let body = `分类: ${category}\n`;
     body += `大小: ${size}\n`;
     body += `图标: ${emoji}\n\n`;
     body += `简介: ${desc}\n\n`;
     body += `详情:\n${fulldesc}\n\n`;
-    if (baidu) body += `百度网盘: ${baidu}${baiduCode ? '  提取码: ' + baiduCode : '  无提取码'}\n`;
-    if (quark) body += `夸克网盘: ${quark}${quarkCode ? '  提取码: ' + quarkCode : '  无提取码'}\n`;
-    if (ali)   body += `阿里云盘: ${ali}${aliCode ? '  提取码: ' + aliCode : '  无提取码'}\n`;
+    if (images.length) {
+      body += `图片:\n`;
+      images.forEach(url => body += `${url}\n`);
+      body += '\n';
+    }
+    drives.forEach(d => {
+      body += `${d.name}: ${d.url}${d.code !== '—' ? '  提取码: ' + d.code : '  无提取码'}\n`;
+    });
     body += `\n置顶: ${pinned ? 'true' : 'false'}`;
 
     const fullTitle = `【${category}】${title.replace(/^【.*?】/, '')}`;
@@ -402,9 +613,23 @@
   }
 
   function resetForm() {
-    ['f-title','f-size','f-desc','f-fulldesc','f-baidu','f-baidu-code','f-quark','f-quark-code','f-ali','f-ali-code'].forEach(id => {
-      document.getElementById(id).value = '';
+    const fields = ['f-title','f-size','f-desc','f-fulldesc',
+      'f-baidu','f-baidu-code','f-quark','f-quark-code','f-ali','f-ali-code',
+      'f-123','f-123-code','f-lanzou','f-lanzou-code','f-ty','f-ty-code','f-xunlei','f-xunlei-code'];
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
     });
+    // 重置图片
+    for (let i = 1; i < imageCount; i++) {
+      const row = document.getElementById(`imgRow${i}`);
+      if (row) row.remove();
+    }
+    imageCount = 1;
+    document.getElementById('f-img0').value = '';
+    document.getElementById('imgPreview').innerHTML = '';
+    updateRemoveButtons();
+
     document.getElementById('f-category').value = '素材';
     document.querySelectorAll('.emoji-chip').forEach(c => c.classList.remove('active'));
     document.querySelector('.emoji-chip[data-emoji="🎨"]').classList.add('active');

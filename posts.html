@@ -644,6 +644,25 @@
     }
 
     .drive-list { display: flex; flex-direction: column; gap: 12px; }
+    .image-gallery {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .preview-img {
+      width: 100%;
+      max-width: 280px;
+      height: auto;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .preview-img:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
     .drive-item {
       display: flex;
       align-items: center;
@@ -993,9 +1012,19 @@
         </div>
       `).join('');
 
+      // 图片展示
+      const images = (r.images || []);
+      const imagesHtml = images.length > 0 ? `
+        <div class="section-label">资源预览</div>
+        <div class="image-gallery">
+          ${images.map(url => `<img src="${escapeHTML(url)}" class="preview-img" onclick="window.open('${escapeHTML(url)}', '_blank')">`).join('')}
+        </div>
+      ` : '';
+
       modalBody.innerHTML = `
         ${tags}
         <h2>${escapeHTML(r.title)}</h2>
+        ${imagesHtml}
         <div class="section-label">资源介绍</div>
         <div class="full-desc">${escapeHTML(r.fullDesc || r.desc || '')}</div>
         <div class="section-label">下载链接</div>
