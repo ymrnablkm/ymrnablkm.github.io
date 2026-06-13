@@ -1373,39 +1373,24 @@
       } else {
         sidebar.classList.remove('open');
         menuBtn.classList.remove('open');
-        // 如果弹窗也没打开，才关闭遮罩
-        if (!modal.classList.contains('show')) {
-          backdrop.classList.remove('show');
-        }
-        if (!modal.classList.contains('show')) {
-          document.body.classList.remove('no-scroll');
-        }
+        backdrop.classList.remove('show');
+        document.body.classList.remove('no-scroll');
         menuBtn.setAttribute('aria-expanded', 'false');
         sidebar.setAttribute('aria-hidden', 'true');
       }
     }
     menuBtn.addEventListener('click', () => toggleSidebar());
 
-    // 点击遮罩：关闭所有打开的内容
+    // 点击遮罩：关闭侧边栏
     backdrop.addEventListener('click', () => {
       if (sidebar.classList.contains('open')) toggleSidebar(true);
-      if (modal.classList.contains('show')) closeDetail();
     });
 
-    // Esc 键：关闭最上层的
+    // Esc 键：关闭侧边栏
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        if (modal.classList.contains('show')) {
-          closeDetail();
-        } else if (sidebar.classList.contains('open')) {
-          toggleSidebar(true);
-        }
+      if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+        toggleSidebar(true);
       }
-    });
-
-    // 点击卡片弹窗外部，关闭弹窗
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeDetail();
     });
 
     /* ===== 滚动入场动画 ===== */
