@@ -1,0 +1,56 @@
+name: Sync Issue to Posts
+
+on:
+  issues:
+    types: [opened, edited, closed, reopened, labeled, unlabeled]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Issue-to-Posts sync script
+        id: sync
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_STATE: ${{ github.event.issue.state }}
+          ISSUE_LABELS: ${{ toJSON(github.event.issue.labels) }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_UPDATED_AT: ${{ github.event.issue.updated_at }}
+          EVENT_ACTION: ${{ github.event.action }}
+        run: |
+          python3 .github/scripts/sync_issue_to_posts.py
+
+      - name: Commit & push changes
+        if: steps.sync.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/posts.json
+          git commit -m "chore(posts): 同步 Issue #${{ github.event.issue.number }} ($(date -u +%Y-%m-%dT%H:%MZ))"
+          git push origin HEAD:main
+
+      - name: Add comment on success
+        if: steps.sync.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ 已同步到资源列表。\n\n操作：${{ steps.sync.outputs.summary }}\n\n稍后刷新页面即可看到更新。`
+            })
