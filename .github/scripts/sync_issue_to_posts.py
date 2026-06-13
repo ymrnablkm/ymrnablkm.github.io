@@ -37,6 +37,23 @@ EMOJI_MAP = {'素材': '🎨', '软件': '🧰', '教程': '📚', '其他': '�
 POSTS_FILE = Path('data/posts.json')
 
 
+def _normalize_url(raw):
+    """规范化 URL：修复中文冒号、去掉末尾标点、确保有路径"""
+    url = raw.strip()
+    # 统一处理中文冒号为英文冒号
+    url = url.replace('\uff1a', ':').replace('：', ':')
+    # 去掉末尾的非 URL 字符（但保留 /s/xxx 部分）
+    url = re.sub(r'[\s)）\]\}）"\']+$', '', url)
+    # 如果 URL 只有域名没有路径，尝试补全
+    if re.match(r'^https?://pan\.baidu\.com/?$', url):
+        url = url.rstrip('/') + '/s/请替换为完整链接'
+    elif re.match(r'^https?://pan\.quark\.cn/?$', url):
+        url = url.rstrip('/') + '/s/请替换为完整链接'
+    elif re.match(r'^https?://www\.aliyundrive\.com/?$', url):
+        url = url.rstrip('/') + '/s/请替换为完整链接'
+    return url
+
+
 def extract_fields(text):
     fields = {}
     drives_raw = []
@@ -46,9 +63,9 @@ def extract_fields(text):
     while i < len(lines):
         line = lines[i].strip()
 
-        # 单行 key: value
+        # 单行 key: value（支持中文冒号）
         single = re.match(
-            r'^(标题|标题 title|分类|category|大小|size|图标|emoji|简介|desc|详情|fullDesc|description|置顶|pin|pinned|百度网盘|百度|baidu|夸克网盘|夸克|quark|阿里云盘|阿里|aliyun)\s*[:：]\s*(.*)$',
+            r'^(标题|标题 title|分类|category|大小|size|图标|emoji|简介|desc|详情|fullDesc|description|置顶|pin|pinned|百度网盘|百度|baidu|夸克网盘|夸克|quark|阿里云盘|阿里|aliyun)\s*[：:]\s*(.*)$',
             line, re.I)
         if single:
             key = single.group(1).lower()
@@ -60,7 +77,7 @@ def extract_fields(text):
                 while j < len(lines):
                     nxt = lines[j].strip()
                     if re.match(
-                        r'^(分类|category|大小|size|图标|emoji|简介|desc|百度网盘|夸克网盘|阿里云盘|置顶|pin|pinned|百度|夸克|阿里)\s*[:：]',
+                        r'^(分类|category|大小|size|图标|emoji|简介|desc|百度网盘|夸克网盘|阿里云盘|置顶|pin|pinned|百度|夸克|阿里)\s*[：:]',
                         nxt, re.I):
                         break
                     full_lines.append(lines[j])
@@ -80,32 +97,32 @@ def extract_fields(text):
             i += 1
             continue
 
-        # body 中裸链接（没有显式 key）
-        url_match = re.search(r'https?://[^\s)]+', line)
-        if url_match and line and not any(k in line[:10] for k in [':', '：']):
+        # body 中裸链接（没有显式 key），尝试匹配并提取
+        url_match = re.search(r'https?://[^\s)，。；;）\]\}\'"]+', line)
+        if url_match:
             link = url_match.group(0)
             # 尝试猜测网盘类型
-            if 'pan.baidu' in link or 'baidu' in link:
+            if 'pan.baidu' in link or ('baidu' in link and 'http' in link):
                 drives_raw.append(('百度网盘', line))
-            elif 'pan.quark' in link or 'quark' in link:
+            elif 'pan.quark' in link or ('quark' in link and 'http' in link):
                 drives_raw.append(('夸克网盘', line))
-            elif 'aliyundrive' in link or 'alipan' in link:
+            elif 'aliyundrive' in link or 'alipan' in link or ('aliyun' in link and 'http' in link):
                 drives_raw.append(('阿里云盘', line))
         i += 1
 
     # 提取每个 drive 的 url 与 code
     drives = []
     for name, raw in drives_raw:
-        url = re.search(r'https?://[^\s)]+', raw)
-        code_match = re.search(r'(提取码|码)[^\n]*?([A-Za-z0-9]{3,})', raw, re.I)
-        drives.append({
-            'name': name,
-            'url': url.group(0) if url else '',
-            'code': code_match.group(2) if code_match else '—',
-        })
+        raw_url = re.search(r'https?://[^\s)）\]\}）"\']+', raw)
+        url = _normalize_url(raw_url.group(0)) if raw_url else ''
+        code_match = re.search(r'(提取码|码)\s*[：:]?\s*([A-Za-z0-9]{1,15})', raw, re.I)
+        code = code_match.group(2) if code_match else '—'
+        if code and any(x in code for x in ['无', '没有', '不需要', '不需要码']):
+            code = '—'
+        drives.append({'name': name, 'url': url, 'code': code})
 
     # 为 body 中无 key 的情况，再整文本全局提取提取码（兜底）
-    all_codes_in_body = re.findall(r'(提取码|码)[^\n]*?([A-Za-z0-9]{3,})', text, re.I)
+    all_codes_in_body = re.findall(r'(提取码|码)\s*[：:]?\s*([A-Za-z0-9]{3,15})', text, re.I)
     if all_codes_in_body:
         for d in drives:
             if d['code'] == '—':

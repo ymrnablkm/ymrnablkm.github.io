@@ -131,5 +131,23 @@
       }
     ],
     "pinned": false
+  },
+  {
+    "id": 1001,
+    "title": "【软件】测试实用",
+    "category": "软件",
+    "emoji": "🧰",
+    "desc": "测试使用",
+    "fullDesc": "测试使用\n·测试使用\n·测试实用\n·测试长度",
+    "size": "666MB",
+    "date": "2026-06-13",
+    "drives": [
+      {
+        "name": "百度网盘",
+        "url": "https://pan.baidu.com/s/xxxxx",
+        "code": "6666"
+      }
+    ],
+    "pinned": false
   }
 ]
