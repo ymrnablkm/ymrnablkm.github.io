@@ -21,6 +21,41 @@
       -moz-osx-font-smoothing: grayscale;
       scroll-behavior: smooth;
     }
+
+    /* 背景装饰光斑 */
+    .bg-blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+      animation: blobFloat 20s ease-in-out infinite;
+    }
+    .bg-blob.b1 {
+      width: 500px; height: 500px;
+      top: -100px; left: -100px;
+      background: radial-gradient(circle, #6366f1, transparent 70%);
+      animation-delay: 0s;
+    }
+    .bg-blob.b2 {
+      width: 600px; height: 600px;
+      bottom: -150px; right: -150px;
+      background: radial-gradient(circle, #ec4899, transparent 70%);
+      animation-delay: -7s;
+    }
+    .bg-blob.b3 {
+      width: 400px; height: 400px;
+      top: 40%; left: 40%;
+      background: radial-gradient(circle, #06b6d4, transparent 70%);
+      animation-delay: -14s;
+    }
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(60px, -40px) scale(1.1); }
+      66% { transform: translate(-40px, 60px) scale(0.95); }
+    }
+
     /* 毛玻璃容器通用类 */
     .glass {
       background: rgba(30, 30, 46, 0.35);
@@ -31,30 +66,252 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
       overflow: hidden;
     }
+
+    /* ===== 汉堡按钮 ===== */
+    .menu-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+      z-index: 2001;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    }
+    .menu-btn:hover {
+      transform: scale(1.08) rotate(-3deg);
+      background: rgba(20, 20, 40, 0.7);
+      box-shadow: 0 12px 40px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .menu-btn:active { transform: scale(0.95); }
+    .menu-btn .bars {
+      width: 24px;
+      height: 20px;
+      position: relative;
+    }
+    .menu-btn .bars span {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 2.5px;
+      background: #fff;
+      border-radius: 2px;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+    .menu-btn .bars span:nth-child(1) { top: 0; }
+    .menu-btn .bars span:nth-child(2) { top: 50%; transform: translateY(-50%); width: 75%; }
+    .menu-btn .bars span:nth-child(3) { bottom: 0; }
+
+    /* 打开状态 -> X */
+    .menu-btn.open .bars span:nth-child(1) {
+      top: 50%;
+      transform: translateY(-50%) rotate(45deg);
+    }
+    .menu-btn.open .bars span:nth-child(2) {
+      opacity: 0;
+      transform: translateY(-50%) scale(0);
+    }
+    .menu-btn.open .bars span:nth-child(3) {
+      bottom: 50%;
+      transform: translateY(50%) rotate(-45deg);
+    }
+
+    /* ===== 遮罩层 ===== */
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0);
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+      z-index: 1999;
+      pointer-events: none;
+      transition: background 0.4s ease, backdrop-filter 0.4s ease;
+    }
+    .backdrop.show {
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      pointer-events: auto;
+    }
+
+    /* ===== 侧边栏 ===== */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 320px;
+      max-width: 85vw;
+      background: linear-gradient(180deg, rgba(20,20,40,0.85) 0%, rgba(30,30,60,0.85) 100%);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border-right: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 4px 0 60px rgba(0,0,0,0.5);
+      z-index: 2000;
+      transform: translateX(-110%);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      padding: 100px 32px 40px;
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 10%, rgba(99,102,241,0.15), transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(236,72,153,0.12), transparent 40%);
+      pointer-events: none;
+    }
+
+    .sidebar-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #fff, #a0a0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .sidebar-subtitle {
+      font-size: 0.9rem;
+      color: #a1a1aa;
+      margin-bottom: 40px;
+      letter-spacing: 0.5px;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+    .sidebar-nav a {
+      position: relative;
+      color: #d1d1d6;
+      text-decoration: none;
+      font-size: 1.15rem;
+      font-weight: 500;
+      padding: 16px 20px;
+      border-radius: 16px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    .sidebar.open .sidebar-nav a {
+      opacity: 1;
+      transform: translateX(0);
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1), background 0.3s ease, color 0.3s ease;
+    }
+    .sidebar.open .sidebar-nav a:nth-child(1) { transition-delay: 0.10s; }
+    .sidebar.open .sidebar-nav a:nth-child(2) { transition-delay: 0.18s; }
+    .sidebar.open .sidebar-nav a:nth-child(3) { transition-delay: 0.26s; }
+    .sidebar.open .sidebar-nav a:nth-child(4) { transition-delay: 0.34s; }
+
+    .sidebar-nav a .icon {
+      font-size: 1.3rem;
+      width: 28px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    .sidebar-nav a:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      padding-left: 28px;
+    }
+    .sidebar-nav a:hover .icon { transform: translateX(4px) rotate(-5deg); }
+    .sidebar-nav a.active {
+      background: linear-gradient(90deg, rgba(99,102,241,0.25), rgba(236,72,153,0.15));
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-nav a.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 3px;
+      background: linear-gradient(180deg, #6366f1, #ec4899);
+      border-radius: 3px;
+    }
+
+    .sidebar-footer {
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.8rem;
+      color: #71717a;
+      text-align: center;
+    }
+    .social-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 12px;
+    }
+    .social-row a {
+      width: 36px; height: 36px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #a1a1aa;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .social-row a:hover {
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      color: #fff;
+      transform: translateY(-3px);
+      border-color: transparent;
+      box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+    }
+
     header {
       position: fixed;
-      top: 16px;                    /* ← 从顶部往下一点，像 iOS 浮动栏 */
-      left: 16px;
+      top: 16px;
+      left: 96px;
       right: 16px;
       z-index: 1000;
-      max-width: 1200px;
-      margin: 0 auto;               /* 居中 */
-      border-radius: 32px;          /* ← 大圆角，iOS 26 风格 */
+      max-width: 1100px;
+      margin: 0 auto;
+      border-radius: 32px;
       overflow: hidden;
       background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(32px);  /* 更强模糊 */
+      backdrop-filter: blur(32px);
       -webkit-backdrop-filter: blur(32px);
       border: 1px solid rgba(255,255,255,0.12);
       box-shadow: 
         0 8px 32px rgba(0,0,0,0.4),
-        inset 0 1px 0 rgba(255,255,255,0.08); /* 内发光 */
+        inset 0 1px 0 rgba(255,255,255,0.08);
       transition: all 0.3s ease;
     }
     header:hover {
-      box-shadow: 0 12px 48px rgba(0,0,0,0.5); /* hover 抬升感 */
+      box-shadow: 0 12px 48px rgba(0,0,0,0.5);
     }
     nav {
-      padding: 12px 24px;           /* 内部留白更圆润 */
+      padding: 12px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -73,22 +330,25 @@
       text-decoration: none;
       font-weight: 500;
       font-size: 1rem;
-      transition: color 0.3s;
-      padding: 8px 12px;            /* 每个链接加内边距，像按钮 */
-      border-radius: 16px;          /* 链接本身圆润 */
+      padding: 8px 12px;
+      border-radius: 16px;
       transition: all 0.25s ease;
+      position: relative;
     }
     .nav-links a:hover,
     .nav-links a.active {
       color: #ffffff;
-      background: rgba(255,255,255,0.08); /* 轻微高亮背景 */
+      background: rgba(255,255,255,0.08);
     }
+
     main {
+      position: relative;
+      z-index: 1;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 140px 24px 300px;     /* 顶部 padding 加大，避免被圆角 header 挡；底部增加 300px 确保能滚动到联系我们 */
+      padding: 140px 24px 300px;
     }
-    /* 其余样式保持原样（h1, intro, photos, section 等全部不变） */
+
     h1 {
       font-size: clamp(3rem, 8vw, 6.5rem);
       font-weight: 700;
@@ -106,6 +366,7 @@
       margin-bottom: 60px;
       line-height: 1.6;
     }
+
     .photos {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -117,18 +378,33 @@
       border-radius: 32px;
       overflow: hidden;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      transition: transform 0.5s cubic-bezier(0.16,1,0.3,1), box-shadow 0.5s ease;
+      position: relative;
+      cursor: pointer;
+    }
+    .photo-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.5));
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
     }
     .photo-card:hover {
-      transform: translateY(-12px);
-      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+      transform: translateY(-12px) scale(1.02);
+      box-shadow: 0 30px 80px rgba(99,102,241,0.35);
     }
+    .photo-card:hover::after { opacity: 1; }
     .photo-card img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+      transition: transform 0.8s cubic-bezier(0.16,1,0.3,1);
     }
+    .photo-card:hover img { transform: scale(1.1); }
+
     section {
       margin-bottom: 100px;
     }
@@ -148,28 +424,110 @@
       color: #60a5fa;
       text-decoration: none;
       font-weight: 500;
+      transition: all 0.3s ease;
+      display: inline-block;
     }
     .contact-link:hover {
       text-decoration: underline;
+      transform: translateX(4px);
+      color: #a5b4fc;
     }
+
+    /* 滚动入场动画 */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1);
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .fade-in.delay-1 { transition-delay: 0.1s; }
+    .fade-in.delay-2 { transition-delay: 0.25s; }
+    .fade-in.delay-3 { transition-delay: 0.4s; }
+
+    /* 标题文字逐字显示 */
+    .hero-title {
+      display: inline-block;
+    }
+    .hero-title .char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(60px) rotate(8deg);
+      animation: charIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards;
+    }
+    @keyframes charIn {
+      to {
+        opacity: 1;
+        transform: translateY(0) rotate(0);
+      }
+    }
+
     @media (max-width: 768px) {
       main { padding-top: 120px; padding-bottom: 120px; }
-      .nav-links { gap: 20px; font-size: 0.95rem; }
       header { 
-        top: 12px; left: 12px; right: 12px; 
-        border-radius: 28px; 
-        padding: 10px 20px; 
+        top: 12px; left: 88px; right: 12px; 
+        border-radius: 24px;
       }
-      nav { padding: 8px 16px; }
+      nav { padding: 10px 16px; }
+      .logo { font-size: 1.2rem; }
+      .nav-links { gap: 10px; font-size: 0.9rem; }
+      .nav-links a { padding: 6px 10px; }
+      .menu-btn { top: 14px; left: 14px; width: 50px; height: 50px; border-radius: 16px; }
+      .sidebar { width: 85vw; padding: 90px 24px 32px; }
     }
+
+    @media (max-width: 560px) {
+      .nav-links a:not(.active) { display: none; }
+      .nav-links a.active { display: inline-block; }
+    }
+
+    /* 防止侧边栏打开时主体滚动 */
+    body.no-scroll { overflow: hidden; }
   </style>
 </head>
 <body>
 
+  <!-- 背景光斑装饰 -->
+  <div class="bg-blob b1"></div>
+  <div class="bg-blob b2"></div>
+  <div class="bg-blob b3"></div>
+
+  <!-- 汉堡按钮 -->
+  <button class="menu-btn" id="menuBtn" aria-label="打开菜单" aria-expanded="false">
+    <div class="bars">
+      <span></span><span></span><span></span>
+    </div>
+  </button>
+
+  <!-- 遮罩 -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- 侧边栏 -->
+  <aside class="sidebar" id="sidebar" aria-hidden="true">
+    <div class="sidebar-title">AY</div>
+    <div class="sidebar-subtitle">导航菜单</div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <a href="#" data-target="#" class="active"><span class="icon">⌂</span>首页</a>
+      <a href="#works" data-target="#works"><span class="icon">✦</span>作品</a>
+      <a href="#about" data-target="#about"><span class="icon">◉</span>关于</a>
+      <a href="#contact" data-target="#contact"><span class="icon">✉</span>联系</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div>© 2026 AY · All rights reserved</div>
+      <div class="social-row">
+        <a href="https://x.com/ymrnablkm" target="_blank" rel="noopener noreferrer" title="X">X</a>
+        <a href="mailto:ymrnablkm@gmail.com" title="Email">@</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 顶部导航栏 -->
   <header>
     <nav>
       <div class="logo">AY</div>
-      <div class="nav-links">
+      <div class="nav-links" id="topNav">
         <a href="#" class="active">首页</a>
         <a href="#works">作品</a>
         <a href="#about">关于</a>
@@ -179,10 +537,10 @@
   </header>
 
   <main>
-    <h1>你好，我是 AY</h1>
-    <p class="intro">自由设计师 & 内容创作者<br>追求极致美学与流动体验</p>
+    <h1 class="hero-title" id="heroTitle">你好，我是 AY</h1>
+    <p class="intro fade-in delay-1">自由设计师 &amp; 内容创作者<br>追求极致美学与流动体验</p>
 
-    <div class="photos" id="works">
+    <div class="photos fade-in delay-2" id="works">
       <div class="photo-card glass">
         <img src="grok_image_pnn3w0.jpg" alt="我的照片 1">
       </div>
@@ -191,7 +549,7 @@
       </div>
     </div>
 
-    <section id="about">
+    <section id="about" class="fade-in">
       <h2>关于我</h2>
       <div class="about-text">
         <p>来自 <strong>日本 东京</strong> 的自由设计师与内容创作者。</p>
@@ -199,18 +557,18 @@
       </div>
     </section>
 
-    <section id="contact">
+    <section id="contact" class="fade-in">
       <h2>联系我</h2>
       <div class="contact-text">
         <p>有合作想法、想聊天或反馈？随时找我～</p>
         <p>
-          X（Twitter）： 
+          X（Twitter）：
           <a href="https://x.com/ymrnablkm" class="contact-link" target="_blank" rel="noopener noreferrer">
             @ymrnablkm
           </a>
         </p>
         <p>
-          邮箱： 
+          邮箱：
           <a href="mailto:ymrnablkm@gmail.com" class="contact-link">
             ymrnablkm@gmail.com
           </a>
@@ -221,69 +579,129 @@
   </main>
 
   <script>
-    // 更新导航链接激活状态的函数
-    function updateActiveLink(currentHref) {
-      document.querySelectorAll('.nav-links a').forEach(a => {
-        a.classList.remove('active');
-        if (a.getAttribute('href') === currentHref) {
-          a.classList.add('active');
+    // ===== 侧边栏控制 =====
+    const menuBtn = document.getElementById('menuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('backdrop');
+
+    function toggleMenu(forceClose) {
+      const isOpen = sidebar.classList.contains('open');
+      const shouldOpen = forceClose === true ? false : !isOpen;
+
+      if (shouldOpen) {
+        sidebar.classList.add('open');
+        backdrop.classList.add('show');
+        menuBtn.classList.add('open');
+        menuBtn.setAttribute('aria-expanded', 'true');
+        sidebar.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('no-scroll');
+      } else {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('show');
+        menuBtn.classList.remove('open');
+        menuBtn.setAttribute('aria-expanded', 'false');
+        sidebar.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('no-scroll');
+      }
+    }
+
+    menuBtn.addEventListener('click', () => toggleMenu());
+    backdrop.addEventListener('click', () => toggleMenu(true));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+        toggleMenu(true);
+      }
+    });
+
+    // ===== 标题逐字动画 =====
+    (function animateHeroTitle() {
+      const el = document.getElementById('heroTitle');
+      if (!el) return;
+      const text = el.textContent;
+      el.textContent = '';
+      [...text].forEach((ch, i) => {
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.textContent = ch === ' ' ? '\u00A0' : ch;
+        span.style.animationDelay = (i * 0.06) + 's';
+        el.appendChild(span);
+      });
+    })();
+
+    // ===== 滚动入场动画 (IntersectionObserver) =====
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
         }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // ===== 激活状态管理 =====
+    function updateActiveLink(currentHref) {
+      document.querySelectorAll('#topNav a').forEach(a => {
+        a.classList.remove('active');
+        if (a.getAttribute('href') === currentHref) a.classList.add('active');
+      });
+      document.querySelectorAll('#sidebarNav a').forEach(a => {
+        a.classList.remove('active');
+        if (a.getAttribute('data-target') === currentHref) a.classList.add('active');
       });
     }
 
-    // 监听滚动事件，实现导航栏高亮跟随
     window.addEventListener('scroll', () => {
-      let current = '#'; // 默认为首页
-      const sections = document.querySelectorAll('[id]'); // 获取所有带 id 的区块 (#works, #about, #contact)
-      
-      // 遍历所有区块，判断当前滚动位置在哪个区块范围内
+      let current = '#';
+      const sections = document.querySelectorAll('section[id], div[id]');
       sections.forEach(section => {
         const sectionTop = section.offsetTop;
-        // 这里的 300 是一个偏移量，保证滚动到区块大概位置时就高亮
         if (window.scrollY >= (sectionTop - 300)) {
           current = '#' + section.getAttribute('id');
         }
       });
-
-      // 如果滚动条在页面最顶部，强制设为首页
-      if (window.scrollY < 100) {
-        current = '#';
-      }
-
-      // 强制修正：如果滚动到了页面底部，则高亮最后一个（联系）
+      if (window.scrollY < 100) current = '#';
       if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 50) {
         current = '#contact';
       }
-
-      // 更新导航链接的 active 类
       updateActiveLink(current);
     });
 
-    // 监听导航链接点击事件
-    document.querySelectorAll('.nav-links a').forEach(link => {
-      link.addEventListener('click', function(e) {
-        // 阻止默认行为，先处理激活状态
-        e.preventDefault();
-        
-        // 获取点击的链接href
-        const href = this.getAttribute('href');
-        
-        // 更新激活状态
-        updateActiveLink(href);
-        
-        // 滚动到对应位置，考虑导航栏高度
-        if (href === '#') {
-          // 滚动到顶部
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          // 滚动到对应区块
-          const target = document.querySelector(href);
-          if (target) {
-            const headerHeight = document.querySelector('header').offsetHeight;
-            const targetTop = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - 40;
-            window.scrollTo({ top: targetTop, behavior: 'smooth' });
-          }
+    // ===== 导航点击：平滑滚动 + 关闭侧边栏 =====
+    function handleNavClick(e, href) {
+      e.preventDefault();
+      updateActiveLink(href);
+      if (href === '#') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const target = document.querySelector(href);
+        if (target) {
+          const headerHeight = document.querySelector('header').offsetHeight;
+          const targetTop = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - 40;
+          window.scrollTo({ top: targetTop, behavior: 'smooth' });
         }
+      }
+      // 如果侧边栏打开，点击后关闭
+      if (sidebar.classList.contains('open')) {
+        setTimeout(() => toggleMenu(true), 250);
+      }
+    }
+
+    document.querySelectorAll('#topNav a').forEach(link => {
+      link.addEventListener('click', (e) => handleNavClick(e, link.getAttribute('href')));
+    });
+    document.querySelectorAll('#sidebarNav a').forEach(link => {
+      link.addEventListener('click', (e) => handleNavClick(e, link.getAttribute('data-target')));
+    });
+
+    // ===== 鼠标视差 - 背景光斑 =====
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      document.querySelectorAll('.bg-blob').forEach((blob, i) => {
+        const factor = (i + 1) * 0.6;
+        blob.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
       });
     });
   </script>
