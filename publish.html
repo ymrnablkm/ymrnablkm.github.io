@@ -218,6 +218,82 @@
     border-color: rgba(239,68,68,0.3);
   }
   .remove-img-btn:hover { background: rgba(239,68,68,0.25); }
+  .img-help {
+    background: rgba(59,130,246,0.12);
+    border: 1px solid rgba(59,130,246,0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.88rem;
+    transition: all 0.2s;
+  }
+  .img-help:hover { background: rgba(59,130,246,0.2); }
+  .help-title { color: #c8d8ff; font-weight: 600; }
+  .help-arrow { color: #c8d8ff; transition: transform 0.2s; font-size: 0.7rem; }
+  .img-help.open .help-arrow { transform: rotate(180deg); }
+  .img-help-detail {
+    display: none;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+  .img-help-detail.open { display: block; }
+  .help-step {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    color: #c0c0d0;
+  }
+  .help-step:last-child { margin-bottom: 0; }
+  .help-step-num {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .help-step b { color: #fff; }
+  .img-host-list {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .img-host-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 5px 10px;
+    border-radius: 8px;
+    color: #c8d8ff;
+    text-decoration: none;
+    font-size: 0.78rem;
+    transition: all 0.2s;
+  }
+  .img-host-btn:hover { background: rgba(168,85,247,0.25); border-color: #a855f7; color: #fff; }
+  .help-example {
+    margin-top: 6px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: monospace;
+    font-size: 0.78rem;
+    color: #a0a0ff;
+    word-break: break-all;
+  }
+
   .img-preview {
     display: flex;
     gap: 8px;
@@ -231,6 +307,42 @@
     background: rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.1);
     object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .img-preview-item:hover { transform: scale(1.05); border-color: #a855f7; }
+
+  /* 图片大图预览弹窗 */
+  .img-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(20px);
+  }
+  .img-modal.show { display: flex; }
+  .img-modal img {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .img-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 1.4rem;
+    cursor: pointer;
   }
 
   .toggle-row {
@@ -405,10 +517,41 @@
 
     <!-- 资源图片 -->
     <div class="field">
-      <label>资源图片 <span class="hint">(可选，添加图片URL让帖子更直观)</span></label>
+      <label>资源图片 <span class="hint">(可选，让帖子更生动)</span></label>
       <div class="images-section" id="imagesSection">
+        <div class="img-help" onclick="toggleImgHelp()">
+          <span class="help-title">📷 不知道图片URL怎么获取？</span>
+          <span class="help-arrow">▼</span>
+        </div>
+        <div class="img-help-detail" id="imgHelpDetail">
+          <div class="help-step">
+            <div class="help-step-num">1</div>
+            <div>
+              <b>去免费图床上传</b>，获取图片链接：
+              <div class="img-host-list">
+                <a class="img-host-btn" href="https://sm.ms" target="_blank">🔗 sm.ms</a>
+                <a class="img-host-btn" href="https://postimages.org" target="_blank">🔗 Postimages</a>
+                <a class="img-host-btn" href="https://imgur.com" target="_blank">🔗 Imgur</a>
+              </div>
+            </div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">2</div>
+            <div>
+              <b>复制"Direct Link / 直链"</b>（结尾是 .jpg 或 .png 的那种）
+              <div class="help-example">例如：https://i.sm.ms/image/abc123.jpg</div>
+            </div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">3</div>
+            <div>
+              <b>粘贴到下方输入框</b>，可添加最多5张
+            </div>
+          </div>
+        </div>
+
         <div class="image-row" id="imgRow0">
-          <input type="text" id="f-img0" placeholder="图片URL（例如：https://xxx.com/image.jpg）" oninput="previewImages()">
+          <input type="text" id="f-img0" placeholder="粘贴图片URL（.jpg / .png / .webp）" oninput="previewImages()">
           <button class="remove-img-btn" onclick="removeImage(0)" style="visibility:hidden;">×</button>
         </div>
         <button class="add-img-btn" onclick="addImageInput()" style="width:100%;margin-top:8px;">+ 添加更多图片</button>
@@ -506,6 +649,14 @@
     });
   });
 
+  // 图片帮助折叠
+  function toggleImgHelp() {
+    const box = document.querySelector('.img-help');
+    const detail = document.getElementById('imgHelpDetail');
+    box.classList.toggle('open');
+    detail.classList.toggle('open');
+  }
+
   // 图片输入管理
   let imageCount = 1;
   function addImageInput() {
@@ -537,16 +688,42 @@
   function previewImages() {
     const preview = document.getElementById('imgPreview');
     preview.innerHTML = '';
-    for (let i = 0; i < imageCount; i++) {
-      const input = document.getElementById(`f-img${i}`);
+    const inputs = document.querySelectorAll('.image-row input[type="text"]');
+    inputs.forEach((input, idx) => {
       if (input && input.value.trim()) {
         const img = document.createElement('img');
         img.className = 'img-preview-item';
         img.src = input.value.trim();
-        img.onerror = () => img.style.opacity = '0.3';
+        img.onclick = () => showImgModal(input.value.trim());
+        img.onerror = () => {
+          img.style.opacity = '0.3';
+          img.style.cursor = 'default';
+          img.onclick = null;
+        };
         preview.appendChild(img);
       }
+    });
+  }
+
+  function showImgModal(src) {
+    let modal = document.getElementById('imgModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'imgModal';
+      modal.className = 'img-modal';
+      modal.innerHTML = `
+        <button class="img-modal-close" onclick="closeImgModal()">×</button>
+        <img id="imgModalImg" src="">
+      `;
+      modal.onclick = (e) => { if (e.target === modal) closeImgModal(); };
+      document.body.appendChild(modal);
     }
+    document.getElementById('imgModalImg').src = src;
+    modal.classList.add('show');
+  }
+  function closeImgModal() {
+    const modal = document.getElementById('imgModal');
+    if (modal) modal.classList.remove('show');
   }
 
   function $(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
@@ -566,10 +743,11 @@
 
     // 收集图片
     const images = [];
-    for (let i = 0; i < imageCount; i++) {
-      const url = $('f-img' + i);
+    const imgInputs = document.querySelectorAll('.image-row input[type="text"]');
+    imgInputs.forEach(input => {
+      const url = input.value.trim();
       if (url) images.push(url);
-    }
+    });
 
     // 收集网盘
     const drives = [];
@@ -621,12 +799,11 @@
       if (el) el.value = '';
     });
     // 重置图片
-    for (let i = 1; i < imageCount; i++) {
-      const row = document.getElementById(`imgRow${i}`);
-      if (row) row.remove();
-    }
+    document.querySelectorAll('.image-row').forEach((row, idx) => {
+      if (idx > 0) row.remove();
+    });
     imageCount = 1;
-    document.getElementById('f-img0').value = '';
+    document.querySelectorAll('.image-row input')[0].value = '';
     document.getElementById('imgPreview').innerHTML = '';
     updateRemoveButtons();
 
