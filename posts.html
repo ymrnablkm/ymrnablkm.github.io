@@ -203,10 +203,10 @@
     header {
       position: fixed;
       top: 16px;
-      left: 96px;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 1000;
       width: auto;
-      max-width: calc(100% - 120px);
       border-radius: 32px;
       overflow: hidden;
       background: rgba(0, 0, 0, 0.4);
@@ -216,12 +216,13 @@
       box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
     }
     nav {
-      padding: 12px 20px;
+      padding: 10px 18px;
       display: flex;
       align-items: center;
+      justify-content: center;
     }
     .logo {
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: 700;
       letter-spacing: 0.5px;
       background: linear-gradient(90deg, #fff, #a0a0ff);
