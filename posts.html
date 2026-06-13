@@ -203,25 +203,25 @@
     header {
       position: fixed;
       top: 16px;
-      left: 50%;
-      transform: translateX(calc(-50% + 48px));
+      left: 110px;
+      right: 16px;
       z-index: 1000;
-      width: auto;
-      max-width: calc(100% - 140px);
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+    nav {
+      pointer-events: auto;
+      padding: 10px 20px;
       border-radius: 32px;
-      overflow: hidden;
       background: rgba(0, 0, 0, 0.4);
       backdrop-filter: blur(32px);
       -webkit-backdrop-filter: blur(32px);
       border: 1px solid rgba(255,255,255,0.12);
       box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+      transition: box-shadow 0.3s ease;
     }
-    nav {
-      padding: 10px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    nav:hover { box-shadow: 0 12px 48px rgba(0,0,0,0.5); }
     .logo {
       font-size: 1rem;
       font-weight: 700;
