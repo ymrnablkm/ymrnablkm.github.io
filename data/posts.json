@@ -149,5 +149,26 @@
       }
     ],
     "pinned": false
+  },
+  {
+    "id": 1002,
+    "title": "【其他】测试实用2",
+    "category": "其他",
+    "emoji": "🗂️",
+    "desc": "测试以便于实用更美好！",
+    "fullDesc": "·测试内容：\n资源＋图片功能（新增）\n更多——————————————————————————长度测试——————————",
+    "size": "999MB",
+    "date": "2026-06-13",
+    "drives": [
+      {
+        "name": "蓝奏云",
+        "url": "https://ymrnablkm.lanzouu.com/iGMCc3qi399e",
+        "code": "ymrn"
+      }
+    ],
+    "images": [
+      "https://i.postimg.cc/V6F2QKNJ/file-00000000675471fba5d8f6b620713b05.png"
+    ],
+    "pinned": false
   }
 ]
