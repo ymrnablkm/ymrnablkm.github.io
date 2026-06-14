@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理软件 · AY Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .admin-nav {
+      display: flex;
+      gap: 16px;
+    }
+    .admin-nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .admin-nav a:hover {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+    .admin-nav a.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+    .admin-logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .admin-logo span {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .manage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 16px;
+    }
+    @media (max-width: 500px) {
+      .manage-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .manage-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      transition: all 0.2s;
+      animation: fadeInUp 0.3s ease-out backwards;
+    }
+    .manage-item:hover {
+      border-color: var(--accent);
+    }
+    .manage-item-cover {
+      width: 100px;
+      height: 65px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg-secondary);
+      flex-shrink: 0;
+    }
+    .manage-item-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .manage-item-cover .placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+    }
+    .manage-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .manage-item-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .manage-item-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .manage-item-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .manage-item-actions .btn {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+    .pinned-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .featured-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      color: var(--warning);
+      background: rgba(255, 170, 0, 0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-right: 6px;
+    }
+    /* 编辑模态框 */
+    .edit-form {
+      max-height: 70vh;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .edit-form::-webkit-scrollbar {
+      width: 4px;
+    }
+    .edit-form::-webkit-scrollbar-thumb {
+      background: var(--border-light);
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body style="background: var(--bg-primary);">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 48px 24px;">
+    <!-- 头部 -->
+    <div class="admin-header">
+      <div class="admin-logo">AY <span>/ 管理软件</span></div>
+      <div class="admin-nav">
+        <a href="publish.html">发布软件</a>
+        <a href="manage.html" class="active">管理软件</a>
+        <a href="../index.html" target="_blank">查看站点 →</a>
+      </div>
+    </div>
+
+    <!-- 统计 -->
+    <div class="stats-grid" id="statsGrid" style="margin-bottom: 32px;">
+      <div class="stat-card">
+        <div class="stat-number" id="totalCount">—</div>
+        <div class="stat-label">总计</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="softwareCount">—</div>
+        <div class="stat-label">软件</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="resourceCount">—</div>
+        <div class="stat-label">资源</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="pinnedCount">—</div>
+        <div class="stat-label">置顶</div>
+      </div>
+    </div>
+
+    <!-- 搜索和筛选 -->
+    <div class="toolbar">
+      <div style="flex: 1; max-width: 400px;">
+        <input type="text" id="searchInput" class="form-input" placeholder="搜索..." style="padding: 10px 16px;">
+      </div>
+      <div class="filter-bar" id="filterBar" style="margin-bottom: 0;">
+        <button class="filter-btn active" data-cat="">全部</button>
+        <button class="filter-btn" data-cat="软件">软件</button>
+        <button class="filter-btn" data-cat="资源">资源</button>
+        <button class="filter-btn" data-cat="游戏">游戏</button>
+        <button class="filter-btn" data-cat="其他">其他</button>
+      </div>
+    </div>
+
+    <!-- 软件列表 -->
+    <div id="manageList" class="manage-grid">
+      <div class="loading"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- 编辑模态框 -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 class="modal-title">编辑软件</h3>
+        <button class="modal-close" onclick="closeEditModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="editForm" class="edit-form">
+          <input type="hidden" id="e-id">
+          
+          <div class="form-group">
+            <label class="form-label">标题 *</label>
+            <input type="text" id="e-title" class="form-input" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label class="form-label">分类</label>
+              <select id="e-category" class="form-select">
+                <option value="软件">软件</option>
+                <option value="资源">资源</option>
+                <option value="游戏">游戏</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">版本</label>
+              <input type="text" id="e-version" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">大小</label>
+              <input type="text" id="e-size" class="form-input">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">简介</label>
+            <input type="text" id="e-desc" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">封面 URL</label>
+            <input type="text" id="e-cover" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">截图（每行一个 URL）</label>
+            <textarea id="e-images" class="form-textarea" rows="3"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">详细介绍</label>
+            <textarea id="e-content" class="form-textarea" rows="5"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">标签（逗号分隔）</label>
+            <input type="text" id="e-tags" class="form-input">
+          </div>
+
+          <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="e-featured">
+              精选
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="e-pinned">
+              置顶
+            </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeEditModal()" class="btn btn-ghost">取消</button>
+        <button onclick="submitEdit()" class="btn btn-primary">保存并提交 →</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allSoftware = [];
+    let currentCat = '';
+    let currentSearch = '';
+    let currentEditItem = null;
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch('../data/software.json');
+        allSoftware = await res.json();
+        renderStats();
+        renderList();
+      } catch (e) {
+        document.getElementById('manageList').innerHTML = '<div class="empty-state"><p>加载失败</p></div>';
+      }
+    }
+
+    function renderStats() {
+      document.getElementById('totalCount').textContent = allSoftware.length;
+      document.getElementById('softwareCount').textContent = allSoftware.filter(s => s.category === '软件').length;
+      document.getElementById('resourceCount').textContent = allSoftware.filter(s => s.category === '资源').length;
+      document.getElementById('pinnedCount').textContent = allSoftware.filter(s => s.pinned).length;
+    }
+
+    function renderList() {
+      let list = allSoftware;
+      if (currentCat) list = list.filter(s => s.category === currentCat);
+      if (currentSearch) {
+        const q = currentSearch.toLowerCase();
+        list = list.filter(s => 
+          s.title.toLowerCase().includes(q) ||
+          (s.desc && s.desc.toLowerCase().includes(q))
+        );
+      }
+
+      if (list.length === 0) {
+        document.getElementById('manageList').innerHTML = '<div class="empty-state"><p>暂无软件</p></div>';
+        return;
+      }
+
+      const html = list.map((s, i) => `
+        <div class="manage-item" style="animation-delay: ${(i % 10) * 40}ms;">
+          <div class="manage-item-cover">
+            ${s.cover 
+              ? `<img src="${escapeHTML(s.cover)}" alt="">`
+              : `<div class="placeholder">⊞</div>`
+            }
+          </div>
+          <div class="manage-item-info">
+            <div class="manage-item-title">
+              ${s.featured ? '<span class="featured-badge">★ 精选</span>' : ''}
+              ${s.pinned ? '<span class="pinned-badge">📌 置顶</span>' : ''}
+              ${escapeHTML(s.title)}
+            </div>
+            <div class="manage-item-meta">
+              <span>${escapeHTML(s.category)}</span>
+              <span>${escapeHTML(s.size)}</span>
+              <span>${escapeHTML(s.createdAt || '')}</span>
+            </div>
+            <div class="manage-item-actions">
+              <button class="btn btn-ghost btn-sm" onclick="editItem('${escapeHTML(s.id)}')">✏️ 编辑</button>
+              <button class="btn btn-ghost btn-sm" onclick="togglePin('${escapeHTML(s.id)}')">${s.pinned ? '📌 取消置顶' : '📌 置顶'}</button>
+              <button class="btn btn-ghost btn-sm" onclick="toggleFeatured('${escapeHTML(s.id)}')">${s.featured ? '★ 取消精选' : '★ 精选'}</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteItem('${escapeHTML(s.id)}', '${escapeHTML(s.title)}')">🗑️ 删除</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('manageList').innerHTML = html;
+    }
+
+    function editItem(id) {
+      const item = allSoftware.find(s => s.id === id);
+      if (!item) return;
+      currentEditItem = item;
+
+      document.getElementById('e-id').value = item.id;
+      document.getElementById('e-title').value = item.title || '';
+      document.getElementById('e-category').value = item.category || '软件';
+      document.getElementById('e-version').value = item.version || '';
+      document.getElementById('e-size').value = item.size || '';
+      document.getElementById('e-desc').value = item.desc || '';
+      document.getElementById('e-cover').value = item.cover || '';
+      document.getElementById('e-images').value = (item.images || []).join('\n');
+      document.getElementById('e-content').value = item.content || '';
+      document.getElementById('e-tags').value = (item.tags || []).join(', ');
+      document.getElementById('e-featured').checked = item.featured || false;
+      document.getElementById('e-pinned').checked = item.pinned || false;
+
+      document.getElementById('editModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('show');
+      document.body.style.overflow = '';
+      currentEditItem = null;
+    }
+
+    function submitEdit() {
+      if (!currentEditItem) return;
+      const id = currentEditItem.id;
+
+      const title = document.getElementById('e-title').value.trim();
+      if (!title) { alert('标题不能为空'); return; }
+
+      const images = document.getElementById('e-images').value.trim()
+        .split('\n').map(s => s.trim()).filter(Boolean);
+      const tags = document.getElementById('e-tags').value.trim()
+        .split(',').map(s => s.trim()).filter(Boolean);
+
+      const updated = {
+        ...currentEditItem,
+        title,
+        category: document.getElementById('e-category').value,
+        version: document.getElementById('e-version').value.trim(),
+        size: document.getElementById('e-size').value.trim(),
+        desc: document.getElementById('e-desc').value.trim(),
+        cover: document.getElementById('e-cover').value.trim(),
+        images,
+        content: document.getElementById('e-content').value.trim(),
+        tags,
+        featured: document.getElementById('e-featured').checked,
+        pinned: document.getElementById('e-pinned').checked
+      };
+
+      // 生成 GitHub Issue
+      const repo = 'ymrnablkm/ymrnablkm.github.io';
+      let body = `更新帖子ID: ${id}\n`;
+      body += `标题: ${updated.title}\n`;
+      body += `分类: ${updated.category}\n`;
+      if (updated.version) body += `版本: ${updated.version}\n`;
+      if (updated.size) body += `大小: ${updated.size}\n`;
+      if (updated.desc) body += `简介: ${updated.desc}\n`;
+      if (updated.cover) body += `封面: ${updated.cover}\n`;
+      if (updated.images.length) body += `\n截图:\n${updated.images.join('\n')}\n`;
+      if (updated.content) body += `\n详情:\n${updated.content}\n`;
+      if (updated.tags.length) body += `\n标签: ${updated.tags.join(', ')}\n`;
+      body += `\n精选: ${updated.featured}\n`;
+      body += `置顶: ${updated.pinned}\n`;
+
+      const url = `https://github.com/${repo}/issues/new?title=${encodeURIComponent('更新: ' + title)}&body=${encodeURIComponent(body)}`;
+
+      closeEditModal();
+      window.open(url, '_blank');
+    }
+
+    function togglePin(id) {
+      const item = allSoftware.find(s => s.id === id);
+      if (!item) return;
+      const repo = 'ymrnablkm/ymrnablkm.github.io';
+      let body = `更新帖子ID: ${id}\n`;
+      body += `标题: ${item.title}\n`;
+      body += `分类: ${item.category}\n`;
+      if (item.version) body += `版本: ${item.version}\n`;
+      if (item.size) body += `大小: ${item.size}\n`;
+      if (item.desc) body += `简介: ${item.desc}\n`;
+      if (item.cover) body += `封面: ${item.cover}\n`;
+      if ((item.images || []).length) body += `\n截图:\n${item.images.join('\n')}\n`;
+      if (item.content) body += `\n详情:\n${item.content}\n`;
+      if ((item.tags || []).length) body += `\n标签: ${item.tags.join(', ')}\n`;
+      body += `\n精选: ${item.featured}\n`;
+      body += `置顶: ${!item.pinned}\n`;
+
+      window.open(`https://github.com/${repo}/issues/new?title=${encodeURIComponent('更新: ' + item.title)}&body=${encodeURIComponent(body)}`, '_blank');
+    }
+
+    function toggleFeatured(id) {
+      const item = allSoftware.find(s => s.id === id);
+      if (!item) return;
+      const repo = 'ymrnablkm/ymrnablkm.github.io';
+      let body = `更新帖子ID: ${id}\n`;
+      body += `标题: ${item.title}\n`;
+      body += `分类: ${item.category}\n`;
+      if (item.version) body += `版本: ${item.version}\n`;
+      if (item.size) body += `大小: ${item.size}\n`;
+      if (item.desc) body += `简介: ${item.desc}\n`;
+      if (item.cover) body += `封面: ${item.cover}\n`;
+      if ((item.images || []).length) body += `\n截图:\n${item.images.join('\n')}\n`;
+      if (item.content) body += `\n详情:\n${item.content}\n`;
+      if ((item.tags || []).length) body += `\n标签: ${item.tags.join(', ')}\n`;
+      body += `\n精选: ${!item.featured}\n`;
+      body += `置顶: ${item.pinned}\n`;
+
+      window.open(`https://github.com/${repo}/issues/new?title=${encodeURIComponent('更新: ' + item.title)}&body=${encodeURIComponent(body)}`, '_blank');
+    }
+
+    function deleteItem(id, title) {
+      if (!confirm(`确定删除 "${title}" 吗？此操作不可撤销。`)) return;
+      const repo = 'ymrnablkm/ymrnablkm.github.io';
+      const body = `删除帖子ID: ${id}\n\n确认删除此帖子。`;
+      window.open(`https://github.com/${repo}/issues/new?title=${encodeURIComponent('删除: ' + title)}&body=${encodeURIComponent(body)}`, '_blank');
+    }
+
+    // 搜索
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      currentSearch = e.target.value;
+      renderList();
+    });
+
+    // 筛选
+    document.getElementById('filterBar').addEventListener('click', (e) => {
+      if (e.target.classList.contains('filter-btn')) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentCat = e.target.dataset.cat;
+        renderList();
+      }
+    });
+
+    // ESC 关闭
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeEditModal();
+    });
+
+    loadData();
+  </script>
+</body>
+</html>

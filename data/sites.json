@@ -1,0 +1,59 @@
+{
+  "sites": [
+    {
+      "category": "开发工具",
+      "icon": "⚡",
+      "sites": [
+        {"name": "GitHub", "url": "https://github.com", "desc": "全球最大代码托管平台", "icon": "G"},
+        {"name": "GitLab", "url": "https://gitlab.com", "desc": "DevOps 生命周期工具", "icon": "GL"},
+        {"name": "Stack Overflow", "url": "https://stackoverflow.com", "desc": "开发者问答社区", "icon": "SO"},
+        {"name": "npm", "url": "https://www.npmjs.com", "desc": "Node.js 包管理器", "icon": "NP"},
+        {"name": "Docker Hub", "url": "https://hub.docker.com", "desc": "容器镜像仓库", "icon": "DH"}
+      ]
+    },
+    {
+      "category": "设计工具",
+      "icon": "🎨",
+      "sites": [
+        {"name": "Figma", "url": "https://figma.com", "desc": "协作界面设计工具", "icon": "Fi"},
+        {"name": "Dribbble", "url": "https://dribbble.com", "desc": "设计师作品展示社区", "icon": "Dr"},
+        {"name": "Behance", "url": "https://behance.net", "desc": "Adobe 创意作品集平台", "icon": "Be"},
+        {"name": "Unsplash", "url": "https://unsplash.com", "desc": "免费高清图片素材", "icon": "Un"},
+        {"name": "Coolors", "url": "https://coolors.co", "desc": "在线调色板生成器", "icon": "Co"}
+      ]
+    },
+    {
+      "category": "效率工具",
+      "icon": "🚀",
+      "sites": [
+        {"name": "Notion", "url": "https://notion.so", "desc": "全能笔记与知识管理", "icon": "No"},
+        {"name": "Obsidian", "url": "https://obsidian.md", "desc": "本地 Markdown 知识库", "icon": "Ob"},
+        {"name": "Raycast", "url": "https://raycast.com", "desc": "macOS 效率启动器", "icon": "Ra"},
+        {"name": "Arc Browser", "url": "https://arc.net", "desc": "下一代浏览器体验", "icon": "Ar"},
+        {"name": "Linear", "url": "https://linear.app", "desc": "项目管理与 Issue 追踪", "icon": "Li"}
+      ]
+    },
+    {
+      "category": "学习资源",
+      "icon": "📚",
+      "sites": [
+        {"name": "MDN Web Docs", "url": "https://developer.mozilla.org", "desc": "Web 技术权威文档", "icon": "MD"},
+        {"name": "freeCodeCamp", "url": "https://freecodecamp.org", "desc": "免费编程学习平台", "icon": "FC"},
+        {"name": "LeetCode", "url": "https://leetcode.com", "desc": "算法与面试刷题平台", "icon": "LC"},
+        {"name": "Coursera", "url": "https://coursera.org", "desc": "全球顶尖大学在线课程", "icon": "Co"},
+        {"name": "DeepLearning.AI", "url": "https://deeplearning.ai", "desc": "AI 与深度学习课程", "icon": "DL"}
+      ]
+    },
+    {
+      "category": "资源工具",
+      "icon": "📦",
+      "sites": [
+        {"name": "Product Hunt", "url": "https://producthunt.com", "desc": "新产品发现平台", "icon": "PH"},
+        {"name": "AlternativeTo", "url": "https://alternativeto.net", "desc": "软件替代品推荐", "icon": "AT"},
+        {"name": "SaaS Mantra", "url": "https://saasmantra.com", "desc": "SaaS 产品灵感库", "icon": "SM"},
+        {"name": "Indie Hackers", "url": "https://indiehackers.com", "desc": "独立开发者社区", "icon": "IH"},
+        {"name": "Product Hunt", "url": "https://producthunt.com", "desc": "每日最新产品精选", "icon": "PH"}
+      ]
+    }
+  ]
+}

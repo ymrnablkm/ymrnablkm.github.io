@@ -1,0 +1,72 @@
+[
+  {
+    "id": "win-toolkit",
+    "title": "Windows 常用工具箱",
+    "slug": "windows-toolkit",
+    "category": "软件",
+    "version": "2024.06",
+    "size": "860 MB",
+    "cover": "https://images.unsplash.com/photo-1629654297299-c8506221ca97?w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1629654297299-c8506221ca97?w=1200&q=80",
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&q=80"
+    ],
+    "desc": "精选 Windows 平台常用工具合集，涵盖截图、录屏、文本编辑、文件管理等，开箱即用。",
+    "content": "Windows 常用工具箱 — 精选绿色便携软件合集\n\n包含工具分类：\n\n• 截图工具 — 全局快捷键截图，支持滚动截长图\n• 录屏工具 — 高清录制，自带剪辑功能\n• 文本编辑器 — 支持 Markdown，代码高亮\n• 文件搜索 — 快速定位本地文件\n• 系统工具 — 进程管理、清理优化\n\n使用方法：\n解压后直接运行，无需安装。推荐放置在 D:\\Tools 目录下使用。",
+    "drives": [
+      {"name": "百度网盘", "url": "https://pan.baidu.com/s/xxxxx", "code": "ay23"},
+      {"name": "夸克网盘", "url": "https://pan.quark.cn/s/xxxxx", "code": "—"}
+    ],
+    "tags": ["Windows", "工具箱", "绿色软件"],
+    "featured": true,
+    "pinned": false,
+    "createdAt": "2026-06-01"
+  },
+  {
+    "id": "design-inspiration",
+    "title": "设计灵感素材包 2026",
+    "slug": "design-inspiration-2026",
+    "category": "资源",
+    "version": "1.0",
+    "size": "1.8 GB",
+    "cover": "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200&q=80",
+      "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=1200&q=80",
+      "https://images.unsplash.com/photo-1545239351-ef35f43d514b?w=1200&q=80"
+    ],
+    "desc": "来自 Behance / Dribbble 高质量设计参考，涵盖 UI、品牌、插画三大类。",
+    "content": "设计灵感素材包 2026 精选\n\n收录内容：\n• UI 设计参考 400+ 张\n• 品牌视觉案例 300+ 张\n• 插画作品集 280+ 张\n\n文件格式：\nPNG / JPG / PDF\n分辨率：大部分为 4K 超高清\n\n使用说明：\n按类别分文件夹整理，文件名含来源标注。适合设计师日常灵感收集与参考。",
+    "drives": [
+      {"name": "百度网盘", "url": "https://pan.baidu.com/s/xxxxx", "code": "ay88"},
+      {"name": "阿里云盘", "url": "https://www.aliyundrive.com/s/xxxxx", "code": "—"}
+    ],
+    "tags": ["设计", "素材", "灵感"],
+    "featured": true,
+    "pinned": false,
+    "createdAt": "2026-06-05"
+  },
+  {
+    "id": "wallpaper-pack",
+    "title": "4K 高清壁纸合集 500+",
+    "slug": "4k-wallpaper-pack",
+    "category": "资源",
+    "version": "2.0",
+    "size": "2.4 GB",
+    "cover": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&q=80",
+      "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200&q=80",
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80"
+    ],
+    "desc": "精选 500+ 张 4K 壁纸，涵盖自然、星空、城市、极简等多种风格。",
+    "content": "4K 高清壁纸合集\n\n壁纸规格：\n• 分辨率：3840×2160 (4K) 为主\n• 数量：500+ 张精选\n\n风格分类：\n• 自然风景 (约 150 张)\n• 城市建筑 (约 100 张)\n• 星空宇宙 (约 80 张)\n• 极简抽象 (约 100 张)\n• 静物特写 (约 70 张)\n\n文件命名：\n包含分辨率标注与风格关键词，便于按需求筛选。",
+    "drives": [
+      {"name": "百度网盘", "url": "https://pan.baidu.com/s/xxxxx", "code": "ay01"}
+    ],
+    "tags": ["壁纸", "4K", "桌面"],
+    "featured": true,
+    "pinned": false,
+    "createdAt": "2026-06-10"
+  }
+]

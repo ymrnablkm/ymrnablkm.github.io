@@ -1,60 +1,66 @@
 #!/usr/bin/env python3
 """
-把 GitHub Issue 解析为资源帖子并写回 data/posts.json。
+把 GitHub Issue 解析为软件帖子并写回 data/software.json。
 
 支持 Issue Body 中使用字段（任一可选）：
-    分类: 素材 / 软件 / 教程 / 其他
+    标题: xxx
+    分类: 软件 / 资源 / 游戏 / 其他
+    版本: 2024.06
     大小: 860 MB
-    图标: 🧰
     简介: 一句话描述
+    封面: https://...
+    截图:
+    https://... (每行一个)
     详情:
-    ...多行...
-    百度网盘: https://...  提取码: xxxx
-    夸克网盘: https://...
-    阿里云盘: https://...
+    ...多行详细介绍...
+    下载:
+    百度网盘: https://... 提取码: xxxx
+    精选: true
     置顶: true
+    标签: Windows, 工具
 
 标题 = Issue.title
-分类还可以通过 labels 推断（label 名包含素材/软件/教程/其他等）
+
+特殊标记：
+    更新帖子ID: XXX — 更新指定 ID 的帖子
+    删除帖子ID: XXX — 删除指定帖子
 """
 
 import json
 import os
 import re
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 CATEGORY_MAP = {
-    '素材': '素材', 'material': '素材', '设计': '素材', 'design': '素材',
-    '软件': '软件', '便携': '软件', 'software': '软件', 'sw': '软件',
-    '教程': '教程', '学习': '教程', 'tutorial': '教程', '课程': '教程',
+    '软件': '软件', '工具': '软件', 'software': '软件', 'sw': '软件',
+    '资源': '资源', '素材': '资源', 'design': '资源', '图片': '资源',
+    '游戏': '游戏', 'game': '游戏',
     '其他': '其他', '其它': '其他', 'other': '其他',
 }
-DEFAULT_CATEGORY = '其他'
-EMOJI_MAP = {'素材': '🎨', '软件': '🧰', '教程': '📚', '其他': '🗂️'}
+DEFAULT_CATEGORY = '软件'
+CATEGORY_EMOJI = {'软件': '⊞', '资源': '◈', '游戏': '⬡', '其他': '◇'}
 
-POSTS_FILE = Path('data/posts.json')
+SOFTWARE_FILE = Path('data/software.json')
 
 
 def _normalize_url(raw):
-    """规范化 URL：修复中文冒号、去掉末尾标点、确保有路径"""
+    """规范化 URL"""
     url = raw.strip()
-    # 统一处理中文冒号为英文冒号
     url = url.replace('\uff1a', ':').replace('：', ':')
-    # 去掉末尾的非 URL 字符（但保留 /s/xxx 部分）
     url = re.sub(r'[\s)）\]\}）"\']+$', '', url)
-    # 如果 URL 只有域名没有路径，尝试补全
+    # 补全不完整的网盘链接
     if re.match(r'^https?://pan\.baidu\.com/?$', url):
-        url = url.rstrip('/') + '/s/请替换为完整链接'
+        url = url.rstrip('/') + '/s/请替换'
     elif re.match(r'^https?://pan\.quark\.cn/?$', url):
-        url = url.rstrip('/') + '/s/请替换为完整链接'
+        url = url.rstrip('/') + '/s/请替换'
     elif re.match(r'^https?://www\.aliyundrive\.com/?$', url):
-        url = url.rstrip('/') + '/s/请替换为完整链接'
+        url = url.rstrip('/') + '/s/请替换'
     return url
 
 
 def extract_fields(text):
+    """解析 Issue Body，返回 (fields, drives, images)"""
     fields = {}
     drives_raw = []
     images_raw = []
@@ -64,37 +70,36 @@ def extract_fields(text):
     while i < len(lines):
         line = lines[i].strip()
 
-        # 单行 key: value（支持中文冒号，新增更多网盘和图片）
+        # 匹配单行 key: value
         single = re.match(
-            r'^(标题|标题 title|分类|category|大小|size|图标|emoji|简介|desc|详情|fullDesc|description|置顶|pin|pinned|图片|image|img|百度网盘|百度|baidu|夸克网盘|夸克|quark|阿里云盘|阿里|aliyun|123云盘|123|蓝奏云|蓝奏|lanzou|天翼云盘|天翼|ty|迅雷云盘|迅雷|xunlei)\s*[：:]\s*(.*)$',
+            r'^(标题|title|分类|category|版本|version|大小|size|简介|desc|封面|cover|精选|featured|置顶|pinned|标签|tags)\s*[：:]\s*(.*)$',
             line, re.I)
         if single:
             key = single.group(1).lower()
             value = single.group(2).strip()
-            # 处理 详情: 的多行内容
-            if key in ('详情', 'fulldesc', 'description'):
+            
+            # 多行内容处理
+            if key in ('详情', 'content', 'description'):
                 full_lines = [value] if value else []
                 j = i + 1
                 while j < len(lines):
                     nxt = lines[j].strip()
-                    if re.match(
-                        r'^(分类|category|大小|size|图标|emoji|简介|desc|百度网盘|夸克网盘|阿里云盘|123云盘|蓝奏云|天翼云盘|迅雷云盘|置顶|pin|pinned|图片|image|百度|夸克|阿里|123|蓝奏|天翼|迅雷)\s*[：:]',
-                        nxt, re.I):
+                    # 遇到新的 key: 或 section: 就停止
+                    if re.match(r'^[^\s：:]+\s*[：:]', nxt) or nxt.startswith('#'):
                         break
-                    full_lines.append(lines[j])
+                    if not nxt.startswith('截图') and not nxt.startswith('下载') and not nxt.startswith('截图:'):
+                        full_lines.append(lines[j])
                     j += 1
-                fields['fulldesc'] = '\n'.join(full_lines).strip()
+                fields['content'] = '\n'.join(full_lines).strip()
                 i = j
                 continue
-            # 处理 图片: 的多行内容
-            if key in ('图片', 'image', 'img'):
+            
+            if key in ('截图', 'images', 'screenshots'):
                 img_lines = [value] if value else []
                 j = i + 1
                 while j < len(lines):
                     nxt = lines[j].strip()
-                    if re.match(
-                        r'^(分类|category|大小|size|图标|emoji|简介|desc|详情|fulldesc|百度网盘|夸克网盘|阿里云盘|123云盘|蓝奏云|天翼云盘|迅雷云盘|置顶|pin|pinned|百度|夸克|阿里|123|蓝奏|天翼|迅雷)\s*[：:]',
-                        nxt, re.I):
+                    if re.match(r'^[^\s：:]+\s*[：:]', nxt) or nxt.startswith('#') or nxt.startswith('下载'):
                         break
                     if nxt.startswith('http'):
                         img_lines.append(nxt)
@@ -103,84 +108,54 @@ def extract_fields(text):
                 i = j
                 continue
 
-            # 网盘类型
-            if key in ('百度网盘', '百度', 'baidu'):
-                drives_raw.append(('百度网盘', value))
-            elif key in ('夸克网盘', '夸克', 'quark'):
-                drives_raw.append(('夸克网盘', value))
-            elif key in ('阿里云盘', '阿里', 'aliyun'):
-                drives_raw.append(('阿里云盘', value))
-            elif key in ('123云盘', '123'):
-                drives_raw.append(('123云盘', value))
-            elif key in ('蓝奏云', '蓝奏', 'lanzou'):
-                drives_raw.append(('蓝奏云', value))
-            elif key in ('天翼云盘', '天翼', 'ty'):
-                drives_raw.append(('天翼云盘', value))
-            elif key in ('迅雷云盘', '迅雷', 'xunlei'):
-                drives_raw.append(('迅雷云盘', value))
-            else:
-                fields[key] = value
+            fields[key] = value
             i += 1
             continue
 
-        # body 中裸链接（没有显式 key），尝试匹配并提取
+        # 裸链接
         url_match = re.search(r'https?://[^\s)，。；;）\]\}\'"]+', line)
         if url_match:
             link = url_match.group(0)
-            # 图片链接（常见图片格式）
-            if re.search(r'\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$', link, re.I):
+            # 图片
+            if re.search(r'\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$', link, re.I):
                 images_raw.append(link)
-            # 网盘链接
-            elif 'pan.baidu' in link or ('baidu' in link and 'http' in link):
+            # 网盘
+            elif 'pan.baidu' in link:
                 drives_raw.append(('百度网盘', line))
-            elif 'pan.quark' in link or ('quark' in link and 'http' in link):
+            elif 'pan.quark' in link:
                 drives_raw.append(('夸克网盘', line))
-            elif 'aliyundrive' in link or 'alipan' in link or ('aliyun' in link and 'http' in link):
+            elif 'aliyundrive' in link or 'alipan' in link:
                 drives_raw.append(('阿里云盘', line))
-            elif '123pan' in link or ('123' in link and 'http' in link):
+            elif '123pan' in link:
                 drives_raw.append(('123云盘', line))
-            elif 'lanzou' in link or ('lanzou' in link and 'http' in link):
+            elif 'lanzou' in link:
                 drives_raw.append(('蓝奏云', line))
-            elif 'cloud.189' in link or ('189' in link and 'http' in link):
+            elif 'cloud.189' in link:
                 drives_raw.append(('天翼云盘', line))
-            elif 'pan.xunlei' in link or ('xunlei' in link and 'http' in link):
+            elif 'pan.xunlei' in link or 'xunlei' in link:
                 drives_raw.append(('迅雷云盘', line))
+
         i += 1
 
-    # 提取每个 drive 的 url 与 code
+    # 解析下载链接
     drives = []
     for name, raw in drives_raw:
         raw_url = re.search(r'https?://[^\s)）\]\}）"\']+', raw)
         url = _normalize_url(raw_url.group(0)) if raw_url else ''
-        code_match = re.search(r'(提取码|码)\s*[：:]?\s*([A-Za-z0-9]{1,15})', raw, re.I)
+        code_match = re.search(r'(提取码|码|密码)\s*[：:]?\s*([A-Za-z0-9]{1,15})', raw, re.I)
         code = code_match.group(2) if code_match else '—'
-        if code and any(x in code for x in ['无', '没有', '不需要', '不需要码']):
+        if any(x in code for x in ['无', '没有', '不需要', '空']):
             code = '—'
         drives.append({'name': name, 'url': url, 'code': code})
 
-    # 为 body 中无 key 的情况，再整文本全局提取提取码（兜底）
-    all_codes_in_body = re.findall(r'(提取码|码)\s*[：:]?\s*([A-Za-z0-9]{3,15})', text, re.I)
-    if all_codes_in_body:
-        for d in drives:
-            if d['code'] == '—':
-                d['code'] = all_codes_in_body[0][1]
+    # 全局提取码兜底
+    all_codes = re.findall(r'(提取码|码|密码)\s*[：:]?\s*([A-Za-z0-9]{2,15})', text, re.I)
+    for d in drives:
+        if d['code'] == '—' and all_codes:
+            d['code'] = all_codes[0][1]
 
-    # 图片去重
     images = list(set(images_raw))
     return fields, drives, images
-
-
-def infer_category_from_labels(labels_raw):
-    try:
-        labels = json.loads(labels_raw) if isinstance(labels_raw, str) else labels_raw
-    except Exception:
-        labels = []
-    for lb in labels:
-        name = lb if isinstance(lb, str) else (lb.get('name') if isinstance(lb, dict) else '')
-        for key, val in CATEGORY_MAP.items():
-            if key.lower() in name.lower():
-                return val
-    return None
 
 
 def main():
@@ -188,7 +163,6 @@ def main():
     body = (os.environ.get('ISSUE_BODY') or '').strip()
     number = int(os.environ.get('ISSUE_NUMBER') or '0')
     state = os.environ.get('ISSUE_STATE') or 'open'
-    labels_raw = os.environ.get('ISSUE_LABELS') or '[]'
     event_action = os.environ.get('EVENT_ACTION') or 'opened'
 
     if not number or not title:
@@ -198,89 +172,114 @@ def main():
 
     fields, drives, images = extract_fields(body)
 
-    # 分类：优先 body 中字段，其次 labels
+    # === 管理操作 ===
+    override_id = None
+    forced_delete = False
+
+    update_match = re.search(r'(?:更新帖子ID|更新ID|edit_id)\s*[：:]\s*([\w-]+)', body, re.I)
+    if update_match:
+        override_id = update_match.group(1).strip()
+
+    delete_match = re.search(r'(?:删除帖子ID|删除ID|delete_id)\s*[：:]\s*([\w-]+)', body, re.I)
+    if delete_match:
+        override_id = delete_match.group(1).strip()
+        forced_delete = True
+
+    # === 分类 ===
     cat_input = (fields.get('分类') or fields.get('category') or '').strip()
-    category = None
+    category = DEFAULT_CATEGORY
     if cat_input:
-        for key, val in CATEGORY_MAP.items():
+        sorted_cats = sorted(CATEGORY_MAP.items(), key=lambda x: len(x[0]), reverse=True)
+        for key, val in sorted_cats:
             if key.lower() in cat_input.lower():
                 category = val
                 break
-    if not category:
-        category = infer_category_from_labels(labels_raw) or DEFAULT_CATEGORY
 
-    emoji = (fields.get('图标') or fields.get('emoji') or '').strip() or EMOJI_MAP.get(category, '📦')
+    # === 其他字段 ===
+    version = (fields.get('版本') or fields.get('version') or '').strip()
     size = (fields.get('大小') or fields.get('size') or '').strip()
-
     desc = (fields.get('简介') or fields.get('desc') or '').strip()
+    cover = (fields.get('封面') or fields.get('cover') or '').strip()
+
+    # 自动生成简介（如果没填）
     if not desc:
         for raw_line in body.split('\n'):
             s = raw_line.strip()
-            if s and not s.startswith('#') and '：' not in s[:15] and ':' not in s[:15] and not s.startswith('http'):
+            if s and not s.startswith('#') and '：' not in s[:15] and ':' not in s[:15] and not s.startswith('http') and len(s) > 5:
                 desc = s
                 break
     desc = desc[:200]
 
-    full_desc = fields.get('fulldesc') or ''
-    if not full_desc:
-        full_desc = body.strip()
+    # 标签
+    tags_input = (fields.get('标签') or fields.get('tags') or '').strip()
+    tags = [t.strip() for t in tags_input.split(',') if t.strip()] if tags_input else []
 
-    pinned_input = (fields.get('置顶') or fields.get('pin') or fields.get('pinned') or '').strip().lower()
+    # 精选/置顶
+    featured_input = (fields.get('精选') or fields.get('featured') or '').strip().lower()
+    featured = any(x in featured_input for x in ['true', '1', 'yes', '是', '✓'])
+    pinned_input = (fields.get('置顶') or fields.get('pinned') or '').strip().lower()
     pinned = any(x in pinned_input for x in ['true', '1', 'yes', '是', '✓'])
 
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    post_id = 1000 + number
+    post_id = override_id or ('sw-' + str(number))
 
-    # 加载现有 JSON
-    if POSTS_FILE.exists():
-        with open(POSTS_FILE, 'r', encoding='utf-8') as fh:
+    # === 加载数据 ===
+    if SOFTWARE_FILE.exists():
+        with open(SOFTWARE_FILE, 'r', encoding='utf-8') as fh:
             try:
-                posts = json.load(fh)
+                software = json.load(fh)
             except json.JSONDecodeError:
-                posts = []
+                software = []
     else:
-        POSTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        posts = []
+        SOFTWARE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        software = []
 
-    new_post = {
+    new_item = {
         'id': post_id,
         'title': title,
+        'slug': re.sub(r'[^\w]+', '-', title.lower()),
         'category': category,
-        'emoji': emoji,
-        'desc': desc,
-        'fullDesc': full_desc,
+        'version': version,
         'size': size,
-        'date': today,
-        'drives': drives,
+        'cover': cover,
         'images': images,
+        'desc': desc,
+        'content': fields.get('content') or body,
+        'drives': drives,
+        'tags': tags,
+        'featured': featured,
         'pinned': pinned,
+        'createdAt': today,
     }
 
-    existing = next((p for p in posts if p.get('id') == post_id), None)
+    existing = next((s for s in software if s.get('id') == post_id), None)
 
-    if state == 'closed':
+    # === 执行操作 ===
+    if forced_delete or state == 'closed':
         if existing:
-            posts = [p for p in posts if p.get('id') != post_id]
-            summary = f'删除帖子「{title}」'
+            software = [s for s in software if s.get('id') != post_id]
+            summary = f'删除帖子「{title}」（ID: {post_id}）'
             changed = True
         else:
             summary = '无变化（帖子不存在）'
             changed = False
     else:
         if existing:
-            idx = posts.index(existing)
-            posts[idx] = new_post
-            summary = f'更新帖子「{title}」（分类：{category}）'
+            idx = software.index(existing)
+            # 保留 createdAt
+            new_item['createdAt'] = existing.get('createdAt', today)
+            software[idx] = new_item
+            summary = f'更新帖子「{title}」（ID: {post_id}，分类：{category}）'
             changed = True
         else:
-            posts.append(new_post)
-            summary = f'新增帖子「{title}」（分类：{category}）'
+            software.append(new_item)
+            summary = f'新增帖子「{title}」（ID: {post_id}，分类：{category}）'
             changed = True
 
     if changed:
-        POSTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(POSTS_FILE, 'w', encoding='utf-8') as fh:
-            json.dump(posts, fh, ensure_ascii=False, indent=2)
+        SOFTWARE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(SOFTWARE_FILE, 'w', encoding='utf-8') as fh:
+            json.dump(software, fh, ensure_ascii=False, indent=2)
             fh.write('\n')
 
     _set_output(changed, summary)
