@@ -13,11 +13,9 @@
   <div class="app-container">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-header-inner">
-          <div class="logo">AY</div>
-          <div class="logo-sub">Software Repository</div>
-        </div>
-        <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+        <button class="sidebar-header-close" id="sidebarClose" aria-label="close">❌</button>
+        <div class="logo">AY</div>
+        <div class="logo-sub">Software Repository</div>
       </div>
 
       <nav class="sidebar-nav">
@@ -144,13 +142,14 @@
       document.getElementById('sidebarOverlay').classList.toggle('show');
       document.body.classList.toggle('sidebar-open');
     });
-    
+
     function closeSidebar() {
       document.getElementById('sidebar').classList.remove('open');
       document.getElementById('sidebarOverlay').classList.remove('show');
       document.body.classList.remove('sidebar-open');
     }
-    
+
+    document.getElementById('sidebarClose').addEventListener('click', closeSidebar);
     document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
 
     loadData();

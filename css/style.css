@@ -172,14 +172,10 @@ code, pre {
 }
 
 .sidebar-header {
-  padding: var(--space-lg);
+  padding: var(--space-xl) var(--space-lg) var(--space-lg);
   border-bottom: 1px solid var(--border-color);
-  position: relative;
   background: linear-gradient(135deg, rgba(0, 255, 136, 0.03) 0%, transparent 100%);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  position: relative;
 }
 
 .sidebar-header::after {
@@ -191,40 +187,6 @@ code, pre {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
   opacity: 0.4;
-}
-
-.sidebar-header-inner {
-  flex: 1;
-  min-width: 0;
-}
-
-.sidebar-close {
-  display: none;
-  width: 32px;
-  height: 32px;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-muted);
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.sidebar-close:hover {
-  background: var(--bg-card);
-  color: var(--accent);
-  border-color: var(--accent);
-  transform: rotate(90deg);
-}
-
-@media (max-width: 1024px) {
-  .sidebar-close {
-    display: flex;
-  }
 }
 
 .logo {
@@ -383,8 +345,8 @@ code, pre {
 .menu-toggle {
   display: none;
   position: fixed;
-  top: var(--space-md);
-  left: var(--space-md);
+  top: 12px;
+  left: 12px;
   z-index: 1001;
   width: 44px;
   height: 44px;
@@ -395,24 +357,60 @@ code, pre {
   align-items: center;
   justify-content: center;
   color: var(--text-primary);
-  font-size: 1.2rem;
-  transition: all var(--transition-base);
+  font-size: 1.3rem;
+  line-height: 1;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
 }
 
 .menu-toggle:hover {
   background: var(--bg-card);
   border-color: var(--accent);
-  box-shadow: 0 2px 12px var(--accent-glow);
+  color: var(--accent);
+}
+
+/* 侧边栏内右上角的关闭图标 - 极简❌ */
+.sidebar-header-close {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 300;
+  padding: 0;
+  line-height: 1;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-header-close:hover {
+  color: var(--accent);
+  background: var(--bg-card);
 }
 
 @media (max-width: 1024px) {
   .menu-toggle { display: flex; }
 
-  /* 侧边栏打开时隐藏菜单按钮，避免遮挡 */
+  /* 侧边栏打开时，左上角菜单按钮消失 */
   body.sidebar-open .menu-toggle {
-    display: none;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-20px) scale(0.9);
+  }
+
+  /* 侧边栏内❌出现，像按钮飞进来变的 */
+  body.sidebar-open .sidebar-header-close {
+    display: flex;
+    animation: fadeInShift 0.35s cubic-bezier(0.16, 1, 0.3, 1) backwards;
   }
 
   .sidebar {
@@ -433,8 +431,6 @@ code, pre {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0);
-    backdrop-filter: blur(0px);
-    -webkit-backdrop-filter: blur(0px);
     z-index: 1000;
     opacity: 0;
     visibility: hidden;
@@ -444,14 +440,18 @@ code, pre {
   .sidebar-overlay.show {
     opacity: 1;
     visibility: visible;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.72);
   }
+}
 
-  /* 侧边栏内添加关闭按钮样式（在 JS 中动态注入） */
-  .sidebar-close-btn {
-    display: none;
+@keyframes fadeInShift {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -1744,15 +1744,51 @@ code, pre {
     padding: var(--space-md);
   }
 
-  /* 下载区 */
+  /* 下载区 - 手机端改为垂直堆叠，按钮全宽更易用 */
   .download-section {
     padding: var(--space-md);
     margin: var(--space-lg) 0;
   }
 
+  .download-title {
+    font-size: 0.95rem;
+    margin-bottom: var(--space-md);
+  }
+
+  .download-list {
+    gap: var(--space-sm);
+  }
+
   .download-item {
-    padding: var(--space-sm);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
     font-size: 0.85rem;
+  }
+
+  .download-item-name {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: 0.85rem;
+  }
+
+  .download-item-code {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    background: var(--bg-card);
+    border-radius: 4px;
+    margin-right: 0;
+  }
+
+  .download-item .btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 0.85rem;
+    justify-content: center;
   }
 
   /* 图片画廊 */
