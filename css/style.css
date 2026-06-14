@@ -410,6 +410,11 @@ code, pre {
 @media (max-width: 1024px) {
   .menu-toggle { display: flex; }
 
+  /* 侧边栏打开时隐藏菜单按钮，避免遮挡 */
+  body.sidebar-open .menu-toggle {
+    display: none;
+  }
+
   .sidebar {
     transform: translateX(-100%);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
@@ -420,8 +425,6 @@ code, pre {
     transform: translateX(0);
     box-shadow: 4px 0 32px rgba(0, 0, 0, 0.6), 0 0 1px var(--accent-glow);
   }
-
-  /* 侧边栏打开时，menu-toggle 在侧边栏下方（因为 sidebar z-index 1002 > menu-toggle z-index 1001） */
 
   .sidebar-overlay {
     position: fixed;
