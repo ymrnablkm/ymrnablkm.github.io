@@ -142,17 +142,18 @@ def extract_fields(text):
     for name, raw in drives_raw:
         raw_url = re.search(r'https?://[^\s)）\]\}）"\']+', raw)
         url = _normalize_url(raw_url.group(0)) if raw_url else ''
-        code_match = re.search(r'(提取码|码|密码)\s*[：:]?\s*([A-Za-z0-9]{1,15})', raw, re.I)
-        code = code_match.group(2) if code_match else '—'
-        if any(x in code for x in ['无', '没有', '不需要', '空']):
+        code_match = re.search(r'(?:提取码|码|密码)\s*[：:]?\s*([A-Za-z0-9]{1,15})', raw, re.I)
+        code = code_match.group(1) if code_match else '—'
+        if code == '—' or any(x in raw for x in ['无提取码', '无码', '无密码', '不需要码', '没有码']):
             code = '—'
         drives.append({'name': name, 'url': url, 'code': code})
 
-    # 全局提取码兜底
-    all_codes = re.findall(r'(提取码|码|密码)\s*[：:]?\s*([A-Za-z0-9]{2,15})', text, re.I)
-    for d in drives:
-        if d['code'] == '—' and all_codes:
-            d['code'] = all_codes[0][1]
+    # 全局提取码兜底（只对没有提取码的网盘应用）
+    all_codes = re.findall(r'(?:提取码|码|密码)\s*[：:]?\s*([A-Za-z0-9]{2,15})', text, re.I)
+    if all_codes:
+        for d in drives:
+            if d['code'] == '—':
+                d['code'] = all_codes[0]
 
     images = list(set(images_raw))
     return fields, drives, images
