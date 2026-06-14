@@ -142,8 +142,6 @@ input, textarea, select { font: inherit; color: inherit; }
   display: grid;
   grid-template-columns: var(--sidebar-w) 1fr;
   min-height: 100vh;
-  position: relative;
-  z-index: 1;
 }
 
 .main {
@@ -156,6 +154,7 @@ input, textarea, select { font: inherit; color: inherit; }
 /* ===== 侧边栏 ===== */
 .sidebar {
   position: sticky;
+  position: -webkit-sticky;
   top: 0;
   height: 100vh;
   background: var(--bg-elevated);
@@ -164,7 +163,8 @@ input, textarea, select { font: inherit; color: inherit; }
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  z-index: 20;
+  z-index: 25;
+  align-self: start;
 }
 
 .sidebar-header {
@@ -285,6 +285,7 @@ input, textarea, select { font: inherit; color: inherit; }
   background: rgba(0, 0, 0, 0.55);
   z-index: 15;
   opacity: 0;
+  pointer-events: none;
   transition: opacity var(--dur-2) var(--ease);
 }
 
@@ -1336,9 +1337,11 @@ body.sidebar-open .sidebar-overlay { display: block; opacity: 1; }
     top: 0;
     left: 0;
     width: min(320px, 85vw);
+    height: 100vh;
     transform: translateX(-100%);
     transition: transform var(--dur-3) var(--ease);
     box-shadow: var(--shadow-lg);
+    z-index: 25;
   }
   body.sidebar-open .sidebar { transform: translateX(0); }
   body.sidebar-open .menu-toggle {
