@@ -3,510 +3,226 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>发布软件 · AY Admin</title>
+  <title>发布资源 · Aether Yard</title>
   <link rel="stylesheet" href="../css/style.css">
-  <style>
-    .admin-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 32px;
-      padding-bottom: 24px;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .admin-nav {
-      display: flex;
-      gap: 16px;
-    }
-    .admin-nav a {
-      color: var(--text-secondary);
-      text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      transition: all 0.2s;
-    }
-    .admin-nav a:hover {
-      background: var(--bg-card);
-      color: var(--text-primary);
-    }
-    .admin-nav a.active {
-      background: var(--accent-dim);
-      color: var(--accent);
-    }
-    .admin-logo {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-    .admin-logo span {
-      color: var(--text-muted);
-      font-weight: 400;
-    }
-    .success-box {
-      background: rgba(0, 255, 136, 0.1);
-      border: 1px solid var(--accent);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 24px;
-      animation: fadeInUp 0.4s ease-out;
-    }
-    .success-box h3 {
-      color: var(--accent);
-      margin-bottom: 12px;
-    }
-    .success-box ol {
-      color: var(--text-secondary);
-      padding-left: 20px;
-      line-height: 2;
-    }
-    .success-box li {
-      margin-bottom: 8px;
-    }
-    .success-box .btn {
-      margin-top: 16px;
-    }
-    .checkbox-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 8px;
-    }
-    .checkbox-group input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--accent);
-    }
-    .drive-toggle {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .drive-toggle label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-    }
-    .toggle-switch {
-      position: relative;
-      width: 44px;
-      height: 24px;
-      background: var(--bg-input);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .toggle-switch::after {
-      content: '';
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 18px;
-      height: 18px;
-      background: var(--text-muted);
-      border-radius: 50%;
-      transition: all 0.2s;
-    }
-    .toggle-switch.active {
-      background: var(--accent);
-    }
-    .toggle-switch.active::after {
-      left: 23px;
-      background: var(--bg-primary);
-    }
-    .drive-content {
-      display: none;
-    }
-    .drive-content.show {
-      display: block;
-    }
-  </style>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
-<body style="background: var(--bg-primary);">
-  <div style="max-width: 900px; margin: 0 auto; padding: 48px 24px;">
-    <!-- 头部 -->
-    <div class="admin-header">
-      <div class="admin-logo">AY <span>/ 发布软件</span></div>
-      <div class="admin-nav">
-        <a href="publish.html" class="active">发布软件</a>
-        <a href="manage.html">管理软件</a>
-        <a href="../index.html" target="_blank">查看站点 →</a>
-      </div>
-    </div>
-
-    <!-- 成功提示 -->
-    <div id="successBox" class="success-box" style="display: none;">
-      <h3>✓ 已生成 GitHub Issue 链接</h3>
-      <ol>
-        <li>点击下方按钮跳转到 GitHub</li>
-        <li>确认表单内容无误后，点击 <strong>Submit new issue</strong></li>
-        <li>等待约 1 分钟，GitHub Actions 自动同步到网站</li>
-        <li>刷新 <a href="../index.html" style="color: var(--accent);">网站首页</a> 查看新发布</li>
-      </ol>
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <a id="githubLink" href="#" target="_blank" class="btn btn-primary">跳转到 GitHub →</a>
-        <button onclick="resetForm()" class="btn btn-ghost">继续发布</button>
-      </div>
-    </div>
-
-    <!-- 表单 -->
-    <form id="publishForm" class="publish-form">
-      <!-- 基本信息 -->
-      <div class="form-card">
-        <div class="form-card-title">
-          <span class="icon">📋</span>
-          基本信息
+<body>
+  <div class="app-container" style="grid-template-columns: 1fr;">
+    <main class="main">
+      <div class="admin-header">
+        <div>
+          <h1 class="admin-title">发布资源</h1>
+          <div class="admin-subtitle">ADMIN · PUBLISH</div>
         </div>
+        <nav class="admin-nav">
+          <a href="publish.html" class="admin-btn active">发布</a>
+          <a href="manage.html" class="admin-btn">管理</a>
+          <a href="../index.html" class="admin-btn">首页</a>
+        </nav>
+      </div>
 
-        <div class="form-group">
-          <label class="form-label">软件标题 *</label>
-          <input type="text" id="f-title" class="form-input" placeholder="例如：Windows 常用工具箱 2024" required>
-        </div>
+      <form class="form-card" id="publishForm" autocomplete="off">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label class="form-label">标题 *</label>
+            <input type="text" class="form-input" id="f-title" placeholder="如：Visual Studio Code" required>
+          </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div class="form-group">
             <label class="form-label">分类</label>
-            <select id="f-category" class="form-select">
-              <option value="软件">软件工具</option>
-              <option value="资源">设计资源</option>
-              <option value="游戏">游戏相关</option>
+            <select class="form-select" id="f-category">
+              <option value="软件">软件</option>
+              <option value="影视动漫">影视动漫</option>
+              <option value="PC工具">PC 工具</option>
+              <option value="游戏相关">游戏相关</option>
               <option value="其他">其他</option>
             </select>
           </div>
+
           <div class="form-group">
             <label class="form-label">版本</label>
-            <input type="text" id="f-version" class="form-input" placeholder="例如：2024.06">
+            <input type="text" class="form-input" id="f-version" placeholder="如：1.0.0">
           </div>
-        </div>
 
-        <div class="form-group">
-          <label class="form-label">大小</label>
-          <input type="text" id="f-size" class="form-input" placeholder="例如：860 MB">
-        </div>
+          <div class="form-group full">
+            <label class="form-label">封面图 URL</label>
+            <input type="url" class="form-input" id="f-cover" placeholder="https://example.com/cover.jpg">
+            <small class="form-hint">留空则自动使用第一张预览图</small>
+          </div>
 
-        <div class="form-group">
-          <label class="form-label">一句话简介</label>
-          <input type="text" id="f-desc" class="form-input" placeholder="简短描述，会显示在卡片上" maxlength="100">
-        </div>
-      </div>
+          <div class="form-group full">
+            <label class="form-label">描述 *</label>
+            <textarea class="form-textarea" id="f-description" placeholder="简要介绍软件功能与特色" rows="4" required></textarea>
+          </div>
 
-      <!-- 封面与图片 -->
-      <div class="form-card">
-        <div class="form-card-title">
-          <span class="icon">🖼️</span>
-          封面与截图
-        </div>
+          <div class="form-group full">
+            <label class="form-label">标签（用逗号或空格分隔）</label>
+            <input type="text" class="form-input" id="f-tags" placeholder="如：开发工具, 免费, 跨平台">
+          </div>
 
-        <div class="form-group">
-          <label class="form-label">封面图片 URL</label>
-          <input type="text" id="f-cover" class="form-input" placeholder="https://... (建议 16:9 比例)">
-          <div class="form-hint">使用图床获取直链，推荐 sm.ms / postimages.org</div>
-        </div>
+          <div class="form-group full">
+            <label class="form-label">预览图（可多张）</label>
+            <div class="dynamic-list" id="imageList"></div>
+            <button type="button" class="add-btn" id="btn-add-image">+ 添加图片</button>
+          </div>
 
-        <div class="form-group">
-          <label class="form-label">截图 URL（每行一个）</label>
-          <textarea id="f-images" class="form-textarea" rows="4" placeholder="https://example.com/img1.jpg&#10;https://example.com/img2.jpg"></textarea>
-          <div class="form-hint">多张截图用换行分隔，建议 16:9 比例</div>
-        </div>
-      </div>
+          <div class="form-group full">
+            <label class="form-label">下载链接</label>
+            <div class="dynamic-list" id="driveList"></div>
+            <button type="button" class="add-btn" id="btn-add-drive">+ 添加下载</button>
+          </div>
 
-      <!-- 详细介绍 -->
-      <div class="form-card">
-        <div class="form-card-title">
-          <span class="icon">📝</span>
-          详细介绍
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">详细内容</label>
-          <textarea id="f-content" class="form-textarea" rows="8" placeholder="详细介绍软件功能、使用方法、包含内容等...&#10;&#10;每行会自动识别为段落或列表项"></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">标签（用逗号分隔）</label>
-          <input type="text" id="f-tags" class="form-input" placeholder="例如：Windows, 工具箱, 绿色软件">
-        </div>
-      </div>
-
-      <!-- 下载链接 -->
-      <div class="form-card">
-        <div class="form-card-title">
-          <span class="icon">⬇</span>
-          下载链接
-        </div>
-
-        <!-- 百度网盘 -->
-        <div class="drive-group">
-          <div class="drive-toggle">
-            <label>
-              <div class="toggle-switch active" data-drive="baidu" onclick="toggleDrive(this)"></div>
-              <span>百度网盘</span>
+          <div class="form-group full">
+            <label class="form-label">精选推荐</label>
+            <label style="position:relative;display:inline-flex;align-items:center;gap:12px;cursor:pointer;user-select:none;">
+              <input type="checkbox" id="f-featured" style="opacity:0;width:0;height:0;position:absolute;">
+              <span class="form-switch" id="f-featured-switch"></span>
+              <span style="font-size:13px;color:var(--text-secondary);">开启后将显示于首页精选区</span>
             </label>
           </div>
-          <div class="drive-content show" id="baidu-content">
-            <div class="drive-inputs">
-              <input type="text" id="f-baidu" class="form-input" placeholder="链接：https://pan.baidu.com/s/xxxx">
-              <input type="text" id="f-baidu-code" class="form-input" placeholder="提取码">
-            </div>
-          </div>
         </div>
 
-        <!-- 夸克网盘 -->
-        <div class="drive-group">
-          <div class="drive-toggle">
-            <label>
-              <div class="toggle-switch" data-drive="quark" onclick="toggleDrive(this)"></div>
-              <span>夸克网盘</span>
-            </label>
-          </div>
-          <div class="drive-content" id="quark-content">
-            <div class="drive-inputs">
-              <input type="text" id="f-quark" class="form-input" placeholder="链接：https://pan.quark.cn/s/xxxx">
-              <input type="text" id="f-quark-code" class="form-input" placeholder="提取码">
-            </div>
-          </div>
+        <div class="form-actions">
+          <button type="button" class="btn" id="btn-reset">重 置</button>
+          <button type="submit" class="btn btn-primary">发布资源</button>
         </div>
-
-        <!-- 阿里云盘 -->
-        <div class="drive-group">
-          <div class="drive-toggle">
-            <label>
-              <div class="toggle-switch" data-drive="ali" onclick="toggleDrive(this)"></div>
-              <span>阿里云盘</span>
-            </label>
-          </div>
-          <div class="drive-content" id="ali-content">
-            <div class="drive-inputs">
-              <input type="text" id="f-ali" class="form-input" placeholder="链接：https://www.aliyundrive.com/s/xxxx">
-              <input type="text" id="f-ali-code" class="form-input" placeholder="提取码">
-            </div>
-          </div>
-        </div>
-
-        <!-- 123云盘 -->
-        <div class="drive-group">
-          <div class="drive-toggle">
-            <label>
-              <div class="toggle-switch" data-drive="123" onclick="toggleDrive(this)"></div>
-              <span>123云盘</span>
-            </label>
-          </div>
-          <div class="drive-content" id="123-content">
-            <div class="drive-inputs">
-              <input type="text" id="f-123" class="form-input" placeholder="链接">
-              <input type="text" id="f-123-code" class="form-input" placeholder="提取码">
-            </div>
-          </div>
-        </div>
-
-        <!-- 蓝奏云 -->
-        <div class="drive-group">
-          <div class="drive-toggle">
-            <label>
-              <div class="toggle-switch" data-drive="lanzou" onclick="toggleDrive(this)"></div>
-              <span>蓝奏云</span>
-            </label>
-          </div>
-          <div class="drive-content" id="lanzou-content">
-            <div class="drive-inputs">
-              <input type="text" id="f-lanzou" class="form-input" placeholder="链接">
-              <input type="text" id="f-lanzou-code" class="form-input" placeholder="密码">
-            </div>
-          </div>
-        </div>
-
-        <!-- 天翼云盘 -->
-        <div class="drive-group">
-          <div class="drive-toggle">
-            <label>
-              <div class="toggle-switch" data-drive="ty" onclick="toggleDrive(this)"></div>
-              <span>天翼云盘</span>
-            </label>
-          </div>
-          <div class="drive-content" id="ty-content">
-            <div class="drive-inputs">
-              <input type="text" id="f-ty" class="form-input" placeholder="链接">
-              <input type="text" id="f-ty-code" class="form-input" placeholder="提取码">
-            </div>
-          </div>
-        </div>
-
-        <!-- 迅雷云盘 -->
-        <div class="drive-group">
-          <div class="drive-toggle">
-            <label>
-              <div class="toggle-switch" data-drive="xunlei" onclick="toggleDrive(this)"></div>
-              <span>迅雷云盘</span>
-            </label>
-          </div>
-          <div class="drive-content" id="xunlei-content">
-            <div class="drive-inputs">
-              <input type="text" id="f-xunlei" class="form-input" placeholder="链接">
-              <input type="text" id="f-xunlei-code" class="form-input" placeholder="提取码">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 选项 -->
-      <div class="form-card">
-        <div class="form-card-title">
-          <span class="icon">⚙️</span>
-          选项
-        </div>
-
-        <div class="checkbox-group">
-          <input type="checkbox" id="f-featured">
-          <label for="f-featured">设为精选（在首页展示）</label>
-        </div>
-
-        <div class="checkbox-group" style="margin-top: 12px;">
-          <input type="checkbox" id="f-pinned">
-          <label for="f-pinned">置顶</label>
-        </div>
-      </div>
-
-      <!-- 提交 -->
-      <div style="display: flex; gap: 16px; justify-content: flex-end;">
-        <button type="button" onclick="resetForm()" class="btn btn-ghost">清空</button>
-        <button type="submit" class="btn btn-primary btn-lg">生成并提交 →</button>
-      </div>
-    </form>
+      </form>
+    </main>
   </div>
 
+  <div class="toast" id="toast"></div>
+
   <script>
-    const DRIVES = [
-      ['baidu', '百度网盘'],
-      ['quark', '夸克网盘'],
-      ['ali', '阿里云盘'],
-      ['123', '123云盘'],
-      ['lanzou', '蓝奏云'],
-      ['ty', '天翼云盘'],
-      ['xunlei', '迅雷云盘']
-    ];
+    const STORAGE_KEY = 'aether.software.local';
+    const $ = id => document.getElementById(id);
 
-    function toggleDrive(el) {
-      el.classList.toggle('active');
-      const drive = el.dataset.drive;
-      const content = document.getElementById(`${drive}-content`);
-      content.classList.toggle('show');
+    // ====== 工具函数 ======
+    function showToast(msg, type) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.className = 'toast show ' + (type || '');
+      setTimeout(() => t.classList.remove('show'), 2400);
     }
 
-    function escapeHTML(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+    function genId() {
+      return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
     }
 
-    document.getElementById('publishForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const title = document.getElementById('f-title').value.trim();
-      if (!title) {
-        alert('请输入软件标题');
-        return;
-      }
-
-      // 收集数据
-      const drives = [];
-      DRIVES.forEach(([key, name]) => {
-        const toggle = document.querySelector(`[data-drive="${key}"]`);
-        if (toggle.classList.contains('active')) {
-          const url = document.getElementById(`f-${key}`).value.trim();
-          const code = document.getElementById(`f-${key}-code`).value.trim();
-          if (url) {
-            drives.push({ name, url, code: code || '—' });
-          }
-        }
+    // ====== 动态行组件 ======
+    function addImageRow(initialValue) {
+      const row = document.createElement('div');
+      row.className = 'dynamic-item';
+      row.innerHTML = `
+        <input type="url" class="form-input img-url" placeholder="图片 URL https://..." value="${initialValue || ''}">
+        <button type="button" class="remove-btn" title="删除">✕</button>
+      `;
+      row.querySelector('.remove-btn').addEventListener('click', () => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(-8px)';
+        setTimeout(() => row.remove(), 160);
       });
+      $('imageList').appendChild(row);
+    }
 
-      if (drives.length === 0) {
-        alert('请至少填写一个下载链接');
-        return;
-      }
-
-      // 生成 ID
-      const id = 'sw-' + Date.now().toString(36);
-
-      // 生成内容
-      let content = `标题: ${title}\n`;
-      content += `分类: ${document.getElementById('f-category').value}\n`;
-      
-      const version = document.getElementById('f-version').value.trim();
-      if (version) content += `版本: ${version}\n`;
-      
-      const size = document.getElementById('f-size').value.trim();
-      if (size) content += `大小: ${size}\n`;
-      
-      const desc = document.getElementById('f-desc').value.trim();
-      if (desc) content += `简介: ${desc}\n`;
-      
-      const cover = document.getElementById('f-cover').value.trim();
-      if (cover) content += `封面: ${cover}\n`;
-      
-      content += `\n详情:\n${document.getElementById('f-content').value.trim()}\n`;
-      
-      const images = document.getElementById('f-images').value.trim();
-      if (images) content += `\n截图:\n${images}\n`;
-      
-      const tags = document.getElementById('f-tags').value.trim();
-      if (tags) content += `\n标签: ${tags}\n`;
-      
-      content += `\n下载:\n`;
-      drives.forEach(d => {
-        content += `${d.name}: ${d.url}`;
-        if (d.code && d.code !== '—') {
-          content += `  提取码: ${d.code}`;
-        }
-        content += '\n';
+    function addDriveRow(data) {
+      data = data || {};
+      const row = document.createElement('div');
+      row.className = 'dynamic-item';
+      row.style.gridTemplateColumns = '1fr 1fr auto';
+      row.innerHTML = `
+        <input type="text" class="form-input drive-name" placeholder="名称（如：百度网盘）" value="${data.name || ''}">
+        <input type="text" class="form-input drive-code" placeholder="提取码（可选）" value="${data.code || ''}">
+        <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto; gap: 12px;">
+          <input type="url" class="form-input drive-url" placeholder="下载链接 https://..." value="${data.url || ''}">
+          <button type="button" class="remove-btn" title="删除">✕</button>
+        </div>
+      `;
+      row.querySelector('.remove-btn').addEventListener('click', () => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(-8px)';
+        setTimeout(() => row.remove(), 160);
       });
-      
-      if (document.getElementById('f-featured').checked) {
-        content += `\n精选: true\n`;
-      }
-      
-      if (document.getElementById('f-pinned').checked) {
-        content += `\n置顶: true\n`;
-      }
+      $('driveList').appendChild(row);
+    }
 
-      // 生成 GitHub Issue URL
-      const repo = 'ymrnablkm/ymrnablkm.github.io';
-      const issueTitle = encodeURIComponent(title);
-      const issueBody = encodeURIComponent(content);
-      const githubUrl = `https://github.com/${repo}/issues/new?title=${issueTitle}&body=${issueBody}&labels=software`;
+    // ====== 初始化 ======
+    function initForm() {
+      addImageRow();
+      addDriveRow();
+    }
+    initForm();
 
-      // 显示成功提示
-      document.getElementById('publishForm').style.display = 'none';
-      document.getElementById('successBox').style.display = 'block';
-      document.getElementById('githubLink').href = githubUrl;
-      
-      // 打开 GitHub
-      window.open(githubUrl, '_blank');
-    });
+    $('btn-add-image').addEventListener('click', () => addImageRow());
+    $('btn-add-drive').addEventListener('click', () => addDriveRow());
 
+    // ====== 重置 ======
     function resetForm() {
-      document.getElementById('publishForm').reset();
-      document.getElementById('successBox').style.display = 'none';
-      document.getElementById('publishForm').style.display = 'block';
-      
-      // 重置网盘开关
-      DRIVES.forEach(([key]) => {
-        const toggle = document.querySelector(`[data-drive="${key}"]`);
-        const content = document.getElementById(`${key}-content`);
-        if (key === 'baidu') {
-          toggle.classList.add('active');
-          content.classList.add('show');
-        } else {
-          toggle.classList.remove('active');
-          content.classList.remove('show');
-        }
-      });
+      $('publishForm').reset();
+      $('imageList').innerHTML = '';
+      $('driveList').innerHTML = '';
+      initForm();
+      showToast('已重置');
     }
+    $('btn-reset').addEventListener('click', resetForm);
+
+    // ====== 提交 ======
+    $('publishForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const title = $('f-title').value.trim();
+      const description = $('f-description').value.trim();
+      if (!title) { showToast('请填写标题', 'error'); return; }
+      if (!description) { showToast('请填写描述', 'error'); return; }
+
+      const images = [];
+      $('imageList').querySelectorAll('.img-url').forEach(inp => {
+        if (inp.value.trim()) images.push(inp.value.trim());
+      });
+
+      const drives = [];
+      $('driveList').querySelectorAll('.dynamic-item').forEach(row => {
+        const n = row.querySelector('.drive-name').value.trim();
+        const c = row.querySelector('.drive-code').value.trim();
+        const u = row.querySelector('.drive-url').value.trim();
+        if (u) drives.push({ name: n || '下载链接', code: c, url: u });
+      });
+
+      const tagsRaw = ($('f-tags').value || '').split(/[,、\s]+/).map(t => t.trim()).filter(Boolean);
+      const cover = $('f-cover').value.trim() || '';
+
+      const record = {
+        id: genId(),
+        title,
+        description,
+        category: $('f-category').value || '其他',
+        version: $('f-version').value.trim() || '',
+        cover,
+        tags: tagsRaw,
+        images,
+        drives,
+        featured: $('f-featured').checked,
+        pinned: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      existing.unshift(record);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+
+      // 导出 JSON 供下载（浏览器端无法直接写文件）
+      const blob = new Blob([JSON.stringify(existing, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'software.json';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+
+      showToast('发布成功！已导出 software.json', 'success');
+      setTimeout(resetForm, 600);
+    });
   </script>
 </body>
 </html>

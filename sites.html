@@ -5,154 +5,120 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>外站导航 · Aether Yard</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
 <body>
-  <button class="menu-toggle" id="menuToggle">☰</button>
+  <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="app-container">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <button class="sidebar-header-close" id="sidebarClose" aria-label="close">❌</button>
-        <div class="logo">AY</div>
-        <div class="logo-sub">Software Repository</div>
+        <button class="sidebar-header-close" id="sidebarClose" aria-label="关闭">✕</button>
+        <div>
+          <div class="logo-text">Aether Yard</div>
+          <div class="logo-subtitle">RESOURCE HUB</div>
+        </div>
       </div>
-
       <nav class="sidebar-nav">
         <div class="nav-section">
           <div class="nav-section-title">导航</div>
-          <a href="index.html" class="nav-link"><span class="icon">⌂</span> 首页</a>
-          <a href="software.html" class="nav-link"><span class="icon">⊞</span> 软件库</a>
-          <a href="sites.html" class="nav-link active"><span class="icon">🔗</span> 外站导航</a>
-          <a href="about.html" class="nav-link"><span class="icon">◉</span> 关于</a>
-        </div>
-
-        <div class="nav-section">
-          <div class="nav-section-title">快捷分类</div>
-          <a href="software.html?cat=软件" class="nav-link"><span class="icon">⊞</span> 软件工具</a>
-          <a href="software.html?cat=资源" class="nav-link"><span class="icon">◈</span> 设计资源</a>
-          <a href="software.html?cat=游戏" class="nav-link"><span class="icon">⬡</span> 游戏相关</a>
+          <a href="index.html" class="nav-link"><span class="nav-icon">⌂</span>首页</a>
+          <a href="software.html" class="nav-link"><span class="nav-icon">⊞</span>软件库</a>
+          <a href="sites.html" class="nav-link active"><span class="nav-icon">🔗</span>外站导航</a>
+          <a href="about.html" class="nav-link"><span class="nav-icon">◉</span>关于</a>
         </div>
       </nav>
-
-      <div class="sidebar-sites">
-        <div class="nav-section-title">常用站点</div>
-        <a href="https://github.com" target="_blank" class="site-link"><span class="favicon">G</span> GitHub</a>
-        <a href="https://notion.so" target="_blank" class="site-link"><span class="favicon">N</span> Notion</a>
-        <a href="https://figma.com" target="_blank" class="site-link"><span class="favicon">F</span> Figma</a>
-      </div>
     </aside>
 
-    <main class="main-content">
-      <div class="page-header">
-        <h1 class="page-title">外站导航</h1>
-        <p class="page-subtitle">收录优质工具与资源网站，持续更新</p>
-      </div>
+    <main class="main">
+      <section class="hero" style="padding: var(--space-8) 0 var(--space-6);">
+        <div class="hero-badge">EXTERNAL LINKS</div>
+        <h1 class="hero-title">外站导航</h1>
+        <p class="hero-subtitle">精选好用的网站，一键直达。</p>
+      </section>
 
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="搜索网站名称或描述...">
-      </div>
-
-      <div id="sitesContainer">
-        <div class="loading"><div class="loading-spinner"></div></div>
-      </div>
+      <section id="sitesContainer"></section>
     </main>
   </div>
 
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="empty-icon">◇</div>
+    <div class="empty-text">暂无导航</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
   <script>
-    let allSites = [];
-    let currentSearch = '';
-
     function escapeHTML(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+      return String(str || '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
     }
 
-    async function loadData() {
-      try {
-        const response = await fetch('data/sites.json');
-        allSites = await response.json();
-        render();
-      } catch (error) {
-        console.error('加载失败:', error);
-        document.getElementById('sitesContainer').innerHTML = '<div class="empty-state"><p>数据加载失败</p></div>';
-      }
-    }
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const overlay = document.getElementById('sidebarOverlay');
+    menuToggle.addEventListener('click', () => document.body.classList.add('sidebar-open'));
+    sidebarClose.addEventListener('click', () => document.body.classList.remove('sidebar-open'));
+    overlay.addEventListener('click', () => document.body.classList.remove('sidebar-open'));
 
-    function render() {
-      // 支持两种数据结构: { categories: [...] } 或 { sites: [...] }
-      let categories = allSites.categories || allSites.sites || [];
-      
-      if (currentSearch) {
-        const query = currentSearch.toLowerCase();
-        categories = categories.map(cat => ({
-          ...cat,
-          sites: cat.sites.filter(s => 
-            s.name.toLowerCase().includes(query) ||
-            (s.desc && s.desc.toLowerCase().includes(query))
-          )
-        })).filter(cat => cat.sites.length > 0);
+    function renderSites(data) {
+      const container = document.getElementById('sitesContainer');
+      const empty = document.getElementById('emptyState');
+
+      let groups = [];
+      if (Array.isArray(data)) {
+        // 扁平数组：兼容 [{ name, url, desc }] 格式
+        groups = [{ category: '精选推荐', sites: data }];
+      } else if (data && data.sites && Array.isArray(data.sites)) {
+        // 嵌套结构：{ sites: [{ category, sites: [...] }] }
+        groups = data.sites.filter(g => g && Array.isArray(g.sites) && g.sites.length > 0);
       }
 
-      if (categories.length === 0) {
-        document.getElementById('sitesContainer').innerHTML = `
-          <div class="empty-state">
-            <div class="icon">🔍</div>
-            <h3>未找到相关网站</h3>
-            <p>试试其他关键词</p>
-          </div>
-        `;
-        return;
+      if (!groups || groups.length === 0) {
+        // 默认兜底数据
+        groups = [
+          {
+            category: '开发工具',
+            sites: [
+              { name: 'GitHub', url: 'https://github.com', desc: '全球最大代码托管平台', icon: 'G' },
+              { name: 'VS Code', url: 'https://code.visualstudio.com', desc: '轻量级代码编辑器', icon: 'VS' },
+              { name: 'Figma', url: 'https://figma.com', desc: '协作界面设计工具', icon: 'Fi' },
+              { name: 'MDN', url: 'https://developer.mozilla.org', desc: 'Web 开发者权威文档', icon: 'M' }
+            ]
+          }
+        ];
       }
 
-      const html = categories.map((cat, i) => `
-        <div class="sites-category" style="animation: fadeInUp 0.4s ease-out; animation-delay: ${i * 60}ms; animation-fill-mode: backwards;">
-          <div class="sites-category-header">
-            <span class="icon">${escapeHTML(cat.icon || '◈')}</span>
-            <span>${escapeHTML(cat.name)}</span>
-          </div>
-          <div class="sites-list">
-            ${(cat.sites || []).map(site => `
-              <a href="${escapeHTML(site.url)}" target="_blank" rel="noopener noreferrer" class="site-item">
-                <div class="site-item-icon">${escapeHTML(site.icon || site.name.charAt(0))}</div>
-                <div class="site-item-info">
-                  <div class="site-item-name">${escapeHTML(site.name)}</div>
-                  <div class="site-item-desc">${escapeHTML(site.desc || '')}</div>
-                </div>
-              </a>
-            `).join('')}
-          </div>
-        </div>
-      `).join('');
+      container.innerHTML = groups.map(group => {
+        const cardsHTML = group.sites.map(site => {
+          const letter = (site.icon || (site.name || '?').charAt(0)).toUpperCase().slice(0, 2);
+          const title = escapeHTML(site.title || site.name || 'Untitled');
+          const desc = escapeHTML(site.description || site.desc || '');
+          const url = escapeHTML(site.url || '#');
+          return `<a href="${url}" target="_blank" class="site-card">
+            <div class="site-favicon">${letter}</div>
+            <div class="site-title">${title}</div>
+            <div class="site-desc">${desc}</div>
+          </a>`;
+        }).join('');
 
-      document.getElementById('sitesContainer').innerHTML = html;
+        return `<section class="section" style="margin-top: var(--space-8);">
+          <div class="section-header">
+            <div class="section-title">${escapeHTML(group.category || '精选推荐')}</div>
+          </div>
+          <div class="site-grid">${cardsHTML}</div>
+        </section>`;
+      }).join('');
+
+      empty.style.display = 'none';
     }
 
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      currentSearch = e.target.value;
-      render();
-    });
-
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebarOverlay').classList.toggle('show');
-      document.body.classList.toggle('sidebar-open');
-    });
-
-    function closeSidebar() {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('show');
-      document.body.classList.remove('sidebar-open');
-    }
-
-    document.getElementById('sidebarClose').addEventListener('click', closeSidebar);
-    document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
-
-    loadData();
+    fetch('data/sites.json')
+      .then(r => r.ok ? r.json() : ({}))
+      .catch(() => ({}))
+      .then(data => renderSites(data));
   </script>
 </body>
 </html>

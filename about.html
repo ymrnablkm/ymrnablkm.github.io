@@ -5,19 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>关于 · Aether Yard</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
 <body>
-  <button class="menu-toggle" id="menuToggle">☰</button>
+  <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="app-container">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <button class="sidebar-header-close" id="sidebarClose" aria-label="close">❌</button>
-        <div class="logo">AY</div>
-        <div class="logo-sub">Software Repository</div>
+        <button class="sidebar-header-close" id="sidebarClose" aria-label="关闭">✕</button>
+        <div>
+          <div class="logo-text">Aether Yard</div>
+          <div class="logo-sub">RESOURCE HUB</div>
+        </div>
       </div>
-
       <nav class="sidebar-nav">
         <div class="nav-section">
           <div class="nav-section-title">导航</div>
@@ -26,100 +28,41 @@
           <a href="sites.html" class="nav-link"><span class="icon">🔗</span> 外站导航</a>
           <a href="about.html" class="nav-link active"><span class="icon">◉</span> 关于</a>
         </div>
-
-        <div class="nav-section">
-          <div class="nav-section-title">快捷分类</div>
-          <a href="software.html?cat=软件" class="nav-link"><span class="icon">⊞</span> 软件工具</a>
-          <a href="software.html?cat=资源" class="nav-link"><span class="icon">◈</span> 设计资源</a>
-          <a href="software.html?cat=游戏" class="nav-link"><span class="icon">⬡</span> 游戏相关</a>
-        </div>
       </nav>
-
-      <div class="sidebar-sites">
-        <div class="nav-section-title">常用站点</div>
-        <a href="https://github.com" target="_blank" class="site-link"><span class="favicon">G</span> GitHub</a>
-        <a href="https://notion.so" target="_blank" class="site-link"><span class="favicon">N</span> Notion</a>
-        <a href="https://figma.com" target="_blank" class="site-link"><span class="favicon">F</span> Figma</a>
-      </div>
     </aside>
 
-    <main class="main-content">
-      <div class="page-header">
-        <h1 class="page-title">关于 Aether Yard</h1>
-      </div>
+    <main class="main">
+      <section class="hero" style="padding: var(--space-8) 0 var(--space-6);">
+        <span class="hero-label">ABOUT · US</span>
+        <h1 class="hero-title">关于本站</h1>
+        <p class="hero-subtitle">一个简洁、自由的软件与资源分享站。</p>
+      </section>
 
-      <div class="about-content">
-        <section class="about-section">
-          <h3>这是什么？</h3>
-          <p style="line-height: 2; color: var(--text-secondary);">
-            Aether Yard 是一个个人维护的软件工具与数字资源分享平台。我在这里整理在学习、工作和创作过程中发现的好用工具，并分享给需要的人。
-          </p>
-        </section>
+      <section class="about-content">
+        <p>Aether Yard 是一个面向开发者和普通用户的资源分享站，汇集精选软件、影视动漫、创作素材及其他实用工具。</p>
 
-        <section class="about-section">
-          <h3>资源来源</h3>
-          <p style="line-height: 2; color: var(--text-secondary);">
-            所有软件和资源均来自互联网公开渠道，我会尽可能标注原始来源。资源文件存储于第三方网盘（百度网盘、夸克网盘、阿里云盘等），本站仅提供索引与介绍。
-          </p>
-        </section>
+        <h3>本站特色</h3>
+        <ul>
+          <li>极简深色界面，保护视力</li>
+          <li>响应式设计，手机 / 平板 / 桌面皆可使用</li>
+          <li>分类清晰，搜索便捷</li>
+          <li>每个资源独立页面，附预览图与下载链接</li>
+          <li>后台发布管理，自由度高</li>
+        </ul>
 
-        <section class="about-section">
-          <h3>使用许可</h3>
-          <p style="line-height: 2; color: var(--text-secondary);">
-            站内资源仅供学习交流使用。如需商用，请务必先联系原始作者或版权方获取授权。本站不对资源的版权问题负责。
-          </p>
-        </section>
-
-        <section class="about-section">
-          <h3>更新频率</h3>
-          <p style="line-height: 2; color: var(--text-secondary);">
-            资源不定期更新，好东西会及时补充进来。如果有特别想要找的资源，可以在 GitHub 提交 Issue。
-          </p>
-        </section>
-
-        <section class="about-section">
-          <h3>联系与反馈</h3>
-          <p style="line-height: 2; color: var(--text-secondary);">
-            有任何问题、建议或资源求档，可以：
-          </p>
-          <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
-            <a href="https://github.com/ymrnablkm/ymrnablkm.github.io/issues" target="_blank" class="btn btn-secondary">
-              GitHub Issues
-            </a>
-            <a href="mailto:ymrnablkm@gmail.com" class="btn btn-ghost">
-              发送邮件
-            </a>
-          </div>
-        </section>
-
-        <section class="about-section" style="margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border-color);">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div class="logo" style="font-size: 1.2rem;">AY</div>
-            <span style="color: var(--text-muted); font-size: 0.9rem;">Aether Yard · Software Repository</span>
-          </div>
-          <p style="color: var(--text-muted); font-size: 0.85rem;">
-            Built with ♥ · Powered by GitHub Pages · {{year}}
-          </p>
-        </section>
-      </div>
+        <h3>免责声明</h3>
+        <p>本站仅作资源整理与分享，所有软件版权归原作者所有。若内容侵犯了您的权益，请联系我们处理。</p>
+      </section>
     </main>
   </div>
 
   <script>
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebarOverlay').classList.toggle('show');
-      document.body.classList.toggle('sidebar-open');
-    });
-
-    function closeSidebar() {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('show');
-      document.body.classList.remove('sidebar-open');
-    }
-
-    document.getElementById('sidebarClose').addEventListener('click', closeSidebar);
-    document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const overlay = document.getElementById('sidebarOverlay');
+    menuToggle.addEventListener('click', () => document.body.classList.add('sidebar-open'));
+    sidebarClose.addEventListener('click', () => document.body.classList.remove('sidebar-open'));
+    overlay.addEventListener('click', () => document.body.classList.remove('sidebar-open'));
   </script>
 </body>
 </html>

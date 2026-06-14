@@ -3,24 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Aether Yard · 软件资源站</title>
+  <title>Aether Yard · 精选软件资源库</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
 <body>
-  <!-- 移动端菜单按钮 -->
-  <button class="menu-toggle" id="menuToggle">☰</button>
-  
-  <!-- 移动端遮罩 -->
+  <button class="menu-toggle" id="menuToggle" aria-label="菜单">☰</button>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="app-container">
     <!-- 侧边栏 -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <button class="sidebar-header-close" id="sidebarClose" aria-label="close">❌</button>
-        <div class="logo">AY</div>
-        <div class="logo-sub">Software Repository</div>
+        <button class="sidebar-header-close" id="sidebarClose" aria-label="关闭">✕</button>
+        <div>
+          <div class="logo-text">Aether Yard</div>
+          <div class="logo-sub">RESOURCE HUB</div>
+        </div>
       </div>
 
       <nav class="sidebar-nav">
@@ -34,218 +33,213 @@
 
         <div class="nav-section">
           <div class="nav-section-title">快捷分类</div>
-          <a href="software.html?cat=软件" class="nav-link"><span class="icon">⊞</span> 软件工具</a>
-          <a href="software.html?cat=资源" class="nav-link"><span class="icon">◈</span> 设计资源</a>
-          <a href="software.html?cat=游戏" class="nav-link"><span class="icon">⬡</span> 游戏相关</a>
+          <a href="software.html?cat=软件" class="nav-link"><span class="icon">▣</span> 软件工具</a>
+          <a href="software.html?cat=影视动漫" class="nav-link"><span class="icon">▶</span> 影视动漫</a>
+          <a href="software.html?cat=PC工具" class="nav-link"><span class="icon">⚙</span> PC 工具</a>
+          <a href="software.html?cat=游戏相关" class="nav-link"><span class="icon">🎮</span> 游戏相关</a>
+          <a href="software.html?cat=其他" class="nav-link"><span class="icon">◇</span> 其他资源</a>
         </div>
       </nav>
 
       <div class="sidebar-sites">
         <div class="nav-section-title">常用站点</div>
         <a href="https://github.com" target="_blank" class="site-link"><span class="favicon">G</span> GitHub</a>
-        <a href="https://notion.so" target="_blank" class="site-link"><span class="favicon">N</span> Notion</a>
-        <a href="https://figma.com" target="_blank" class="site-link"><span class="favicon">F</span> Figma</a>
+        <a href="https://code.visualstudio.com" target="_blank" class="site-link"><span class="favicon">V</span> VS Code</a>
       </div>
     </aside>
 
-    <!-- 主内容 -->
-    <main class="main-content">
+    <!-- 主内容区 -->
+    <main class="main">
       <!-- Hero -->
       <section class="hero">
-        <h1 class="hero-title">
-          <span class="accent">Aether</span> Yard
-        </h1>
-        <p class="hero-subtitle">
-          精心整理的软件工具与数字资源分享站。<br>
-          覆盖开发、设计、效率等多个领域的优质工具。
-        </p>
+        <span class="hero-label">CURATED · SINCE 2024</span>
+        <h1 class="hero-title">精选软件 · <span class="accent">数字资源库</span></h1>
+        <p class="hero-subtitle">实用工具、影视资源、创作素材 —— 精心整理，持续更新。</p>
         <div class="hero-cta">
-          <a href="software.html" class="btn btn-primary btn-lg">探索软件库 →</a>
-          <a href="about.html" class="btn btn-ghost btn-lg">了解更多</a>
+          <a href="software.html" class="btn btn-primary">浏览软件库 →</a>
+          <a href="sites.html" class="btn">外站导航</a>
         </div>
+        <div class="hero-stats" id="statsBar"></div>
       </section>
 
-      <!-- 统计 -->
-      <section class="stats-grid" id="statsGrid">
-        <div class="stat-card">
-          <div class="stat-number" id="softwareCount">—</div>
-          <div class="stat-label">软件工具</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="resourceCount">—</div>
-          <div class="stat-label">设计资源</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="categoryCount">4</div>
-          <div class="stat-label">分类数量</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">∞</div>
-          <div class="stat-label">持续更新</div>
-        </div>
-      </section>
-
-      <!-- 精选软件 -->
-      <section>
+      <!-- 精选推荐 -->
+      <section class="section">
         <div class="section-header">
-          <h2 class="section-title">精选软件</h2>
-          <a href="software.html" class="btn btn-ghost btn-sm">查看全部 →</a>
+          <div class="section-title">精选推荐</div>
+          <a href="software.html" class="section-link">查看全部 →</a>
         </div>
-        <div class="featured-scroll" id="featuredScroll">
-          <div class="loading"><div class="loading-spinner"></div></div>
-        </div>
+        <div class="card-grid" id="featuredGrid"></div>
       </section>
 
-      <!-- 最新资源 -->
-      <section style="margin-top: 64px;">
+      <!-- 最新更新 -->
+      <section class="section">
         <div class="section-header">
-          <h2 class="section-title">最新资源</h2>
-          <a href="software.html" class="btn btn-ghost btn-sm">查看全部 →</a>
+          <div class="section-title">最新更新</div>
+          <a href="software.html" class="section-link">查看全部 →</a>
         </div>
-        <div class="card-grid" id="latestGrid">
-          <div class="loading"><div class="loading-spinner"></div></div>
-        </div>
-      </section>
-
-      <!-- 快速分类 -->
-      <section style="margin-top: 64px;">
-        <h2 class="section-title" style="margin-bottom: 24px;">快速分类</h2>
-        <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-          <a href="software.html?cat=软件" class="software-card" style="text-decoration: none;">
-            <div class="card-body" style="text-align: center;">
-              <div style="font-size: 2.5rem; margin-bottom: 12px;">⊞</div>
-              <div class="card-title">软件工具</div>
-              <div class="card-desc">实用软件与效率工具</div>
-            </div>
-          </a>
-          <a href="software.html?cat=资源" class="software-card" style="text-decoration: none;">
-            <div class="card-body" style="text-align: center;">
-              <div style="font-size: 2.5rem; margin-bottom: 12px;">◈</div>
-              <div class="card-title">设计资源</div>
-              <div class="card-desc">素材、模板、灵感</div>
-            </div>
-          </a>
-          <a href="software.html?cat=游戏" class="software-card" style="text-decoration: none;">
-            <div class="card-body" style="text-align: center;">
-              <div style="font-size: 2.5rem; margin-bottom: 12px;">⬡</div>
-              <div class="card-title">游戏相关</div>
-              <div class="card-desc">游戏工具与资源</div>
-            </div>
-          </a>
-          <a href="software.html?cat=其他" class="software-card" style="text-decoration: none;">
-            <div class="card-body" style="text-align: center;">
-              <div style="font-size: 2.5rem; margin-bottom: 12px;">◇</div>
-              <div class="card-title">其他资源</div>
-              <div class="card-desc">杂项与未分类</div>
-            </div>
-          </a>
-        </div>
-      </section>
-
-      <!-- 关于 -->
-      <section style="margin-top: 80px; padding-top: 40px; border-top: 1px solid var(--border-color);">
-        <h2 class="section-title" style="margin-bottom: 24px;">关于 AY</h2>
-        <div style="max-width: 600px;">
-          <p style="margin-bottom: 16px; line-height: 1.8;">
-            Aether Yard 是一个个人软件资源分享站，致力于收集和分享优质工具与数字资源。所有资源均存储于第三方网盘，站内仅提供索引与介绍。
-          </p>
-          <p style="margin-bottom: 24px; color: var(--text-muted);">
-            资源仅供学习交流使用，如需商用请联系原作者授权。
-          </p>
-          <a href="about.html" class="btn btn-ghost">了解更多 →</a>
-        </div>
+        <div class="card-grid" id="latestGrid"></div>
       </section>
     </main>
   </div>
 
+  <!-- 图片预览模态 -->
+  <div class="image-modal" id="imageModal">
+    <img id="modalImage" src="" alt="预览">
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
   <script>
-    // 数据加载
-    async function loadData() {
-      try {
-        const response = await fetch('data/software.json');
-        const software = await response.json();
-        
-        // 统计
-        const categories = {};
-        software.forEach(s => {
-          categories[s.category] = (categories[s.category] || 0) + 1;
-        });
-        document.getElementById('softwareCount').textContent = categories['软件'] || 0;
-        document.getElementById('resourceCount').textContent = categories['资源'] || 0;
-        
-        // 精选
-        const featured = software.filter(s => s.featured).slice(0, 4);
-        const featuredHTML = featured.map((s, i) => `
-          <a href="software.html?id=${s.id}" class="software-card stagger-${i + 1}" style="text-decoration: none;">
-            <div class="card-cover">
-              ${s.cover 
-                ? `<img src="${s.cover}" alt="${s.title}" loading="lazy">`
-                : `<div class="card-cover-placeholder">⊞</div>`
-              }
-              ${s.pinned ? '<span class="card-badge">置顶</span>' : ''}
-            </div>
-            <div class="card-body">
-              <span class="card-category">${s.category}</span>
-              <h3 class="card-title">${s.title}</h3>
-              <p class="card-desc">${s.desc}</p>
-              <div class="card-meta">
-                <span>◷ ${s.version}</span>
-                <span>◧ ${s.size}</span>
-              </div>
-            </div>
-          </a>
-        `).join('');
-        document.getElementById('featuredScroll').innerHTML = featuredHTML;
-        
-        // 最新
-        const latest = [...software].sort((a, b) => 
-          new Date(b.createdAt) - new Date(a.createdAt)
-        ).slice(0, 3);
-        const latestHTML = latest.map((s, i) => `
-          <a href="software.html?id=${s.id}" class="software-card stagger-${i + 1}" style="text-decoration: none;">
-            <div class="card-cover">
-              ${s.cover 
-                ? `<img src="${s.cover}" alt="${s.title}" loading="lazy">`
-                : `<div class="card-cover-placeholder">⊞</div>`
-              }
-            </div>
-            <div class="card-body">
-              <span class="card-category">${s.category}</span>
-              <h3 class="card-title">${s.title}</h3>
-              <p class="card-desc">${s.desc}</p>
-              <div class="card-meta">
-                <span>◷ ${s.version}</span>
-                <span>◧ ${s.size}</span>
-              </div>
-            </div>
-          </a>
-        `).join('');
-        document.getElementById('latestGrid').innerHTML = latestHTML;
-        
-      } catch (error) {
-        console.error('数据加载失败:', error);
-        document.getElementById('featuredScroll').innerHTML = '<div class="empty-state"><p>加载失败</p></div>';
-        document.getElementById('latestGrid').innerHTML = '<div class="empty-state"><p>加载失败</p></div>';
-      }
+    // ====== 通用工具函数 ======
+    function escapeHTML(str) {
+      return String(str || '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[c]);
     }
-    
-    // 移动端菜单
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebarOverlay').classList.toggle('show');
-      document.body.classList.toggle('sidebar-open');
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d)) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}.${m}.${day}`;
+    }
+
+    function renderEmpty(text) {
+        return `<div class="empty-state" style="grid-column: 1 / -1;">
+          <div class="empty-icon">◇</div>
+          <div class="empty-text">${escapeHTML(text)}</div>
+        </div>`;
+    }
+
+    function renderCardItem(item, i) {
+      const cover = item.cover || (item.images && item.images[0]) || '';
+      const coverHTML = cover
+        ? `<img class="card-image" src="${escapeHTML(cover)}" alt="${escapeHTML(item.title)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+           <div class="card-image-placeholder" style="display:none;">📦</div>`
+        : `<div class="card-image-placeholder">📦</div>`;
+
+      const tags = (item.tags && item.tags.length > 0)
+        ? `<div class="card-tags">${item.tags.slice(0, 3).map(t => `<span class="tag">${escapeHTML(t)}</span>`).join('')}</div>`
+        : '';
+
+      const badge = (item.featured || item.pinned)
+        ? `<span class="card-badge">精选</span>`
+        : '';
+
+      return `<article class="software-card" data-id="${escapeHTML(item.id)}" onclick="location.href='software.html?id=${encodeURIComponent(item.id)}'">
+        <div class="card-media">
+          ${badge}
+          ${coverHTML}
+        </div>
+        <div class="card-body">
+          <div class="card-header">
+            <div class="card-title">${escapeHTML(item.title)}</div>
+            <div class="card-category">${escapeHTML(item.category || '其他')}</div>
+          </div>
+          <div class="card-desc">${escapeHTML(item.description || '暂无简介')}</div>
+          ${tags}
+        </div>
+        <div class="card-footer">
+          <span class="card-date">${formatDate(item.createdAt || item.updatedAt) || '—'}</span>
+          <span class="card-action">查看 →</span>
+        </div>
+      </article>`;
+    }
+
+    // ====== 数据加载与渲染 ======
+    let DATA = [];
+
+    function loadData() {
+      return fetch('data/software.json')
+        .then(r => r.ok ? r.json() : [])
+        .catch(() => []);
+    }
+
+    function renderStats(list) {
+      const total = list.length;
+      const categories = {};
+      list.forEach(i => {
+        const cat = i.category || '其他';
+        categories[cat] = (categories[cat] || 0) + 1;
+      });
+      const catCount = Object.keys(categories).length;
+      const drives = list.reduce((sum, i) => sum + ((i.drives && i.drives.length) || 0), 0);
+
+      document.getElementById('statsBar').innerHTML = `
+        <div class="stat-item">
+          <div class="stat-value">${total}</div>
+          <div class="stat-label">资源</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">${catCount}</div>
+          <div class="stat-label">分类</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">${drives}</div>
+          <div class="stat-label">下载源</div>
+        </div>`;
+    }
+
+    function renderCards(list) {
+      const featuredGrid = document.getElementById('featuredGrid');
+      const latestGrid = document.getElementById('latestGrid');
+
+      if (!list || list.length === 0) {
+        featuredGrid.innerHTML = renderEmpty('暂无资源');
+        latestGrid.innerHTML = renderEmpty('暂无资源');
+        return;
+      }
+
+      list.forEach(s => {
+        if (!s.description && s.desc) s.description = s.desc;
+        if (s.content && !s.description) s.description = s.content;
+      });
+
+      const featured = list.filter(s => s.featured || s.pinned).slice(0, 6);
+      featuredGrid.innerHTML = featured.length > 0
+        ? featured.map((s, i) => renderCardItem(s, i)).join('')
+        : renderEmpty('暂无精选');
+
+      const latest = [...list]
+        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        .slice(0, 6);
+      latestGrid.innerHTML = latest.length > 0
+        ? latest.map((s, i) => renderCardItem(s, i)).join('')
+        : renderEmpty('暂无最新');
+    }
+
+    // ====== 侧边栏交互 ======
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    function openSidebar() { document.body.classList.add('sidebar-open'); }
+    function closeSidebar() { document.body.classList.remove('sidebar-open'); }
+
+    menuToggle.addEventListener('click', openSidebar);
+    sidebarClose.addEventListener('click', closeSidebar);
+    overlay.addEventListener('click', closeSidebar);
+
+    // ESC 关闭侧边栏
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeSidebar();
     });
 
-    document.getElementById('sidebarClose').addEventListener('click', closeSidebar);
-    document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+    // ====== 图片预览 ======
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    imageModal.addEventListener('click', () => imageModal.classList.remove('show'));
 
-    function closeSidebar() {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('show');
-      document.body.classList.remove('sidebar-open');
-    }
-    
-    loadData();
+    // ====== 初始化 ======
+    loadData().then(data => {
+      DATA = Array.isArray(data) ? data : [];
+      renderStats(DATA);
+      renderCards(DATA);
+    });
   </script>
 </body>
 </html>
