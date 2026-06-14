@@ -74,6 +74,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  touch-action: pan-x pan-y;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* 背景网格动画 */
