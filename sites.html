@@ -83,7 +83,8 @@
     }
 
     function render() {
-      let categories = allSites.categories || allSites;
+      // 支持两种数据结构: { categories: [...] } 或 { sites: [...] }
+      let categories = allSites.categories || allSites.sites || [];
       
       if (currentSearch) {
         const query = currentSearch.toLowerCase();
