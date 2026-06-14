@@ -1623,55 +1623,153 @@ code, pre {
 
 /* === 响应式 === */
 @media (max-width: 768px) {
+  /* 基础字号缩小 */
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Hero 区 */
+  .hero {
+    padding: var(--space-lg) 0 var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+
   .hero-title {
-    font-size: 1.75rem;
+    font-size: 1.4rem;
+    margin-bottom: var(--space-sm);
   }
 
   .hero-subtitle {
-    font-size: 1rem;
-  }
-
-  .hero {
-    padding: var(--space-xl) 0;
+    font-size: 0.85rem;
+    margin-bottom: var(--space-md);
   }
 
   .hero-cta {
     flex-direction: column;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
   }
 
   .hero-cta .btn {
     width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.85rem;
   }
 
+  /* 页面标题 */
   .page-title {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
+    margin-bottom: var(--space-sm);
   }
 
-  .card-grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-md);
-  }
-
+  /* 统计卡片 */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-md);
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+  }
+
+  .stat-card {
+    padding: var(--space-md);
   }
 
   .stat-number {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  /* 软件卡片 */
+  .card-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+
+  .card-cover {
+    height: 130px;
+  }
+
+  .card-body {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .card-title {
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+  }
+
+  .card-desc {
+    font-size: 0.78rem;
+    margin-bottom: var(--space-sm);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-meta {
+    font-size: 0.72rem;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .card-badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+
+  /* 详情页 */
   .detail-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
 
   .detail-cover {
     aspect-ratio: 16/9;
+    margin-bottom: var(--space-md);
   }
 
+  .detail-desc {
+    font-size: 0.85rem;
+  }
+
+  .detail-meta {
+    font-size: 0.75rem;
+    gap: var(--space-sm);
+  }
+
+  .content-section {
+    padding: var(--space-md);
+  }
+
+  /* 下载区 */
+  .download-section {
+    padding: var(--space-md);
+    margin: var(--space-lg) 0;
+  }
+
+  .download-item {
+    padding: var(--space-sm);
+    font-size: 0.85rem;
+  }
+
+  /* 图片画廊 */
+  .image-gallery {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+
+  .gallery-item {
+    aspect-ratio: 16/9;
+  }
+
+  /* 管理页面 */
   .manage-card {
     flex-direction: column;
     align-items: flex-start;
+    gap: var(--space-sm);
   }
 
   .manage-card-cover {
@@ -1684,42 +1782,188 @@ code, pre {
     justify-content: flex-end;
   }
 
+  /* 发布页 */
   .drive-inputs {
     grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+
+  .form-group label {
+    font-size: 0.82rem;
+    margin-bottom: 4px;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.85rem;
+  }
+
+  /* 搜索栏 */
+  .search-bar {
+    margin-bottom: var(--space-md);
   }
 
   .search-bar input {
     padding: var(--space-sm) var(--space-md);
-    padding-left: 40px;
-    font-size: 0.9rem;
+    padding-left: 36px;
+    font-size: 0.85rem;
   }
 
   .search-bar::before {
     left: var(--space-md);
-    font-size: 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* 筛选栏 */
+  .toolbar {
+    margin-bottom: var(--space-md);
   }
 
   .filter-bar {
-    gap: var(--space-sm);
+    gap: 6px;
+    flex-wrap: wrap;
   }
 
   .filter-btn {
-    padding: var(--space-xs) var(--space-md);
-    font-size: 0.8rem;
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    border-radius: 16px;
   }
 
+  /* 章节标题 */
+  .section-header {
+    margin-bottom: var(--space-md);
+  }
+
+  .section-title {
+    font-size: 0.95rem;
+  }
+
+  /* 精选滚动 */
+  .featured-scroll {
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+  }
+
+  .featured-card {
+    min-width: 220px;
+  }
+
+  /* 快速分类 */
+  .quick-categories {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+  }
+
+  .quick-cat {
+    padding: var(--space-md);
+  }
+
+  .quick-cat-icon {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+  }
+
+  .quick-cat-name {
+    font-size: 0.82rem;
+  }
+
+  /* 外站导航 */
+  .sites-category {
+    margin-bottom: var(--space-md);
+  }
+
+  .sites-category h3 {
+    font-size: 0.95rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .sites-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+
+  .site-card {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.85rem;
+  }
+
+  /* 关于页面 */
+  .about-section {
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .about-section h3 {
+    font-size: 1rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .about-section p {
+    font-size: 0.85rem;
+  }
+
+  /* 内容区 */
   .main-content {
     padding: var(--space-md);
-    padding-top: calc(64px + var(--space-md));
+    padding-top: calc(56px + var(--space-sm));
   }
 
+  /* 侧边栏 */
   .sidebar {
     width: 85%;
-    max-width: 320px;
+    max-width: 300px;
   }
 
-  .card-body {
+  .sidebar-header {
     padding: var(--space-md);
+  }
+
+  .logo {
+    font-size: 1.2rem;
+  }
+
+  .logo-sub {
+    font-size: 0.65rem;
+  }
+
+  .sidebar-section-title {
+    font-size: 0.7rem;
+    padding: var(--space-md) var(--space-md) var(--space-sm);
+  }
+
+  .nav-link {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.82rem;
+  }
+
+  /* 菜单按钮 */
+  .menu-toggle {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+    top: var(--space-sm);
+    left: var(--space-sm);
+  }
+
+  /* 空状态 */
+  .empty-state {
+    padding: var(--space-lg);
+    font-size: 0.85rem;
+  }
+
+  /* 模态框 */
+  .image-modal-content {
+    max-width: 95%;
+    max-height: 90vh;
+  }
+
+  /* 按钮 */
+  .btn {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.85rem;
   }
 }
 
