@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>一键同步 · Aether Yard</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0a0a0f; color: #e0e0e0; padding: 20px; max-width: 600px; margin: 0 auto; }
+    h1 { color: #fff; margin-bottom: 8px; font-size: 22px; }
+    .sub { color: #777; font-size: 13px; margin-bottom: 24px; }
+    .card { background: #16161d; border: 1px solid #2a2a3a; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .label { font-size: 13px; color: #aaa; margin-bottom: 6px; display: block; }
+    input { width: 100%; padding: 12px 14px; border: 1px solid #333; border-radius: 8px; background: #1e1e28; color: #fff; font-size: 14px; box-sizing: border-box; font-family: monospace; }
+    button { width: 100%; padding: 14px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; margin-top: 12px; }
+    .btn-primary { background: #7c83fd; color: #fff; }
+    .btn-success { background: #4caf50; color: #fff; }
+    .btn-warning { background: #ff9800; color: #fff; }
+    .btn-ghost { background: transparent; color: #888; border: 1px solid #333; }
+    .result { margin-top: 12px; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.8; word-break: break-all; display: none; }
+    .ok { background: rgba(76,175,80,0.15); border: 1px solid rgba(76,175,80,0.3); color: #81c784; display: block; }
+    .err { background: rgba(244,67,54,0.15); border: 1px solid rgba(244,67,54,0.3); color: #ef5350; display: block; }
+    .info { background: rgba(124,131,253,0.15); border: 1px solid rgba(124,131,253,0.3); color: #9fa8da; display: block; }
+    .warn { background: rgba(255,152,0,0.15); border: 1px solid rgba(255,152,0,0.3); color: #ffb74d; display: block; }
+    .progress { font-size: 12px; color: #888; margin-top: 8px; }
+    .stats { display: flex; gap: 20px; font-size: 12px; color: #888; margin-top: 16px; }
+    .stats div strong { color: #7c83fd; font-size: 18px; display: block; }
+    .link { color: #7c83fd; text-decoration: none; }
+    .link:hover { text-decoration: underline; }
+    code { background: #0a0a0a; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>🚀 一键同步到 GitHub</h1>
+  <p class="sub">发布后，手机/电脑/任何浏览器都能看到最新内容</p>
+
+  <div class="card">
+    <label class="label">GitHub Token（仅保存在你浏览器）</label>
+    <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+    <button class="btn-primary" id="saveBtn">💾 保存 Token</button>
+    <div id="saveResult" class="result"></div>
+  </div>
+
+  <div class="card">
+    <button class="btn-success" id="syncBtn">⬆️ 把本地数据同步到 GitHub</button>
+    <div id="syncProgress" class="progress"></div>
+    <div id="syncResult" class="result"></div>
+  </div>
+
+  <div class="card">
+    <button class="btn-warning" id="exportSw">📤 导出 software.json（备用方案）</button>
+    <button class="btn-warning" id="exportSt">📤 导出 sites.json（备用方案）</button>
+    <div class="progress" style="margin-top:8px;font-size:12px;">如果上面同步失败：导出后把文件拖到 GitHub 仓库的 data/ 文件夹</div>
+  </div>
+
+  <div class="card">
+    <div class="stats">
+      <div><strong id="statSw">0</strong>software 条目</div>
+      <div><strong id="statSt">0</strong>sites 条目</div>
+    </div>
+  </div>
+
+  <script>
+    const OWNER = 'ymrnablkm';
+    const REPO = 'ymrnablkm.github.io';
+    const BRANCH = 'main';
+
+    const $ = id => document.getElementById(id);
+
+    // 刷新统计
+    function refreshStats() {
+      try {
+        const sw = JSON.parse(localStorage.getItem('aether.software.local') || '[]');
+        const st = JSON.parse(localStorage.getItem('aether.sites.local') || '[]');
+        $('statSw').textContent = sw.length;
+        $('statSt').textContent = st.length;
+      } catch (e) {}
+    }
+    refreshStats();
+
+    // 加载已保存的 token
+    $('token').value = localStorage.getItem('aether.github.token') || '';
+
+    // 保存 Token
+    $('saveBtn').onclick = () => {
+      const t = $('token').value.trim();
+      const r = $('saveResult');
+      if (!t) { r.className = 'result err'; r.innerHTML = '❌ 请输入 Token'; r.style.display = 'block'; return; }
+      localStorage.setItem('aether.github.token', t);
+      r.className = 'result ok';
+      r.innerHTML = `✅ Token 已保存（${t.length} 位）`;
+      r.style.display = 'block';
+    };
+
+    // 核心同步函数
+    async function sync() {
+      const t = $('token').value.trim() || localStorage.getItem('aether.github.token') || '';
+      const resultEl = $('syncResult');
+      const progressEl = $('syncProgress');
+
+      if (!t) {
+        resultEl.className = 'result err';
+        resultEl.innerHTML = '❌ 请先输入并保存 Token';
+        resultEl.style.display = 'block';
+        return;
+      }
+
+      const sw = JSON.parse(localStorage.getItem('aether.software.local') || '[]');
+      const st = JSON.parse(localStorage.getItem('aether.sites.local') || '[]');
+
+      if (sw.length === 0 && st.length === 0) {
+        resultEl.className = 'result warn';
+        resultEl.innerHTML = '⚠️ 本地没有数据可同步（还没发布过内容）';
+        resultEl.style.display = 'block';
+        return;
+      }
+
+      resultEl.style.display = 'block';
+      resultEl.className = 'result info';
+      resultEl.innerHTML = `⏳ 开始同步...<br>software.json: <strong>${sw.length}</strong> 条<br>sites.json: <strong>${st.length}</strong> 条`;
+
+      // 推送函数
+      async function pushOne(path, content, label) {
+        progressEl.textContent = `⏳ 正在推送 ${label}...`;
+
+        // 尝试 3 种方式
+        const baseUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
+        const attempts = [
+          { name: '直接 API', url: baseUrl, useAuth: true },
+          { name: 'CORS 代理 1', url: 'https://corsproxy.io/?' + encodeURIComponent(baseUrl), useAuth: true },
+          { name: 'CORS 代理 2', url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(baseUrl), useAuth: true },
+        ];
+
+        let lastError = null;
+
+        // 先获取 SHA
+        let sha = null;
+        for (const opt of attempts) {
+          try {
+            const controller = new AbortController();
+            setTimeout(() => controller.abort(), 10000);
+            const res = await fetch(opt.url + `?ref=${BRANCH}`, {
+              headers: opt.useAuth ? { 'Authorization': `token ${t}`, 'Accept': 'application/vnd.github.v3+json' } : { 'Accept': 'application/vnd.github.v3+json' },
+              signal: controller.signal
+            });
+            if (res.ok) { sha = (await res.json()).sha; break; }
+            const err = await res.json().catch(() => ({}));
+            lastError = err.message || `HTTP ${res.status}`;
+          } catch (e) {
+            lastError = e.message;
+          }
+        }
+
+        // 推送文件
+        const body = {
+          message: `sync: 更新 ${label}`,
+          content: btoa(unescape(encodeURIComponent(content))),
+          branch: BRANCH
+        };
+        if (sha) body.sha = sha;
+
+        for (const opt of attempts) {
+          try {
+            const controller = new AbortController();
+            setTimeout(() => controller.abort(), 20000);
+            const res = await fetch(opt.url, {
+              method: 'PUT',
+              headers: opt.useAuth ? { 'Authorization': `token ${t}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' } : { 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+              body: JSON.stringify(body),
+              signal: controller.signal
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              progressEl.textContent = `✅ ${label} 推送成功`;
+              return { ok: true };
+            } else {
+              const err = await res.json().catch(() => ({}));
+              lastError = err.message || `HTTP ${res.status}`;
+            }
+          } catch (e) {
+            lastError = e.message;
+          }
+        }
+
+        progressEl.textContent = `❌ ${label} 推送失败`;
+        return { ok: false, error: lastError };
+      }
+
+      // 执行同步
+      const tasks = [];
+      if (sw.length > 0) tasks.push(['data/software.json', JSON.stringify(sw, null, 2), 'software.json']);
+      if (st.length > 0) tasks.push(['data/sites.json', JSON.stringify(st, null, 2), 'sites.json']);
+
+      const results = [];
+      for (const [p, c, l] of tasks) results.push(await pushOne(p, c, l));
+
+      const allOk = results.every(r => r.ok);
+      if (allOk) {
+        resultEl.className = 'result ok';
+        resultEl.innerHTML = `
+          🎉 <strong>同步成功！</strong><br><br>
+          ✅ software.json — ${sw.length} 条记录<br>
+          ${st.length > 0 ? `✅ sites.json — ${st.length} 条条目<br>` : ''}<br>
+          <strong>现在用手机/其他浏览器刷新网站，就能看到最新内容了！</strong><br><br>
+          <a class="link" href="../index.html">🔗 打开首页</a>
+        `;
+      } else {
+        resultEl.className = 'result err';
+        resultEl.innerHTML = `
+          ❌ <strong>同步失败</strong><br><br>
+          已尝试直接 API + 2 个 CORS 代理，均失败。<br><br>
+          <strong>试试备用方案：</strong><br>
+          1. 点击下面的"导出 JSON"按钮下载文件<br>
+          2. 打开 GitHub 仓库：<a class="link" href="https://github.com/${OWNER}/${REPO}" target="_blank">${OWNER}/${REPO}</a><br>
+          3. 把下载的 software.json 和 sites.json 上传到 data/ 文件夹
+        `;
+      }
+    }
+
+    $('syncBtn').onclick = sync;
+
+    // 导出
+    function downloadJSON(data, filename) {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => document.body.removeChild(a), 500);
+    }
+    $('exportSw').onclick = () => {
+      const sw = JSON.parse(localStorage.getItem('aether.software.local') || '[]');
+      if (sw.length === 0) { alert('软件库为空，没有数据可导出'); return; }
+      downloadJSON(sw, 'software.json');
+    };
+    $('exportSt').onclick = () => {
+      const st = JSON.parse(localStorage.getItem('aether.sites.local') || '[]');
+      if (st.length === 0) { alert('导航为空，没有数据可导出'); return; }
+      downloadJSON(st, 'sites.json');
+    };
+  </script>
+</body>
+</html>
