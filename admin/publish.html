@@ -5,33 +5,126 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>发布资源 · Aether Yard</title>
   <link rel="stylesheet" href="../css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <script src="api.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  <style>
+    /* 封面选择器 */
+    .cover-picker-tabs {
+      display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;
+    }
+    .cover-tab {
+      padding: 8px 12px; background: transparent; border: 1px solid var(--border);
+      color: var(--text-secondary); border-radius: 8px; cursor: pointer; font-size: 13px;
+      transition: all .15s ease;
+    }
+    .cover-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .cover-panel { display: none; }
+    .cover-panel.active { display: block; }
+
+    .emoji-grid {
+      display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px;
+      padding: 12px; background: var(--bg-card); border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .emoji-btn {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      font-size: 22px; cursor: pointer; border-radius: 8px; background: var(--bg-soft);
+      border: 1px solid var(--border); transition: all .15s ease;
+    }
+    .emoji-btn:hover { transform: scale(1.15); border-color: var(--accent); z-index: 1; }
+    .emoji-btn.selected { background: var(--accent); border-color: var(--accent); color: #fff; transform: scale(1.1); }
+
+    .upload-area {
+      border: 2px dashed var(--border); border-radius: 12px; padding: 28px 16px;
+      text-align: center; cursor: pointer; background: var(--bg-card);
+      transition: all .15s ease; color: var(--text-secondary);
+    }
+    .upload-area:hover { border-color: var(--accent); background: rgba(124, 131, 253, 0.05); }
+    .upload-area.dragover { border-color: var(--accent); background: rgba(124, 131, 253, 0.1); }
+    .upload-icon { font-size: 36px; display: block; margin-bottom: 8px; }
+
+    .current-cover {
+      display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; margin-top: 10px;
+    }
+    .current-cover-thumb {
+      width: 48px; height: 48px; border-radius: 8px; overflow: hidden;
+      background: var(--bg-soft); display: flex; align-items: center; justify-content: center;
+      font-size: 28px; flex-shrink: 0; border: 1px solid var(--border);
+    }
+    .current-cover-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .current-cover-info { flex: 1; font-size: 13px; color: var(--text-secondary); min-width: 0; }
+    .current-cover-info .label { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: 600; }
+    .current-cover-info .value { color: var(--text); word-break: break-all; }
+    .clear-cover-btn {
+      padding: 6px 10px; background: transparent; color: #ff8a8a;
+      border: 1px solid rgba(255, 138, 138, 0.3); border-radius: 6px; cursor: pointer;
+      font-size: 12px; flex-shrink: 0;
+    }
+    .clear-cover-btn:hover { background: rgba(255, 138, 138, 0.08); }
+
+    /* 图片上传列表 */
+    .image-preview-item {
+      display: flex; align-items: center; gap: 12px; padding: 8px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+    }
+    .image-preview-thumb {
+      width: 60px; height: 60px; border-radius: 8px; overflow: hidden;
+      background: var(--bg-soft); display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; border: 1px solid var(--border); font-size: 24px;
+    }
+    .image-preview-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .image-preview-body { flex: 1; min-width: 0; color: var(--text-secondary); font-size: 13px; }
+    .image-preview-body input { width: 100%; }
+
+    .action-buttons { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+    .edit-banner {
+      background: linear-gradient(135deg, rgba(124, 131, 253, 0.15), rgba(255, 159, 101, 0.12));
+      border: 1px solid rgba(124, 131, 253, 0.3); padding: 14px 18px; border-radius: 12px;
+      margin-bottom: 16px; font-size: 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .edit-banner strong { color: var(--accent); }
+
+    /* 移动端响应式 */
+    @media (max-width: 768px) {
+      .emoji-grid { grid-template-columns: repeat(8, 1fr); gap: 4px; padding: 8px; }
+      .emoji-btn { font-size: 20px; }
+      .form-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+      .current-cover { flex-wrap: wrap; }
+    }
+    @media (max-width: 480px) {
+      .emoji-grid { grid-template-columns: repeat(6, 1fr); }
+    }
+  </style>
 </head>
 <body>
   <div class="app-container" style="grid-template-columns: 1fr;">
     <main class="main">
       <div class="admin-header">
         <div>
-          <h1 class="admin-title">发布资源</h1>
-          <div class="admin-subtitle">ADMIN · PUBLISH</div>
+          <h1 class="admin-title" id="pageTitle">发布资源</h1>
+          <div class="admin-subtitle" id="pageSubtitle">ADMIN · PUBLISH</div>
         </div>
         <nav class="admin-nav">
           <a href="publish.html" class="admin-btn active">发布</a>
           <a href="manage.html" class="admin-btn">管理</a>
+          <a href="sync.html" class="admin-btn">Token</a>
           <a href="../index.html" class="admin-btn">首页</a>
         </nav>
       </div>
 
-      <a href="sync.html" style="text-decoration:none;display:block;margin-bottom:16px;padding:16px 20px;border-radius:12px;background:linear-gradient(135deg,rgba(124,131,253,0.15),rgba(124,131,253,0.05));border:1px solid rgba(124,131,253,0.3);">
-        <div style="font-size:16px;color:#7c83fd;font-weight:600;">🔄 发布后点这里：同步到 GitHub（所有设备可见）</div>
-        <div style="font-size:12px;color:#9fa8da;margin-top:4px;">首次使用需填入 GitHub Token · 仅需配置一次</div>
-      </a>
+      <div class="edit-banner" id="editBanner" style="display: none;">
+        <span style="font-size: 20px;">✏️</span>
+        <div><strong>编辑模式</strong> · 修改后点击"保存修改"即可更新（本地立即生效，自动同步 GitHub）</div>
+      </div>
 
       <form class="form-card" id="publishForm" autocomplete="off">
         <div class="form-grid">
           <div class="form-group full">
             <label class="form-label">标题 *</label>
-            <input type="text" class="form-input" id="f-title" placeholder="如：Visual Studio Code" required>
+            <input type="text" class="form-input" id="f-title" placeholder="如：Visual Studio Code / 某某影视资源" required>
           </div>
 
           <div class="form-group">
@@ -45,20 +138,46 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">版本</label>
-            <input type="text" class="form-input" id="f-version" placeholder="如：1.0.0">
-          </div>
-
+          <!-- 封面选择 -->
           <div class="form-group full">
-            <label class="form-label">封面图 URL</label>
-            <input type="url" class="form-input" id="f-cover" placeholder="https://example.com/cover.jpg">
-            <small class="form-hint">留空则自动使用第一张预览图</small>
+            <label class="form-label">封面图</label>
+            <div class="cover-picker-tabs">
+              <button type="button" class="cover-tab active" data-mode="emoji">😀 表情符号</button>
+              <button type="button" class="cover-tab" data-mode="upload">📷 上传图片</button>
+              <button type="button" class="cover-tab" data-mode="url">🔗 图片链接</button>
+            </div>
+
+            <div class="cover-panel active" id="panel-emoji">
+              <div class="emoji-grid" id="emojiGrid"></div>
+            </div>
+
+            <div class="cover-panel" id="panel-upload">
+              <label class="upload-area" id="coverUploadArea">
+                <input type="file" id="coverFileInput" accept="image/*" style="display: none;">
+                <span class="upload-icon">🖼️</span>
+                <div style="font-size: 14px; color: var(--text);"><strong>点击选择图片</strong> 或拖拽到此处</div>
+                <div style="font-size: 12px; margin-top: 6px;">自动压缩 · 方形图片效果最佳</div>
+              </label>
+            </div>
+
+            <div class="cover-panel" id="panel-url">
+              <input type="url" class="form-input" id="f-cover-url" placeholder="https://example.com/cover.jpg">
+              <small class="form-hint">粘贴公开可访问的图片链接</small>
+            </div>
+
+            <div class="current-cover" id="coverSummary" style="display: none;">
+              <div class="current-cover-thumb" id="coverSummaryThumb"></div>
+              <div class="current-cover-info">
+                <div class="label" id="coverSummaryLabel">已选</div>
+                <div class="value" id="coverSummaryValue">—</div>
+              </div>
+              <button type="button" class="clear-cover-btn" id="btnClearCover">清除</button>
+            </div>
           </div>
 
           <div class="form-group full">
             <label class="form-label">描述 *</label>
-            <textarea class="form-textarea" id="f-description" placeholder="简要介绍软件功能与特色" rows="4" required></textarea>
+            <textarea class="form-textarea" id="f-description" placeholder="简要介绍资源功能、特色或内容" rows="4" required></textarea>
           </div>
 
           <div class="form-group full">
@@ -66,168 +185,527 @@
             <input type="text" class="form-input" id="f-tags" placeholder="如：开发工具, 免费, 跨平台">
           </div>
 
+          <!-- 预览图 -->
           <div class="form-group full">
             <label class="form-label">预览图（可多张）</label>
             <div class="dynamic-list" id="imageList"></div>
-            <button type="button" class="add-btn" id="btn-add-image">+ 添加图片</button>
+            <div class="action-buttons">
+              <button type="button" class="btn btn-sm" id="btn-add-url">+ 添加链接</button>
+              <label class="btn btn-sm" style="cursor: pointer; margin: 0;">
+                📷 上传图片
+                <input type="file" id="imageFileInput" accept="image/*" multiple style="display: none;">
+              </label>
+            </div>
           </div>
 
+          <!-- 下载链接 -->
           <div class="form-group full">
             <label class="form-label">下载链接</label>
             <div class="dynamic-list" id="driveList"></div>
-            <button type="button" class="add-btn" id="btn-add-drive">+ 添加下载</button>
+            <div class="action-buttons">
+              <button type="button" class="btn btn-sm" id="btn-add-drive">+ 添加下载</button>
+            </div>
           </div>
 
           <div class="form-group full">
             <label class="form-label">精选推荐</label>
-            <label style="position:relative;display:inline-flex;align-items:center;gap:12px;cursor:pointer;user-select:none;">
-              <input type="checkbox" id="f-featured" style="opacity:0;width:0;height:0;position:absolute;">
+            <label style="position: relative; display: inline-flex; align-items: center; gap: 12px; cursor: pointer; user-select: none;">
+              <input type="checkbox" id="f-featured" style="opacity: 0; width: 0; height: 0; position: absolute;">
               <span class="form-switch" id="f-featured-switch"></span>
-              <span style="font-size:13px;color:var(--text-secondary);">开启后将显示于首页精选区</span>
+              <span style="font-size: 13px; color: var(--text-secondary);">开启后显示于首页精选区</span>
+            </label>
+          </div>
+
+          <div class="form-group full">
+            <label class="form-label">置顶</label>
+            <label style="position: relative; display: inline-flex; align-items: center; gap: 12px; cursor: pointer; user-select: none;">
+              <input type="checkbox" id="f-pinned" style="opacity: 0; width: 0; height: 0; position: absolute;">
+              <span class="form-switch" id="f-pinned-switch"></span>
+              <span style="font-size: 13px; color: var(--text-secondary);">开启后始终显示在最顶部</span>
             </label>
           </div>
         </div>
 
         <div class="form-actions">
           <button type="button" class="btn" id="btn-reset">重 置</button>
-          <button type="submit" class="btn btn-primary">发布资源</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit">发布资源</button>
         </div>
       </form>
+
+      <div class="toast" id="toast"></div>
     </main>
   </div>
 
-  <div class="toast" id="toast"></div>
-
   <script>
-    const STORAGE_KEY = 'aether.software.local';
-    const $ = id => document.getElementById(id);
+    const $ = function (id) { return document.getElementById(id); };
+    const API = window.AetherAPI;
 
-    // ====== 工具函数 ======
+    // ---- 状态 ----
+    let coverMode = 'emoji';
+    let coverValue = '';     // emoji 字符 / base64 / URL
+    let editId = null;        // 编辑模式时填
+    let uploadedImages = [];  // 上传的图片（{type:'upload', value:base64}）
+
+    // ---- 默认 emoji（按分类）----
+    const DEFAULT_EMOJI = {
+      '软件': '💻', '影视动漫': '🎬', 'PC工具': '⚙️', '游戏相关': '🎮', '其他': '📦'
+    };
+    const EMOJI_POOL = {
+      '软件': ['💻', '📦', '🖥️', '⚡', '🔧', '📱', '💾', '🖨️', '⌨️', '🖱️', '💿', '📲', '🎯', '🛠️', '🔌'],
+      '影视动漫': ['🎬', '🎭', '📺', '🎮', '🍿', '⭐', '🎨', '🎞️', '📽️', '🎦', '🌟', '✨', '🎤', '🎧', '🏆'],
+      'PC工具': ['⚙️', '🔧', '🛠️', '🖱️', '⚡', '💾', '🔩', '📐', '📏', '🧰', '💡', '🎯', '🔍', '📊', '🗂️'],
+      '游戏相关': ['🎮', '🕹️', '🎲', '🎯', '🏆', '⚔️', '🗡️', '🛡️', '🎰', '🎳', '🔥', '⭐', '🎨', '👾', '🎪'],
+      '其他': ['📦', '📂', '🎁', '📄', '🗂️', '🏷️', '📋', '📎', '🔖', '💎', '🌟', '🎯', '✨', '🔮', '🎪']
+    };
+
+    // ---- Toast ----
     function showToast(msg, type) {
       const t = $('toast');
-      t.textContent = msg;
+      t.innerHTML = msg;
       t.className = 'toast show ' + (type || '');
-      setTimeout(() => t.classList.remove('show'), 2400);
+      setTimeout(function () { t.classList.remove('show'); }, type === 'error' ? 5000 : 3000);
     }
 
-    function genId() {
-      return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+    // ---- 封面更新 ----
+    function renderEmojiGrid() {
+      const cat = $('f-category').value || '其他';
+      const list = EMOJI_POOL[cat] || EMOJI_POOL['其他'];
+      $('emojiGrid').innerHTML = list.map(function (e) {
+        const sel = (coverMode === 'emoji' && coverValue === e) ? ' selected' : '';
+        return '<button type="button" class="emoji-btn' + sel + '" data-emoji="' + e + '">' + e + '</button>';
+      }).join('');
+      $('emojiGrid').querySelectorAll('.emoji-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          coverMode = 'emoji';
+          coverValue = btn.dataset.emoji;
+          refreshCoverUI();
+        });
+      });
     }
 
-    // ====== 动态行组件 ======
-    function addImageRow(initialValue) {
+    function refreshCoverUI() {
+      // tabs
+      document.querySelectorAll('.cover-tab').forEach(function (t) {
+        t.classList.toggle('active', t.dataset.mode === coverMode);
+      });
+      // panels
+      ['emoji', 'upload', 'url'].forEach(function (m) {
+        $('panel-' + m).classList.toggle('active', m === coverMode);
+      });
+      // 摘要
+      const summary = $('coverSummary');
+      if (!coverValue) { summary.style.display = 'none'; return; }
+      summary.style.display = 'flex';
+      const thumb = $('coverSummaryThumb');
+      const label = $('coverSummaryLabel');
+      const value = $('coverSummaryValue');
+      if (coverMode === 'emoji') {
+        thumb.innerHTML = coverValue;
+        thumb.style.fontSize = '28px';
+        label.textContent = '表情封面';
+        value.textContent = coverValue;
+      } else if (coverMode === 'upload') {
+        thumb.innerHTML = '<img src="' + coverValue + '" alt="">';
+        thumb.style.fontSize = '';
+        label.textContent = '图片已上传';
+        value.textContent = '本地图片（自动压缩）';
+      } else {
+        thumb.innerHTML = '<img src="' + coverValue + '" alt="">';
+        thumb.style.fontSize = '';
+        label.textContent = '图片链接';
+        value.textContent = coverValue;
+      }
+    }
+
+    function setCoverMode(mode) {
+      coverMode = mode;
+      refreshCoverUI();
+    }
+
+    // ---- 图片压缩 ----
+    function compressImage(file, maxDim) {
+      return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = function () {
+            let w = img.width, h = img.height;
+            if (w > maxDim || h > maxDim) {
+              const r = Math.min(maxDim / w, maxDim / h);
+              w = Math.round(w * r); h = Math.round(h * r);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.78));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ---- 图片列表（上传 + URL）----
+    function renderImageList() {
+      const list = $('imageList');
+      const items = list.querySelectorAll('.image-preview-item');
+      // 保持已存在的（由 addImageRow 创建的）不重建
+      // 这里不需要做什么特殊动作
+    }
+
+    function addImageRow(type, value) {
       const row = document.createElement('div');
-      row.className = 'dynamic-item';
-      row.innerHTML = `
-        <input type="url" class="form-input img-url" placeholder="图片 URL https://..." value="${initialValue || ''}">
-        <button type="button" class="remove-btn" title="删除">✕</button>
-      `;
-      row.querySelector('.remove-btn').addEventListener('click', () => {
+      row.className = 'dynamic-item image-preview-item';
+      row.dataset.type = type;
+      row.dataset.value = value;
+
+      const thumb = document.createElement('div');
+      thumb.className = 'image-preview-thumb';
+      if (type === 'upload') {
+        thumb.innerHTML = '<img src="' + value + '" alt="">';
+      } else {
+        thumb.innerHTML = '🔗';
+      }
+      row.appendChild(thumb);
+
+      if (type === 'upload') {
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.className = 'img-data';
+        hidden.value = value;
+        row.appendChild(hidden);
+
+        const info = document.createElement('div');
+        info.className = 'image-preview-body';
+        info.textContent = '📷 已上传图片（base64，嵌入数据）';
+        row.appendChild(info);
+      } else {
+        const input = document.createElement('input');
+        input.type = 'url';
+        input.className = 'form-input img-url';
+        input.placeholder = '图片 URL https://...';
+        input.value = value || '';
+        input.addEventListener('input', function () { row.dataset.value = input.value; });
+        row.appendChild(input);
+      }
+
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'remove-btn';
+      rm.textContent = '✕';
+      rm.title = '删除';
+      rm.addEventListener('click', function () {
         row.style.opacity = '0';
         row.style.transform = 'translateX(-8px)';
-        setTimeout(() => row.remove(), 160);
+        setTimeout(function () { row.remove(); }, 160);
       });
+      row.appendChild(rm);
+
       $('imageList').appendChild(row);
     }
 
+    function collectImages() {
+      const result = [];
+      $('imageList').querySelectorAll('.image-preview-item').forEach(function (row) {
+        if (row.dataset.type === 'upload') {
+          const hidden = row.querySelector('.img-data');
+          if (hidden && hidden.value) result.push(hidden.value);
+        } else {
+          const input = row.querySelector('.img-url');
+          if (input && input.value.trim()) result.push(input.value.trim());
+        }
+      });
+      return result;
+    }
+
+    // ---- 下载链接 ----
     function addDriveRow(data) {
       data = data || {};
       const row = document.createElement('div');
       row.className = 'dynamic-item';
-      row.style.gridTemplateColumns = '1fr 1fr auto';
-      row.innerHTML = `
-        <input type="text" class="form-input drive-name" placeholder="名称（如：百度网盘）" value="${data.name || ''}">
-        <input type="text" class="form-input drive-code" placeholder="提取码（可选）" value="${data.code || ''}">
-        <div style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto; gap: 12px;">
-          <input type="url" class="form-input drive-url" placeholder="下载链接 https://..." value="${data.url || ''}">
-          <button type="button" class="remove-btn" title="删除">✕</button>
-        </div>
-      `;
-      row.querySelector('.remove-btn').addEventListener('click', () => {
+      row.innerHTML =
+        '<div style="display: flex; gap: 8px; width: 100%;">' +
+          '<input type="text" class="form-input drive-name" placeholder="名称（如：百度网盘）" style="flex: 1;">' +
+          '<input type="text" class="form-input drive-code" placeholder="提取码（可选）" style="width: 160px;">' +
+        '</div>' +
+        '<div style="display: flex; gap: 8px; width: 100%; align-items: center;">' +
+          '<input type="url" class="form-input drive-url" placeholder="下载链接 https://..." style="flex: 1;">' +
+          '<button type="button" class="remove-btn" title="删除">✕</button>' +
+        '</div>';
+      if (data.name) row.querySelector('.drive-name').value = data.name;
+      if (data.code) row.querySelector('.drive-code').value = data.code;
+      if (data.url) row.querySelector('.drive-url').value = data.url;
+      row.querySelector('.remove-btn').addEventListener('click', function () {
         row.style.opacity = '0';
         row.style.transform = 'translateX(-8px)';
-        setTimeout(() => row.remove(), 160);
+        setTimeout(function () { row.remove(); }, 160);
       });
       $('driveList').appendChild(row);
     }
 
-    // ====== 初始化 ======
-    function initForm() {
-      addImageRow();
-      addDriveRow();
+    function collectDrives() {
+      const drives = [];
+      $('driveList').querySelectorAll('.dynamic-item').forEach(function (row) {
+        const n = row.querySelector('.drive-name').value.trim();
+        const c = row.querySelector('.drive-code').value.trim();
+        const u = row.querySelector('.drive-url').value.trim();
+        if (u) drives.push({ name: n || '下载链接', code: c, url: u });
+      });
+      return drives;
     }
-    initForm();
 
-    $('btn-add-image').addEventListener('click', () => addImageRow());
-    $('btn-add-drive').addEventListener('click', () => addDriveRow());
-
-    // ====== 重置 ======
+    // ---- 重置表单 ----
     function resetForm() {
       $('publishForm').reset();
       $('imageList').innerHTML = '';
       $('driveList').innerHTML = '';
-      initForm();
-      showToast('已重置');
+      coverValue = DEFAULT_EMOJI[$('f-category').value] || '📦';
+      coverMode = 'emoji';
+      editId = null;
+      refreshCoverUI();
+      renderEmojiGrid();
+      $('pageTitle').textContent = '发布资源';
+      $('pageSubtitle').textContent = 'ADMIN · PUBLISH';
+      $('editBanner').style.display = 'none';
+      $('btn-submit').textContent = '发布资源';
     }
-    $('btn-reset').addEventListener('click', resetForm);
 
-    // ====== 提交 ======
-    $('publishForm').addEventListener('submit', e => {
+    // ---- 提交 ----
+    $('publishForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       const title = $('f-title').value.trim();
       const description = $('f-description').value.trim();
       if (!title) { showToast('请填写标题', 'error'); return; }
       if (!description) { showToast('请填写描述', 'error'); return; }
 
-      const images = [];
-      $('imageList').querySelectorAll('.img-url').forEach(inp => {
-        if (inp.value.trim()) images.push(inp.value.trim());
-      });
+      const images = collectImages();
+      const drives = collectDrives();
+      const tagsRaw = ($('f-tags').value || '').split(/[,、\s]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+      const cover = coverValue;
+      const featured = $('f-featured').checked;
+      const pinned = $('f-pinned').checked;
 
-      const drives = [];
-      $('driveList').querySelectorAll('.dynamic-item').forEach(row => {
-        const n = row.querySelector('.drive-name').value.trim();
-        const c = row.querySelector('.drive-code').value.trim();
-        const u = row.querySelector('.drive-url').value.trim();
-        if (u) drives.push({ name: n || '下载链接', code: c, url: u });
-      });
+      // 立即禁用按钮防止重复
+      const btn = $('btn-submit');
+      const oldText = btn.textContent;
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+      btn.textContent = editId ? '保存中...' : '发布中...';
 
-      const tagsRaw = ($('f-tags').value || '').split(/[,、\s]+/).map(t => t.trim()).filter(Boolean);
-      const cover = $('f-cover').value.trim() || '';
+      function done() { btn.disabled = false; btn.style.opacity = ''; btn.textContent = oldText; }
 
-      const record = {
-        id: genId(),
-        title,
-        description,
-        category: $('f-category').value || '其他',
-        version: $('f-version').value.trim() || '',
-        cover,
-        tags: tagsRaw,
-        images,
-        drives,
-        featured: $('f-featured').checked,
-        pinned: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      existing.unshift(record);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
-
-      // 导出 JSON 供下载（浏览器端无法直接写文件）
-      const blob = new Blob([JSON.stringify(existing, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'software.json';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
-
-      showToast('发布成功！已导出 software.json', 'success');
-      setTimeout(resetForm, 600);
+      try {
+        if (editId) {
+          // 编辑模式
+          await API.update(editId, {
+            title: title, description: description,
+            category: $('f-category').value || '其他',
+            cover: cover, tags: tagsRaw, images: images, drives: drives,
+            featured: featured, pinned: pinned
+          }, function (msg, stage) {
+            if (stage === 'local') showToast('✓ 本地已保存，同步中...', '');
+            else if (stage === 'done') showToast('🎉 保存成功！<a href="manage.html" style="color:#fff;text-decoration:underline;margin-left:8px;">管理</a> / <a href="../index.html" style="color:#fff;text-decoration:underline;margin-left:8px;">首页</a>', 'success');
+            else if (stage === 'error') showToast('⚠️ ' + msg, 'error');
+            else showToast(msg);
+          });
+          done();
+        } else {
+          // 发布新资源
+          await API.publish({
+            title: title, description: description,
+            category: $('f-category').value || '其他',
+            cover: cover, tags: tagsRaw, images: images, drives: drives,
+            featured: featured, pinned: pinned
+          }, function (msg, stage) {
+            if (stage === 'local') showToast('✓ 本地已保存，同步中...', '');
+            else if (stage === 'done') {
+              showToast('🎉 发布成功！<a href="../index.html" style="color:#fff;text-decoration:underline;margin-left:8px;">查看首页</a> / <a href="manage.html" style="color:#fff;text-decoration:underline;margin-left:8px;">管理</a>', 'success');
+              setTimeout(resetForm, 600);
+            } else if (stage === 'error') {
+              showToast('⚠️ ' + msg, 'error');
+            } else {
+              showToast(msg);
+            }
+          });
+          done();
+        }
+      } catch (err) {
+        showToast('操作失败：' + err.message, 'error');
+        done();
+      }
     });
+
+    // ---- 事件绑定 ----
+    $('btn-reset').addEventListener('click', function () {
+      if (editId && !confirm('确定放弃当前编辑？')) return;
+      resetForm();
+      showToast('已重置');
+    });
+
+    document.querySelectorAll('.cover-tab').forEach(function (t) {
+      t.addEventListener('click', function () {
+        setCoverMode(t.dataset.mode);
+        renderEmojiGrid();
+      });
+    });
+
+    $('f-category').addEventListener('change', function () {
+      // 分类变化时，如果封面还没选，推荐一个默认 emoji
+      if (!coverValue || (coverMode === 'emoji' && DEFAULT_EMOJI[coverValue])) {
+        coverValue = DEFAULT_EMOJI[$('f-category').value] || '📦';
+      }
+      renderEmojiGrid();
+      refreshCoverUI();
+    });
+
+    $('btnClearCover').addEventListener('click', function () {
+      coverValue = '';
+      $('f-cover-url').value = '';
+      $('coverUploadArea').querySelector('.upload-icon') && ($('coverUploadArea').innerHTML =
+        '<span class="upload-icon">🖼️</span><div style="font-size:14px;color:var(--text);"><strong>点击选择图片</strong> 或拖拽到此处</div><div style="font-size:12px;margin-top:6px;">自动压缩 · 方形图片效果最佳</div><input type="file" id="coverFileInput" accept="image/*" style="display:none;">');
+      refreshCoverUI();
+    });
+
+    // 封面上传
+    const coverArea = $('coverUploadArea');
+    function handleCoverFile(file) {
+      if (!file) return;
+      showToast('正在处理图片...');
+      compressImage(file, 600).then(function (dataUrl) {
+        coverValue = dataUrl;
+        coverMode = 'upload';
+        refreshCoverUI();
+        showToast('✓ 图片已上传', 'success');
+      }).catch(function () { showToast('图片处理失败', 'error'); });
+    }
+    coverArea.addEventListener('click', function (e) {
+      const inp = coverArea.querySelector('#coverFileInput');
+      if (inp) inp.click();
+    });
+    coverArea.addEventListener('change', function (e) {
+      if (e.target.files && e.target.files[0]) handleCoverFile(e.target.files[0]);
+    });
+    coverArea.addEventListener('dragover', function (e) { e.preventDefault(); coverArea.classList.add('dragover'); });
+    coverArea.addEventListener('dragleave', function () { coverArea.classList.remove('dragover'); });
+    coverArea.addEventListener('drop', function (e) {
+      e.preventDefault(); coverArea.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handleCoverFile(e.dataTransfer.files[0]);
+    });
+
+    // 封面 URL
+    $('f-cover-url').addEventListener('input', function (e) {
+      const v = e.target.value.trim();
+      if (v) {
+        coverValue = v;
+        coverMode = 'url';
+        refreshCoverUI();
+      }
+    });
+
+    // 图片：添加 URL
+    $('btn-add-url').addEventListener('click', function () { addImageRow('url', ''); });
+    // 图片：文件上传
+    $('imageFileInput').addEventListener('change', async function (e) {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
+      showToast('正在处理 ' + files.length + ' 张图片...');
+      let n = 0;
+      for (const f of files) {
+        try {
+          const dataUrl = await compressImage(f, 1200);
+          addImageRow('upload', dataUrl);
+          n++;
+        } catch (err) {}
+      }
+      e.target.value = '';
+      showToast('✓ 已添加 ' + n + ' 张图片', 'success');
+    });
+
+    // 下载
+    $('btn-add-drive').addEventListener('click', function () { addDriveRow(); });
+
+    // 开关样式同步
+    function bindSwitch(checkboxId, switchId) {
+      const cb = $(checkboxId);
+      const sw = $(switchId);
+      function sync() { sw.classList.toggle('on', cb.checked); }
+      sync();
+      sw.addEventListener('click', function () { cb.checked = !cb.checked; sync(); });
+      cb.addEventListener('change', sync);
+    }
+    bindSwitch('f-featured', 'f-featured-switch');
+    bindSwitch('f-pinned', 'f-pinned-switch');
+
+    // ---- 编辑模式初始化 ----
+    function getQueryParam(key) {
+      const p = new URLSearchParams(window.location.search);
+      return p.get(key);
+    }
+
+    async function tryEnterEditMode() {
+      const id = getQueryParam('id');
+      if (!id) return;
+      editId = id;
+      showToast('正在加载编辑内容...');
+      try {
+        const result = await API.loadSmart(true); // 只从本地缓存读
+        const item = result.data.find(function (d) { return String(d.id) === String(id); });
+        if (!item) { showToast('未找到该资源', 'error'); return; }
+
+        $('pageTitle').textContent = '编辑资源';
+        $('pageSubtitle').textContent = 'ADMIN · EDIT';
+        $('editBanner').style.display = 'flex';
+        $('btn-submit').textContent = '保存修改';
+
+        $('f-title').value = item.title || '';
+        $('f-description').value = item.description || '';
+        $('f-category').value = item.category || '其他';
+        $('f-tags').value = (item.tags || []).join(', ');
+        $('f-featured').checked = !!item.featured;
+        $('f-pinned').checked = !!item.pinned;
+
+        // 封面
+        const c = item.cover || '';
+        if (/^https?:\/\//i.test(c)) {
+          coverValue = c; coverMode = 'url'; $('f-cover-url').value = c;
+        } else if (c.startsWith('data:')) {
+          coverValue = c; coverMode = 'upload';
+        } else if (c) {
+          coverValue = c; coverMode = 'emoji';
+        }
+        refreshCoverUI();
+        renderEmojiGrid();
+
+        // 图片
+        (item.images || []).forEach(function (img) {
+          if (img.startsWith('data:')) addImageRow('upload', img);
+          else addImageRow('url', img);
+        });
+        // 下载
+        (item.drives || []).forEach(function (d) { addDriveRow(d); });
+
+        // 开关样式
+        document.getElementById('f-featured-switch').classList.toggle('on', !!item.featured);
+        document.getElementById('f-pinned-switch').classList.toggle('on', !!item.pinned);
+
+        showToast('已加载，可编辑', 'success');
+      } catch (err) {
+        showToast('加载失败：' + err.message, 'error');
+      }
+    }
+
+    // 初始化
+    coverValue = DEFAULT_EMOJI[$('f-category').value] || '📦';
+    renderEmojiGrid();
+    refreshCoverUI();
+    tryEnterEditMode();
+
+    // 若无编辑内容，先加一个空的图片/下载行
+    if (!getQueryParam('id')) {
+      addDriveRow();
+    }
   </script>
 </body>
 </html>
