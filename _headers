@@ -1,0 +1,27 @@
+# 缓存配置 - Cloudflare Pages
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# CSS 文件 - 缓存 7 天
+/css/*
+  Cache-Control: public, max-age=604800
+
+# 数据文件 - 不缓存（实时更新）
+/data/*
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# 图片 - 缓存 30 天
+/*.jpg
+  Cache-Control: public, max-age=2592000
+/*.png
+  Cache-Control: public, max-age=2592000
+/*.gif
+  Cache-Control: public, max-age=2592000
+/*.svg
+  Cache-Control: public, max-age=2592000
+
+# HTML 页面 - 不缓存
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate

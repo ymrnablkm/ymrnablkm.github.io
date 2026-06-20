@@ -1,0 +1,17 @@
+# Cloudflare Pages 重定向规则
+
+# 首页
+/ index.html 200
+
+# 子页面
+/software software.html 200
+/sites sites.html 200
+/about about.html 200
+
+# 管理页面
+/admin/publish admin/publish.html 200
+/admin/manage admin/manage.html 200
+/admin/sync admin/sync.html 200
+
+# 带 .html 访问 -> 去掉 .html
+/*.html /:splat 301

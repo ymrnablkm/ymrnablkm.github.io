@@ -1,0 +1,7 @@
+name = "aether-yard"
+compatibility_date = "2025-01-01"
+
+[pages]
+build_command = ""
+build_output_dir = "/"
+root_dir = "/"
