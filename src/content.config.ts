@@ -17,16 +17,13 @@ const blog = defineCollection({
   }),
 });
 
-// 外站导航集合 - 使用自定义 loader 处理 JSON 数组
+// 外站导航集合
 const sites = defineCollection({
   loader: {
     name: 'sites-loader',
     load: async () => {
-      // 直接读取 JSON 文件并展开数组
-      const sites = [];
-      
-      // 手动加载 JSON 文件
-      const devTools = [
+      const result = [];
+      const sitesData = [
         {
           "name": "GitHub",
           "url": "https://github.com",
@@ -45,10 +42,7 @@ const sites = defineCollection({
           "url": "https://codepen.io",
           "description": "前端代码在线演示平台，分享创意代码",
           "category": "开发工具"
-        }
-      ];
-      
-      const learning = [
+        },
         {
           "name": "MDN Web Docs",
           "url": "https://developer.mozilla.org",
@@ -81,14 +75,14 @@ const sites = defineCollection({
         }
       ];
       
-      [...devTools, ...learning].forEach((site, index) => {
-        sites.push({
+      sitesData.forEach((site, index) => {
+        result.push({
           id: `site-${index}`,
           data: site,
         });
       });
       
-      return sites;
+      return result;
     },
   },
   schema: z.object({
