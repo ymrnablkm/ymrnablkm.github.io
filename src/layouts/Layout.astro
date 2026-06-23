@@ -7,7 +7,7 @@ interface Props {
   description?: string;
 }
 
-const { title, description = '资源分享博客 - 分享优质资源和技术文章' } = Astro.props;
+const { title, description = '资源分享站 - 分享优质的绿化软件、影视动漫、PC工具、游戏资源和实用教程' } = Astro.props;
 ---
 
 <html lang="zh-CN">
@@ -15,13 +15,13 @@ const { title, description = '资源分享博客 - 分享优质资源和技术�
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <title>{title} | 资源分享</title>
+    <title>{title} | 资源分享站</title>
     <link rel="stylesheet" href="/styles/global.css" />
     <link rel="icon" href="/favicon.ico" />
   </head>
-  <body class="bg-background text-text-body">
+  <body class="bg-bg-main">
     <Navbar />
-    <main class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
+    <main class="min-h-screen">
       <slot />
     </main>
     <Footer />

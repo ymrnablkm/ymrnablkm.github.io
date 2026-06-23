@@ -1,0 +1,73 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCategories, getPostsByCategory, posts } from '../../data/posts';
+
+const categories = getCategories();
+const allPosts = posts.filter(p => !p.isDraft);
+---
+
+<Layout title="全部分类" description="浏览所有资源分类">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="text-center mb-10">
+      <h1 class="text-2xl font-bold text-text-title mb-3">资源分类</h1>
+      <p class="text-text-muted">选择分类浏览相关资源</p>
+    </div>
+    
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
+      {categories.map(cat => {
+        const count = allPosts.filter(p => p.category === cat.name).length;
+        return (
+          <a 
+            key={cat.name}
+            href={`/category/${encodeURIComponent(cat.name)}`}
+            class="bg-bg-card border border-border rounded-xl p-5 card-hover text-center group"
+          >
+            <div 
+              class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 transition-transform group-hover:scale-110"
+              style={{ backgroundColor: `${cat.color}20` }}
+            >
+              <span class="text-2xl">📁</span>
+            </div>
+            <h3 class="font-semibold text-text-title mb-1">{cat.name}</h3>
+            <p class="text-sm text-text-muted">{count} 个资源</p>
+          </a>
+        );
+      })}
+    </div>
+    
+    <section>
+      <h2 class="text-lg font-semibold text-text-title mb-4 flex items-center gap-2">
+        <span>🔥</span>
+        <span>最新资源</span>
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {allPosts.slice(0, 9).map(post => (
+          <article key={post.id} class="bg-bg-card border border-border rounded-xl p-5 card-hover">
+            <span 
+              class="inline-block px-2.5 py-1 text-xs font-medium text-white rounded-full mb-3"
+              style={{ backgroundColor: post.categoryColor }}
+            >
+              {post.category}
+            </span>
+            <h3 class="font-semibold text-text-title mb-2 line-clamp-2">
+              <a href={`/posts/${post.id}`} class="hover:text-primary transition-colors">
+                {post.title}
+              </a>
+            </h3>
+            <p class="text-sm text-text-body line-clamp-2 mb-3">{post.description}</p>
+            <div class="flex items-center justify-between">
+              <div class="flex flex-wrap gap-1.5">
+                {post.tags.slice(0, 2).map(tag => (
+                  <span key={tag} class="px-2 py-0.5 text-xs bg-bg-main text-text-muted rounded">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+              <span class="text-xs text-text-muted">{new Date(post.pubDate).toLocaleDateString('zh-CN')}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  </div>
+</Layout>

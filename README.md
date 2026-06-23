@@ -1,45 +1,51 @@
-# 资源分享博客
+# 资源分享站
 
-一个基于 Astro 构建的资源分享博客网站，支持 Decap CMS 后台管理，可直接部署到 Cloudflare Pages。
+一个现代化的资源分享博客网站模板，基于 Astro 4.x + Tailwind CSS 构建，支持 Decap CMS 后台管理，可直接部署到 Cloudflare Pages。
 
 ## 技术栈
 
-- **Astro 4.x** - 快速、轻量的前端框架
+- **Astro 7.x** - 快速、轻量的前端框架
 - **Tailwind CSS 4.x** - 实用优先的 CSS 框架
 - **Decap CMS** - 可视化内容管理后台
-- **Cloudflare Pages** - 全球 CDN 加速部署
 
-## 功能特性
+## 核心功能
 
 ### 博客文章系统
-- 支持无限文章分类、标签管理
-- 文章置顶功能
-- 文章草稿/发布状态切换
-- 完整 Markdown 语法支持
-- 全站文章实时搜索
-- 相关推荐文章展示
+- ✅ 支持 6 大资源分类：绿化软件、影视/动漫、PC工具、游戏相关、实用教程、外站导航
+- ✅ 文章置顶功能，置顶文章固定展示
+- ✅ 文章草稿/发布状态切换
+- ✅ 完整 Markdown 语法支持
+- ✅ 全站文章实时搜索
+- ✅ 相关资源推荐展示
 
 ### 外站分享导航系统
-- 独立的外站导航页面 (`/sites`)
-- 网站分类管理和筛选
-- 卡片网格展示，hover 反馈效果
-- 新标签页打开外部链接
+- ✅ 独立的外站导航页面 (`/sites`)
+- ✅ 网站分类管理和筛选
+- ✅ 卡片网格展示，hover 反馈效果
+- ✅ 新标签页打开外部链接
 
 ### 后台管理系统
-- Decap CMS 可视化管理
-- GitHub 授权登录
-- 支持文章和外站导航的增删改查
+- ✅ Decap CMS 可视化管理
+- ✅ GitHub 授权登录
+- ✅ 支持文章和外站导航的增删改查
 
 ### 响应式适配
-- 移动端优先设计
-- 断点覆盖：手机(<640px)、平板(640-1024px)、桌面端(>1024px)
-- 深色/浅色双主题自动切换
+- ✅ 移动端优先设计
+- ✅ 断点覆盖：手机(<640px)、平板(640-1024px)、桌面端(>1024px)
+- ✅ 深色/浅色双主题自动切换
 
 ### 性能优化
-- 纯静态 HTML 输出
-- 首屏 JS 体积控制在 50KB 以内
-- 原生懒加载
-- 自动生成 sitemap.xml 和 robots.txt
+- ✅ 纯静态 HTML 输出
+- ✅ 自动生成 sitemap.xml 和 robots.txt
+
+## 预设分类
+
+1. **绿化软件** - 免安装软件合集
+2. **影视动漫** - 高清影视资源
+3. **PC工具** - 实用工具软件
+4. **游戏相关** - 游戏资源分享
+5. **实用教程** - 学习教程分享
+6. **外站导航** - 优质网站推荐
 
 ## 快速开始
 
@@ -96,66 +102,45 @@ npm run preview
 ```
 ├── src/
 │   ├── components/          # 组件
-│   │   ├── Navbar.astro     # 导航栏
+│   │   ├── Navbar.astro     # 导航栏（含搜索功能）
 │   │   └── Footer.astro     # 页脚
-│   ├── content/             # 内容目录
-│   │   ├── posts/           # 博客文章
-│   │   └── sites/           # 外站导航数据
+│   ├── data/                # 数据文件
+│   │   ├── posts.ts         # 博客文章数据
+│   │   └── sites.ts         # 外站导航数据
 │   ├── layouts/             # 布局
 │   │   └── Layout.astro     # 主布局
 │   ├── pages/               # 页面
 │   │   ├── index.astro      # 首页
-│   │   ├── posts/           # 文章详情页
-│   │   ├── category/        # 分类归档页
+│   │   ├── posts/[slug].astro # 文章详情页
+│   │   ├── category/index.astro # 分类总览页
+│   │   ├── category/[name].astro # 分类归档页
 │   │   ├── sites.astro      # 外站导航页
 │   │   ├── about.astro      # 关于页
 │   │   └── search.json.ts   # 搜索 API
 │   └── styles/              # 样式
 │       └── global.css       # 全局样式
 ├── public/                  # 静态资源
-│   ├── admin/               # Decap CMS
-│   ├── favicon.ico          # 网站图标
+│   ├── admin/               # Decap CMS 后台
 │   └── robots.txt           # robots.txt
 ├── astro.config.mjs         # Astro 配置
 ├── tailwind.config.js       # Tailwind 配置
+├── _redirects               # 重定向配置
 └── package.json             # 项目依赖
 ```
 
-## 内容管理
+## 示例内容
 
-### 文章格式
+已内置 8 篇示例资源文章：
+- 置顶文章 1 篇：2024年度精品软件合集
+- 绿化软件 2 篇：Photoshop 2024、Office 2024
+- 影视/动漫 2 篇：2024新番合集、经典电影合集
+- PC工具 1 篇：Everything 文件搜索工具
+- 游戏相关 1 篇：艾尔登法环
+- 实用教程 1 篇：网盘资源搜索技巧
 
-文章存储在 `src/content/posts/` 目录，采用 Markdown 格式：
-
-```markdown
----
-title: '文章标题'
-description: '文章描述'
-pubDate: 2024-01-15
-category: '分类名称'
-tags: ['标签1', '标签2']
-isFeatured: false
-isDraft: false
----
-
-文章正文...
-```
-
-### 外站导航格式
-
-外站数据存储在 `src/content/sites/` 目录，采用 JSON 格式：
-
-```json
-[
-  {
-    "name": "网站名称",
-    "url": "https://example.com",
-    "description": "一句话简介",
-    "category": "分类名称",
-    "icon": "图标地址（可选）"
-  }
-]
-```
+已内置 6 个示例外站：
+- 资源网站：阿里云盘、百度网盘、夸克网盘
+- 工具网站：在线解压、MD5加密、图片压缩工具
 
 ## 自定义配置
 
@@ -165,7 +150,7 @@ isDraft: false
 
 ### 修改主题颜色
 
-编辑 `tailwind.config.js` 文件中的颜色配置。
+编辑 `src/styles/global.css` 文件中的颜色配置。
 
 ### 修改站点配置
 

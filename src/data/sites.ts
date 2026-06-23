@@ -6,48 +6,53 @@ export interface Site {
   icon?: string;
 }
 
+export const siteCategories = [
+  { name: '资源网站', color: '#3B82F6' },
+  { name: '工具网站', color: '#10B981' },
+];
+
 export const sites: Site[] = [
   {
-    name: 'GitHub',
-    url: 'https://github.com',
-    description: '全球最大的代码托管平台',
-    category: '开发工具',
-    icon: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'
+    name: '阿里云盘',
+    url: 'https://www.alipan.com',
+    description: '不限速的云存储服务',
+    category: '资源网站',
+    icon: 'https://www.alipan.com/favicon.ico'
   },
   {
-    name: 'Stack Overflow',
-    url: 'https://stackoverflow.com',
-    description: '程序员问答社区',
-    category: '开发工具'
+    name: '百度网盘',
+    url: 'https://pan.baidu.com',
+    description: '国内最大的云盘服务',
+    category: '资源网站',
+    icon: 'https://pan.baidu.com/favicon.ico'
   },
   {
-    name: 'CodePen',
-    url: 'https://codepen.io',
-    description: '前端代码在线演示平台',
-    category: '开发工具',
-    icon: 'https://cpwebassets.codepen.io/assets/packs/codepen-logo-a32d711142.svg'
+    name: '夸克网盘',
+    url: 'https://pan.quark.cn',
+    description: '轻量极速的云存储',
+    category: '资源网站',
+    icon: 'https://pan.quark.cn/favicon.ico'
   },
   {
-    name: 'MDN Web Docs',
-    url: 'https://developer.mozilla.org',
-    description: '权威的Web技术文档',
-    category: '学习资源'
+    name: '在线解压',
+    url: 'https://www.extract.me',
+    description: '在线解压各种压缩包',
+    category: '工具网站'
   },
   {
-    name: 'FreeCodeCamp',
-    url: 'https://www.freecodecamp.org',
-    description: '免费编程学习平台',
-    category: '学习资源',
-    icon: 'https://cdn.freecodecamp.org/platform/universal/fcc_primary.svg'
+    name: 'MD5在线加密',
+    url: 'https://md5hashgenerator.com',
+    description: '在线生成MD5哈希值',
+    category: '工具网站'
   },
   {
-    name: 'DEV Community',
-    url: 'https://dev.to',
-    description: '开发者社区',
-    category: '学习资源'
+    name: '图片压缩工具',
+    url: 'https://compresspng.com',
+    description: '在线压缩图片大小',
+    category: '工具网站'
   }
 ];
 
 export function getCategories() {
-  return [...new Set(sites.map(s => s.category))];
+  return siteCategories;
 }

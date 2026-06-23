@@ -1,172 +1,185 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getFeaturedPosts, getRegularPosts, getCategories, posts } from '../data/posts';
+import { getFeaturedPosts, getRegularPosts, getCategories, getHotPosts, posts } from '../data/posts';
 
 const featuredPosts = getFeaturedPosts();
 const regularPosts = getRegularPosts();
 const categories = getCategories();
+const hotPosts = getHotPosts();
 const allPosts = posts.filter(p => !p.isDraft);
 ---
 
-<Layout title="首页" description="资源分享博客 - 分享优质资源和技术文章">
-  <div class="flex flex-col xl:flex-row gap-8">
-    <div class="flex-1 min-w-0">
-      {featuredPosts.length > 0 && (
-        <section class="mb-8">
-          <h2 class="text-base font-semibold text-text-title mb-4 flex items-center gap-2">
-            <span>⭐</span>
-            <span>置顶文章</span>
-          </h2>
-          <div class="space-y-4">
-            {featuredPosts.map(post => (
-              <article key={post.id} class="bg-card border border-border rounded-[8px] p-5 card-hover">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                  <div class="flex-1 min-w-0">
-                    <span class="inline-block px-2.5 py-1 text-xs font-medium text-primary bg-primary/10 rounded-[4px] mb-2.5">
-                      {post.category}
-                    </span>
-                    <h3 class="text-lg font-semibold text-text-title mb-2">
-                      <a href={`/posts/${post.id}`} class="hover:text-primary transition-colors">
-                        {post.title}
-                      </a>
-                    </h3>
-                    <p class="text-sm text-text-body line-clamp-2">{post.description}</p>
-                  </div>
-                  <span class="text-xs text-text-muted whitespace-nowrap">
-                    {new Date(post.pubDate).toLocaleDateString('zh-CN')}
+<Layout title="首页" description="资源分享站 - 分享优质的绿化软件、影视动漫、PC工具、游戏资源和实用教程">
+  <section class="bg-gradient-to-br from-primary via-primary-light to-blue-400 text-white py-16 px-4">
+    <div class="max-w-6xl mx-auto text-center">
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">资源分享站</h1>
+      <p class="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto mb-8">
+        分享优质的绿化软件、影视动漫、PC工具、游戏资源和实用教程
+      </p>
+      <div class="flex flex-wrap justify-center gap-3">
+        {categories.slice(0, 4).map(cat => (
+          <span 
+            key={cat.name}
+            class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium"
+          >
+            {cat.name}
+          </span>
+        ))}
+      </div>
+    </div>
+  </section>
+  
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex flex-col xl:flex-row gap-8">
+      <div class="flex-1">
+        {featuredPosts.length > 0 && (
+          <section class="mb-10">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="text-xl">⭐</span>
+              <h2 class="text-lg font-semibold text-text-title">置顶推荐</h2>
+            </div>
+            <article class="bg-gradient-to-br from-primary/5 to-primary-light/5 border border-primary/20 rounded-xl p-6 card-hover">
+              <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+                <div class="flex-1">
+                  <span 
+                    class="inline-block px-3 py-1 text-xs font-medium text-white rounded-full mb-3"
+                    style={{ backgroundColor: featuredPosts[0].categoryColor }}
+                  >
+                    {featuredPosts[0].category}
                   </span>
+                  <h3 class="text-xl font-bold text-text-title mb-2">
+                    <a href={`/posts/${featuredPosts[0].id}`} class="hover:text-primary transition-colors">
+                      {featuredPosts[0].title}
+                    </a>
+                  </h3>
+                  <p class="text-text-body line-clamp-2 mb-4">{featuredPosts[0].description}</p>
+                  <div class="flex flex-wrap items-center gap-2">
+                    {featuredPosts[0].tags.map(tag => (
+                      <span key={tag} class="px-2.5 py-1 text-xs bg-bg-card text-text-muted rounded-lg">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <div class="flex items-center gap-2 mt-3">
-                  {post.tags.map(tag => (
-                    <span key={tag} class="text-xs px-2 py-0.5 bg-border/50 text-text-muted rounded-[4px]">
-                      #{tag}
-                    </span>
-                  ))}
+                <div class="flex-shrink-0">
+                  <a 
+                    href={featuredPosts[0].downloadUrl} 
+                    class="btn-download"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span>⬇️</span>
+                    <span>立即下载</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+          </section>
+        )}
+        
+        <section>
+          <h2 class="text-lg font-semibold text-text-title mb-4 flex items-center gap-2">
+            <span>🔥</span>
+            <span>最新资源</span>
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {regularPosts.map(post => (
+              <article key={post.id} class="bg-bg-card border border-border rounded-xl p-5 card-hover">
+                <span 
+                  class="inline-block px-2.5 py-1 text-xs font-medium text-white rounded-full mb-3"
+                  style={{ backgroundColor: post.categoryColor }}
+                >
+                  {post.category}
+                </span>
+                <h3 class="font-semibold text-text-title mb-2 line-clamp-2">
+                  <a href={`/posts/${post.id}`} class="hover:text-primary transition-colors">
+                    {post.title}
+                  </a>
+                </h3>
+                <p class="text-sm text-text-body line-clamp-2 mb-3">{post.description}</p>
+                <div class="flex items-center justify-between">
+                  <div class="flex flex-wrap gap-1.5">
+                    {post.tags.slice(0, 2).map(tag => (
+                      <span key={tag} class="px-2 py-0.5 text-xs bg-bg-main text-text-muted rounded">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                  <span class="text-xs text-text-muted">{new Date(post.pubDate).toLocaleDateString('zh-CN')}</span>
                 </div>
               </article>
             ))}
           </div>
         </section>
-      )}
+      </div>
       
-      <section>
-        <h2 class="text-base font-semibold text-text-title mb-4 flex items-center gap-2">
-          <span>📝</span>
-          <span>最新文章</span>
-        </h2>
-        <div class="space-y-4">
-          {regularPosts.map(post => (
-            <article key={post.id} class="bg-card border border-border rounded-[8px] p-4.5 card-hover">
-              <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                <div class="flex-1 min-w-0">
-                  <span class="inline-block px-2.5 py-1 text-xs font-medium text-primary bg-primary/10 rounded-[4px] mb-2">
-                    {post.category}
+      <aside class="w-full xl:w-80 flex-shrink-0">
+        <div class="bg-bg-card border border-border rounded-xl p-5 sticky top-24">
+          <h3 class="font-semibold text-text-title mb-4 flex items-center gap-2">
+            <span>📁</span>
+            <span>资源分类</span>
+          </h3>
+          <ul class="space-y-2">
+            {categories.map(cat => (
+              <li key={cat.name}>
+                <a 
+                  href={`/category/${encodeURIComponent(cat.name)}`} 
+                  class="flex items-center justify-between px-3 py-2.5 hover:bg-bg-main rounded-lg transition-all group"
+                >
+                  <div class="flex items-center gap-2">
+                    <span 
+                      class="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: cat.color }}
+                    ></span>
+                    <span class="text-sm text-text-body group-hover:text-primary transition-colors">{cat.name}</span>
+                  </div>
+                  <span class="text-xs text-text-muted">
+                    {allPosts.filter(p => p.category === cat.name).length}
                   </span>
-                  <h3 class="text-base font-semibold text-text-title mb-1.5">
-                    <a href={`/posts/${post.id}`} class="hover:text-primary transition-colors">
-                      {post.title}
-                    </a>
-                  </h3>
-                  <p class="text-sm text-text-body line-clamp-2">{post.description}</p>
-                </div>
-                <span class="text-xs text-text-muted whitespace-nowrap">
-                  {new Date(post.pubDate).toLocaleDateString('zh-CN')}
-                </span>
-              </div>
-              <div class="flex items-center gap-2 mt-2.5">
-                {post.tags.map(tag => (
-                  <span key={tag} class="text-xs px-2 py-0.5 bg-border/50 text-text-muted rounded-[4px]">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            </article>
-          ))}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
-      </section>
-    </div>
-    
-    <aside class="w-full xl:w-72 flex-shrink-0">
-      <div class="bg-card border border-border rounded-[8px] p-4.5 sticky top-20">
-        <h3 class="font-semibold text-text-title mb-3.5">搜索文章</h3>
-        <div class="relative">
-          <input 
-            id="searchInput"
-            type="text" 
-            placeholder="输入关键词搜索..." 
-            class="w-full px-3 py-2 text-sm border border-border rounded-[6px] bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-          />
-          <div id="searchResults" class="hidden absolute top-full left-0 right-0 mt-1.5 bg-background border border-border rounded-[8px] shadow-sm z-10"></div>
-        </div>
-      </div>
-      
-      <div class="bg-card border border-border rounded-[8px] p-4.5 mt-4">
-        <h3 class="font-semibold text-text-title mb-3.5">分类</h3>
-        <ul class="space-y-1.5">
-          {categories.map(category => (
-            <li key={category}>
-              <a href={`/category/${encodeURIComponent(category)}`} class="flex items-center justify-between px-3 py-2 hover:bg-border/30 rounded-[6px] transition-colors">
-                <span class="text-sm text-text-body">{category}</span>
-                <span class="text-xs text-text-muted">
-                  {allPosts.filter(p => p.category === category).length}
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-      
-      <div class="bg-card border border-border rounded-[8px] p-4.5 mt-4">
-        <h3 class="font-semibold text-text-title mb-3.5">标签云</h3>
-        <div class="flex flex-wrap gap-2">
-          {[...new Set(allPosts.flatMap(p => p.tags))].map(tag => (
-            <a 
-              key={tag} 
-              href={`/?tag=${encodeURIComponent(tag)}`} 
-              class="px-2.5 py-1 text-xs bg-border/50 text-text-body rounded-[4px] hover:bg-primary hover:text-white transition-colors"
-            >
-              #{tag}
-            </a>
-          ))}
-        </div>
-      </div>
-    </aside>
-  </div>
-  
-  <script is:inline>
-    document.addEventListener('DOMContentLoaded', () => {
-      const searchInput = document.getElementById('searchInput');
-      if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-          const query = e.target.value.toLowerCase();
-          const searchResults = document.getElementById('searchResults');
-          if (!searchResults) return;
-          
-          if (query.length > 2) {
-            fetch('/search.json')
-              .then(res => res.json())
-              .then(posts => {
-                const filtered = posts.filter(post => 
-                  post.title.toLowerCase().includes(query) ||
-                  post.description.toLowerCase().includes(query)
-                );
-                searchResults.innerHTML = filtered.slice(0, 5).map(post => `
-                  <a href="${post.url}" class="block px-3 py-2 text-sm text-text-body hover:bg-border/30 transition-colors">${post.title}</a>
-                `).join('');
-                searchResults.classList.remove('hidden');
-              });
-          } else {
-            searchResults.classList.add('hidden');
-          }
-        });
         
-        document.addEventListener('click', (e) => {
-          const searchResults = document.getElementById('searchResults');
-          if (searchResults && !searchResults.contains(e.target) && !searchInput.contains(e.target)) {
-            searchResults.classList.add('hidden');
-          }
-        });
-      }
-    });
-  </script>
+        <div class="bg-bg-card border border-border rounded-xl p-5 mt-5">
+          <h3 class="font-semibold text-text-title mb-4 flex items-center gap-2">
+            <span>🔥</span>
+            <span>热门排行</span>
+          </h3>
+          <ul class="space-y-3">
+            {hotPosts.map((post, index) => (
+              <li key={post.id}>
+                <a 
+                  href={`/posts/${post.id}`} 
+                  class="flex items-start gap-3 hover:bg-bg-main p-2 -m-2 rounded-lg transition-all"
+                >
+                  <span 
+                    class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                    style={{ backgroundColor: index < 3 ? '#EF4444' : '#94A3B8' }}
+                  >
+                    {index + 1}
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-text-title truncate">{post.title}</div>
+                    <div class="text-xs text-text-muted">{post.category}</div>
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        
+        <div class="bg-gradient-to-br from-primary to-primary-light rounded-xl p-5 mt-5 text-white">
+          <h3 class="font-semibold mb-2">欢迎访问</h3>
+          <p class="text-sm text-white/80 mb-4">
+            感谢您访问资源分享站，这里汇集了各类优质资源，希望能帮助到您！
+          </p>
+          <a href="/about" class="inline-block px-4 py-2 bg-white text-primary text-sm font-medium rounded-lg hover:bg-white/90 transition-colors">
+            了解更多
+          </a>
+        </div>
+      </aside>
+    </div>
+  </div>
 </Layout>

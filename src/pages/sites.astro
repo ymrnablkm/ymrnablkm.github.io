@@ -1,62 +1,62 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { sites } from '../data/sites';
+import { sites, getCategories } from '../data/sites';
 
-const categories = [...new Set(sites.map(s => s.category))];
+const siteCategories = getCategories();
 ---
 
 <Layout title="外站导航" description="收集整理的优质外部资源网站">
-  <div class="max-w-4xl mx-auto">
-    <div class="mb-7">
-      <h1 class="text-2xl font-semibold text-text-title mb-2">外站导航</h1>
-      <p class="text-text-muted">收集整理的优质外部资源网站，帮助你发现更多有用的工具和学习资源。</p>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="text-center mb-10">
+      <h1 class="text-2xl font-bold text-text-title mb-3">外站导航</h1>
+      <p class="text-text-muted">收集整理的优质外部资源网站，帮助你发现更多有用的工具和学习资源</p>
     </div>
     
-    <div class="flex flex-wrap gap-2 mb-6">
+    <div class="flex flex-wrap justify-center gap-3 mb-8">
       <button 
         id="allBtn"
-        class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-[6px] transition-colors"
+        class="px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-lg transition-all hover:shadow-lg hover:shadow-primary/30"
       >
         全部 ({sites.length})
       </button>
-      {categories.map(category => (
+      {siteCategories.map(category => (
         <button 
-          key={category}
-          class="px-4 py-2 bg-card border border-border text-text-body text-sm rounded-[6px] hover:bg-border/50 transition-colors"
+          key={category.name}
+          class="px-5 py-2.5 bg-bg-card border border-border text-text-body text-sm font-medium rounded-lg hover:bg-bg-sidebar transition-all"
         >
-          {category} ({sites.filter(s => s.category === category).length})
+          {category.name} ({sites.filter(s => s.category === category.name).length})
         </button>
       ))}
     </div>
     
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       {sites.map((site, index) => (
         <a 
           key={index}
           href={site.url} 
           target="_blank" 
           rel="noopener noreferrer"
-          class="bg-card border border-border rounded-[8px] p-4 card-hover group"
+          class="bg-bg-card border border-border rounded-xl p-5 card-hover group"
         >
           <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-[6px] bg-border/50 flex items-center justify-center flex-shrink-0">
+            <div class="w-12 h-12 rounded-xl bg-bg-main flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
               {site.icon ? (
                 <img 
                   src={site.icon} 
                   alt={site.name} 
-                  class="w-5 h-5 object-contain"
+                  class="w-7 h-7 object-contain"
                   loading="lazy"
                 />
               ) : (
-                <span class="text-base">🌐</span>
+                <span class="text-2xl">🌐</span>
               )}
             </div>
             <div class="flex-1 min-w-0">
-              <h3 class="font-semibold text-text-title mb-1 group-hover:text-primary transition-colors truncate">
+              <h3 class="font-semibold text-text-title mb-1.5 group-hover:text-primary transition-colors truncate">
                 {site.name}
               </h3>
-              <p class="text-xs text-text-body line-clamp-2 mb-2">{site.description}</p>
-              <span class="inline-block px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-[4px]">
+              <p class="text-sm text-text-body line-clamp-2 mb-2">{site.description}</p>
+              <span class="inline-block px-2.5 py-1 text-xs bg-primary/10 text-primary rounded-full">
                 {site.category}
               </span>
             </div>
@@ -69,23 +69,25 @@ const categories = [...new Set(sites.map(s => s.category))];
   <script is:inline>
     document.addEventListener('DOMContentLoaded', () => {
       const buttons = document.querySelectorAll('button');
-      const sites = document.querySelectorAll('a[target="_blank"]');
+      const siteCards = document.querySelectorAll('a[target="_blank"]');
       
       buttons.forEach(btn => {
         btn.addEventListener('click', () => {
-          buttons.forEach(b => b.classList.remove('bg-primary', 'text-white'));
-          buttons.forEach(b => b.classList.add('bg-card', 'border', 'border-border', 'text-text-body'));
-          btn.classList.remove('bg-card', 'border', 'border-border', 'text-text-body');
+          buttons.forEach(b => {
+            b.classList.remove('bg-primary', 'text-white');
+            b.classList.add('bg-bg-card', 'border', 'border-border', 'text-text-body');
+          });
+          btn.classList.remove('bg-bg-card', 'border', 'border-border', 'text-text-body');
           btn.classList.add('bg-primary', 'text-white');
           
           const filter = btn.textContent.split(' ')[0];
           
-          sites.forEach(site => {
-            const category = site.querySelector('span:last-child').textContent;
+          siteCards.forEach(card => {
+            const category = card.querySelector('span:last-child').textContent;
             if (filter === '全部' || filter === category) {
-              site.style.display = 'block';
+              card.style.display = 'block';
             } else {
-              site.style.display = 'none';
+              card.style.display = 'none';
             }
           });
         });

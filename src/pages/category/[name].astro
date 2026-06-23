@@ -1,81 +1,90 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getPostsByCategory, getCategories, posts } from '../../data/posts';
+import { getPostsByCategory, getCategories, posts, categories } from '../../data/posts';
 
 export async function getStaticPaths() {
-  const categories = getCategories();
-  return categories.map(category => ({
-    params: { name: category },
+  const allCategories = getCategories();
+  return allCategories.map(category => ({
+    params: { name: category.name },
     props: { category },
   }));
 }
 
 const { category } = Astro.props;
-const categoryPosts = getPostsByCategory(category);
-const allPosts = posts.filter(p => !p.isDraft);
+const categoryPosts = getPostsByCategory(category.name);
+const categoryColor = categories.find(c => c.name === category.name)?.color || '#3B82F6';
 ---
 
-<Layout title={`分类: ${category}`}>
-  <div class="flex flex-col xl:flex-row gap-8">
-    <div class="flex-1 min-w-0">
-      <div class="mb-6">
-        <h1 class="text-2xl font-semibold text-text-title mb-2">分类: {category}</h1>
-        <p class="text-text-muted">共 {categoryPosts.length} 篇文章</p>
+<Layout title={`分类: ${category.name}`}>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <span 
+            class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
+            style={{ backgroundColor: categoryColor }}
+          >
+            {category.name.charAt(0)}
+          </span>
+          <div>
+            <h1 class="text-2xl font-bold text-text-title">{category.name}</h1>
+            <p class="text-text-muted">共 {categoryPosts.length} 个资源</p>
+          </div>
+        </div>
       </div>
       
-      <div class="space-y-4">
-        {categoryPosts.length === 0 ? (
-          <p class="text-text-muted py-8 text-center bg-card border border-border rounded-[8px]">
-            该分类暂无文章
-          </p>
-        ) : (
-          categoryPosts.map(post => (
-            <article key={post.id} class="bg-card border border-border rounded-[8px] p-4.5 card-hover">
-              <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                <div class="flex-1 min-w-0">
-                  <span class="inline-block px-2.5 py-1 text-xs font-medium text-primary bg-primary/10 rounded-[4px] mb-2">
-                    {post.category}
-                  </span>
-                  <h3 class="text-base font-semibold text-text-title mb-1.5">
-                    <a href={`/posts/${post.id}`} class="hover:text-primary transition-colors">
-                      {post.title}
-                    </a>
-                  </h3>
-                  <p class="text-sm text-text-body line-clamp-2">{post.description}</p>
-                </div>
-                <span class="text-xs text-text-muted whitespace-nowrap">
-                  {new Date(post.pubDate).toLocaleDateString('zh-CN')}
-                </span>
-              </div>
-              <div class="flex items-center gap-2 mt-2.5">
-                {post.tags.map(tag => (
-                  <span key={tag} class="text-xs px-2 py-0.5 bg-border/50 text-text-muted rounded-[4px]">
+      <div class="flex flex-wrap gap-2">
+        {getCategories().map(cat => (
+          <a 
+            key={cat.name}
+            href={`/category/${encodeURIComponent(cat.name)}`}
+            class={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+              cat.name === category.name 
+                ? 'text-white' 
+                : 'bg-bg-card text-text-body hover:bg-bg-sidebar'
+            }`}
+            style={cat.name === category.name ? { backgroundColor: cat.color } : {}}
+          >
+            {cat.name}
+          </a>
+        ))}
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {categoryPosts.length === 0 ? (
+        <div class="col-span-full bg-bg-card border border-border rounded-xl p-12 text-center">
+          <span class="text-4xl mb-4 block">📭</span>
+          <p class="text-text-muted">该分类暂无资源</p>
+        </div>
+      ) : (
+        categoryPosts.map(post => (
+          <article key={post.id} class="bg-bg-card border border-border rounded-xl p-5 card-hover">
+            <span 
+              class="inline-block px-2.5 py-1 text-xs font-medium text-white rounded-full mb-3"
+              style={{ backgroundColor: post.categoryColor }}
+            >
+              {post.category}
+            </span>
+            <h3 class="font-semibold text-text-title mb-2 line-clamp-2">
+              <a href={`/posts/${post.id}`} class="hover:text-primary transition-colors">
+                {post.title}
+              </a>
+            </h3>
+            <p class="text-sm text-text-body line-clamp-2 mb-3">{post.description}</p>
+            <div class="flex items-center justify-between">
+              <div class="flex flex-wrap gap-1.5">
+                {post.tags.slice(0, 2).map(tag => (
+                  <span key={tag} class="px-2 py-0.5 text-xs bg-bg-main text-text-muted rounded">
                     #{tag}
                   </span>
                 ))}
               </div>
-            </article>
-          ))
-        )}
-      </div>
+              <span class="text-xs text-text-muted">{new Date(post.pubDate).toLocaleDateString('zh-CN')}</span>
+            </div>
+          </article>
+        ))
+      )}
     </div>
-    
-    <aside class="w-full xl:w-72 flex-shrink-0">
-      <div class="bg-card border border-border rounded-[8px] p-4.5 sticky top-20">
-        <h3 class="font-semibold text-text-title mb-3.5">所有分类</h3>
-        <ul class="space-y-1.5">
-          {getCategories().map(cat => (
-            <li key={cat}>
-              <a href={`/category/${encodeURIComponent(cat)}`} class={`flex items-center justify-between px-3 py-2 rounded-[6px] transition-colors ${cat === category ? 'bg-primary text-white' : 'hover:bg-border/30'}`}>
-                <span class="text-sm">{cat}</span>
-                <span class="text-xs">
-                  {allPosts.filter(p => p.category === cat).length}
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </aside>
   </div>
 </Layout>
