@@ -7,58 +7,56 @@ const categories = [...new Set(sites.map(s => s.category))];
 
 <Layout title="外站导航" description="收集整理的优质外部资源网站">
   <div class="max-w-4xl mx-auto">
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold mb-2">外站导航</h1>
-      <p class="text-gray-600 dark:text-gray-400">收集整理的优质外部资源网站，帮助你发现更多有用的工具和学习资源。</p>
+    <div class="mb-7">
+      <h1 class="text-2xl font-semibold text-text-title mb-2">外站导航</h1>
+      <p class="text-text-muted">收集整理的优质外部资源网站，帮助你发现更多有用的工具和学习资源。</p>
     </div>
     
     <div class="flex flex-wrap gap-2 mb-6">
       <button 
         id="allBtn"
-        class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium"
+        class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-[6px] transition-colors"
       >
         全部 ({sites.length})
       </button>
       {categories.map(category => (
         <button 
           key={category}
-          class="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          class="px-4 py-2 bg-card border border-border text-text-body text-sm rounded-[6px] hover:bg-border/50 transition-colors"
         >
           {category} ({sites.filter(s => s.category === category).length})
         </button>
       ))}
     </div>
     
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {sites.map((site, index) => (
         <a 
           key={index}
           href={site.url} 
           target="_blank" 
           rel="noopener noreferrer"
-          class="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:shadow-lg hover:border-primary/50 transition-all"
+          class="bg-card border border-border rounded-[8px] p-4 card-hover group"
         >
           <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+            <div class="w-9 h-9 rounded-[6px] bg-border/50 flex items-center justify-center flex-shrink-0">
               {site.icon ? (
                 <img 
                   src={site.icon} 
                   alt={site.name} 
-                  class="w-6 h-6 object-contain"
+                  class="w-5 h-5 object-contain"
                   loading="lazy"
                 />
               ) : (
-                <span class="text-xl">🌐</span>
+                <span class="text-base">🌐</span>
               )}
             </div>
             <div class="flex-1 min-w-0">
-              <h3 class="font-semibold mb-1 group-hover:text-primary transition-colors truncate">
+              <h3 class="font-semibold text-text-title mb-1 group-hover:text-primary transition-colors truncate">
                 {site.name}
               </h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                {site.description}
-              </p>
-              <span class="inline-block mt-2 text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
+              <p class="text-xs text-text-body line-clamp-2 mb-2">{site.description}</p>
+              <span class="inline-block px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-[4px]">
                 {site.category}
               </span>
             </div>
@@ -67,29 +65,31 @@ const categories = [...new Set(sites.map(s => s.category))];
       ))}
     </div>
   </div>
-</Layout>
-
-<script is:inline>
-  document.addEventListener('DOMContentLoaded', () => {
-    const buttons = document.querySelectorAll('button');
-    const sites = document.querySelectorAll('a[target="_blank"]');
-    
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        buttons.forEach(b => b.classList.remove('bg-primary', 'text-white'));
-        btn.classList.add('bg-primary', 'text-white');
-        
-        const filter = btn.textContent.split(' ')[0];
-        
-        sites.forEach(site => {
-          const category = site.querySelector('span:last-child').textContent;
-          if (filter === '全部' || filter === category) {
-            site.style.display = 'block';
-          } else {
-            site.style.display = 'none';
-          }
+  
+  <script is:inline>
+    document.addEventListener('DOMContentLoaded', () => {
+      const buttons = document.querySelectorAll('button');
+      const sites = document.querySelectorAll('a[target="_blank"]');
+      
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          buttons.forEach(b => b.classList.remove('bg-primary', 'text-white'));
+          buttons.forEach(b => b.classList.add('bg-card', 'border', 'border-border', 'text-text-body'));
+          btn.classList.remove('bg-card', 'border', 'border-border', 'text-text-body');
+          btn.classList.add('bg-primary', 'text-white');
+          
+          const filter = btn.textContent.split(' ')[0];
+          
+          sites.forEach(site => {
+            const category = site.querySelector('span:last-child').textContent;
+            if (filter === '全部' || filter === category) {
+              site.style.display = 'block';
+            } else {
+              site.style.display = 'none';
+            }
+          });
         });
       });
     });
-  });
-</script>
+  </script>
+</Layout>
