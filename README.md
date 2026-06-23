@@ -1,51 +1,42 @@
-# 资源分享站
+# 资源分享博客
 
-一个现代化的资源分享博客网站模板，基于 Astro 4.x + Tailwind CSS 构建，支持 Decap CMS 后台管理，可直接部署到 Cloudflare Pages。
+一个高颜值、高性能、功能完整的资源分享博客网站，基于 Astro 4.x + Tailwind CSS 构建，支持 Decap CMS 后台管理，可直接部署到 Cloudflare Pages。
 
 ## 技术栈
 
-- **Astro 7.x** - 快速、轻量的前端框架
-- **Tailwind CSS 4.x** - 实用优先的 CSS 框架
+- **Astro 4.x** - 快速、轻量的静态站点生成框架
+- **Tailwind CSS v3** - 原子化 CSS 框架
 - **Decap CMS** - 可视化内容管理后台
+- **纯静态输出** - 所有页面预渲染为 HTML
 
-## 核心功能
+## 功能特性
 
 ### 博客文章系统
-- ✅ 支持 6 大资源分类：绿化软件、影视/动漫、PC工具、游戏相关、实用教程、外站导航
-- ✅ 文章置顶功能，置顶文章固定展示
-- ✅ 文章草稿/发布状态切换
+- ✅ 文章分类、标签管理
+- ✅ 文章置顶功能
+- ✅ 草稿/发布状态切换
 - ✅ 完整 Markdown 语法支持
 - ✅ 全站文章实时搜索
-- ✅ 相关资源推荐展示
+- ✅ 相关文章推荐
+- ✅ 文章目录导航
 
-### 外站分享导航系统
-- ✅ 独立的外站导航页面 (`/sites`)
-- ✅ 网站分类管理和筛选
-- ✅ 卡片网格展示，hover 反馈效果
-- ✅ 新标签页打开外部链接
+### 外站导航系统
+- ✅ 独立的外站导航页面 `/sites`
+- ✅ 分类筛选功能
+- ✅ 搜索功能
+- ✅ 卡片网格布局
 
-### 后台管理系统
+### 通用功能
+- ✅ 深色/浅色双主题切换
+- ✅ 响应式布局（移动端/平板/桌面端）
+- ✅ 回到顶部按钮
+- ✅ 面包屑导航
+- ✅ 侧边栏组件（分类、热门文章、公告）
+
+### 后台管理
 - ✅ Decap CMS 可视化管理
-- ✅ GitHub 授权登录
-- ✅ 支持文章和外站导航的增删改查
-
-### 响应式适配
-- ✅ 移动端优先设计
-- ✅ 断点覆盖：手机(<640px)、平板(640-1024px)、桌面端(>1024px)
-- ✅ 深色/浅色双主题自动切换
-
-### 性能优化
-- ✅ 纯静态 HTML 输出
-- ✅ 自动生成 sitemap.xml 和 robots.txt
-
-## 预设分类
-
-1. **绿化软件** - 免安装软件合集
-2. **影视动漫** - 高清影视资源
-3. **PC工具** - 实用工具软件
-4. **游戏相关** - 游戏资源分享
-5. **实用教程** - 学习教程分享
-6. **外站导航** - 优质网站推荐
+- ✅ GitHub OAuth 登录
+- ✅ 中文界面
 
 ## 快速开始
 
@@ -78,22 +69,14 @@ npm run preview
    - 配置输出目录：`dist`
    - 点击部署
 
-3. **配置环境变量（可选）**
-   - 如果需要自定义域名，在 Cloudflare Pages 中配置自定义域名
-
-### Decap CMS 配置
-
-1. **配置 GitHub OAuth**
-   - 访问 GitHub Settings > Developer settings > OAuth Apps
-   - 创建新的 OAuth App
-   - 设置 Authorization callback URL: `https://your-domain.com/admin/auth`
-   - 记录 Client ID 和 Client Secret
-
-2. **更新 CMS 配置**
+3. **配置 Decap CMS**
    - 编辑 `public/admin/index.html`
    - 将 `your-username/your-repo` 替换为你的 GitHub 仓库地址
+   - 在 GitHub 创建 OAuth App（Settings > Developer settings > OAuth Apps）
+   - 设置 Authorization callback URL：`https://your-domain.com/admin`
+   - 在 Cloudflare Pages 设置环境变量（可选）
 
-3. **访问后台**
+4. **访问后台**
    - 打开 `https://your-domain.com/admin`
    - 使用 GitHub 账号登录
 
@@ -101,60 +84,81 @@ npm run preview
 
 ```
 ├── src/
-│   ├── components/          # 组件
-│   │   ├── Navbar.astro     # 导航栏（含搜索功能）
-│   │   └── Footer.astro     # 页脚
-│   ├── data/                # 数据文件
-│   │   ├── posts.ts         # 博客文章数据
-│   │   └── sites.ts         # 外站导航数据
-│   ├── layouts/             # 布局
-│   │   └── Layout.astro     # 主布局
-│   ├── pages/               # 页面
-│   │   ├── index.astro      # 首页
-│   │   ├── posts/[slug].astro # 文章详情页
-│   │   ├── category/index.astro # 分类总览页
-│   │   ├── category/[name].astro # 分类归档页
-│   │   ├── sites.astro      # 外站导航页
-│   │   ├── about.astro      # 关于页
-│   │   └── search.json.ts   # 搜索 API
-│   └── styles/              # 样式
-│       └── global.css       # 全局样式
-├── public/                  # 静态资源
-│   ├── admin/               # Decap CMS 后台
-│   └── robots.txt           # robots.txt
-├── astro.config.mjs         # Astro 配置
-├── tailwind.config.js       # Tailwind 配置
-├── _redirects               # 重定向配置
-└── package.json             # 项目依赖
+│   ├── content/           # 内容目录
+│   │   ├── blog/          # 博客文章
+│   │   ├── sites/         # 外站导航
+│   │   └── config.ts      # 内容集合配置
+│   ├── components/        # 组件
+│   │   ├── Navbar.astro   # 导航栏
+│   │   └── Footer.astro   # 页脚
+│   ├── layouts/           # 布局
+│   │   └── Layout.astro   # 主布局
+│   ├── pages/             # 页面
+│   │   ├── index.astro    # 首页
+│   │   ├── posts/         # 文章详情页
+│   │   ├── categories/    # 分类页
+│   │   ├── sites.astro    # 外站导航页
+│   │   ├── about.astro    # 关于页
+│   │   └── search.json.ts # 搜索 API
+│   └── styles/            # 样式
+│       └── global.css     # 全局样式
+├── public/                # 静态资源
+│   ├── admin/             # Decap CMS 后台
+│   ├── uploads/           # 上传文件目录
+│   └── robots.txt         # robots.txt
+├── astro.config.mjs       # Astro 配置
+├── tailwind.config.js     # Tailwind 配置
+└── package.json           # 项目依赖
 ```
 
-## 示例内容
+## 内容管理
 
-已内置 8 篇示例资源文章：
-- 置顶文章 1 篇：2024年度精品软件合集
-- 绿化软件 2 篇：Photoshop 2024、Office 2024
-- 影视/动漫 2 篇：2024新番合集、经典电影合集
-- PC工具 1 篇：Everything 文件搜索工具
-- 游戏相关 1 篇：艾尔登法环
-- 实用教程 1 篇：网盘资源搜索技巧
+### 添加文章
 
-已内置 6 个示例外站：
-- 资源网站：阿里云盘、百度网盘、夸克网盘
-- 工具网站：在线解压、MD5加密、图片压缩工具
+1. 访问 `/admin` 后台
+2. 选择「博客文章」集合
+3. 点击「新建博客文章」
+4. 填写文章信息：
+   - 标题、摘要、封面图
+   - 分类、标签
+   - 发布日期
+   - 是否置顶、是否草稿
+   - 正文内容（Markdown 格式）
+5. 点击「发布」
+
+### 添加外站导航
+
+1. 访问 `/admin` 后台
+2. 选择「外站导航」集合
+3. 编辑网站列表
+4. 添加新网站：
+   - 网站名称、官网链接
+   - 一句话介绍
+   - 所属分类
+   - 网站图标（可选）
+5. 点击「保存」
 
 ## 自定义配置
 
-### 修改网站标题和描述
+### 修改网站标题
 
-编辑 `src/layouts/Layout.astro` 文件中的标题和描述。
+编辑 `src/layouts/Layout.astro` 和 `src/components/Navbar.astro` 中的标题。
 
 ### 修改主题颜色
 
-编辑 `src/styles/global.css` 文件中的颜色配置。
+编辑 `tailwind.config.js` 中的颜色配置。
 
-### 修改站点配置
+### 修改网站域名
 
-编辑 `astro.config.mjs` 文件中的 `site` 配置。
+编辑 `astro.config.mjs` 中的 `site` 配置。
+
+## 示例内容
+
+项目内置以下示例内容：
+
+- **3篇示例文章**：置顶文章、普通文章、带网盘链接的文章
+- **8个示例外站**：开发工具、学习资源、资源网站等分类
+- **关于页面**：网站介绍内容
 
 ## 许可证
 

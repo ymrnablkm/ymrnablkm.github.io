@@ -3,9 +3,13 @@ import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://your-site.com',
   integrations: [sitemap()],
   vite: {
     plugins: [tailwindcss()],
+  },
+  output: 'static',
+  build: {
+    inlineStylesheets: 'auto',
   },
 });

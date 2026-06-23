@@ -1,14 +1,15 @@
-import { getPosts } from '../data/posts';
+import { getCollection } from 'astro:content';
 
 export async function GET() {
-  const posts = getPosts();
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
   
   const searchData = posts.map(post => ({
-    title: post.title,
-    description: post.description,
+    title: post.data.title,
+    description: post.data.description,
     url: `/posts/${post.id}`,
-    category: post.category,
-    tags: post.tags,
+    category: post.data.category,
+    tags: post.data.tags,
+    pubDate: post.data.pubDate,
   }));
   
   return new Response(JSON.stringify(searchData), {

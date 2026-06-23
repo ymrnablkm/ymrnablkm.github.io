@@ -1,49 +1,143 @@
-<nav class="sticky top-0 z-50 bg-[#0F172A]/95 backdrop-blur-lg border-b border-[#334155]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+---
+// 获取所有分类
+const categories = ['绿化软件', '技术分享', '实用教程', '游戏相关', '影视动漫'];
+---
+
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#121212]/80 nav-glass border-b border-transparent transition-all">
+  <div class="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
-      <a href="/" class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-          <span class="text-white text-xl">📦</span>
-        </div>
-        <div>
-          <span class="text-lg font-bold text-white">资源分享站</span>
-          <span class="hidden sm:block text-xs text-gray-400">Resource Hub</span>
-        </div>
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-2">
+        <span class="text-2xl">📦</span>
+        <span class="font-semibold text-lg text-text-primary dark:text-[#E5E6EB]">资源分享</span>
       </a>
       
-      <div class="hidden md:flex items-center gap-1">
-        <a href="/" class="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all">首页</a>
-        <a href="/category" class="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all">全部分类</a>
-        <a href="/sites" class="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all">外站导航</a>
-        <a href="/about" class="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all">关于我们</a>
+      <!-- Desktop Navigation -->
+      <div class="hidden md:flex items-center gap-6">
+        <a href="/" class="text-text-secondary dark:text-[#A6A6A6] hover:text-primary transition-colors">首页</a>
+        <a href="/categories" class="text-text-secondary dark:text-[#A6A6A6] hover:text-primary transition-colors">分类归档</a>
+        <a href="/sites" class="text-text-secondary dark:text-[#A6A6A6] hover:text-primary transition-colors">外站导航</a>
+        <a href="/about" class="text-text-secondary dark:text-[#A6A6A6] hover:text-primary transition-colors">关于我们</a>
       </div>
       
+      <!-- Right Section -->
       <div class="flex items-center gap-3">
-        <div class="hidden lg:block relative">
-          <input type="text" placeholder="搜索资源..." class="w-48 px-4 py-2 pl-10 text-sm bg-[#1E293B] border border-[#475569] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" />
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <!-- Search -->
+        <div class="hidden sm:block relative">
+          <input 
+            id="searchInput"
+            type="text" 
+            placeholder="搜索文章..." 
+            class="w-40 lg:w-56 px-3 py-1.5 text-sm bg-surface-card dark:bg-[#1E1E1E] border border-surface-border dark:border-[#333333] rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-text-primary dark:text-[#E5E6EB]"
+          />
+          <div id="searchResults" class="hidden absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1E1E1E] border border-surface-border dark:border-[#333333] rounded-lg shadow-lg max-h-64 overflow-y-auto z-50"></div>
         </div>
-        <a href="/admin" class="btn btn-primary text-sm py-2 px-4">管理后台</a>
-        <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-400 hover:text-white">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        
+        <!-- Theme Toggle -->
+        <button 
+          id="themeToggle" 
+          class="p-2 rounded-lg bg-surface-card dark:bg-[#1E1E1E] hover:bg-surface-border dark:hover:bg-[#333333] transition-colors"
+          aria-label="切换主题"
+        >
+          <svg class="w-5 h-5 hidden dark:block text-[#E5E6EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.707 6.707l-.707-.707m12.728 0l-.707.707M6.707 17.293l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+          <svg class="w-5 h-5 block dark:hidden text-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+          </svg>
+        </button>
+        
+        <!-- Mobile Menu Button -->
+        <button 
+          id="mobileMenuBtn" 
+          class="md:hidden p-2 rounded-lg hover:bg-surface-card dark:hover:bg-[#1E1E1E] transition-colors"
+          aria-label="打开菜单"
+        >
+          <svg class="w-6 h-6 text-text-primary dark:text-[#E5E6EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
         </button>
       </div>
     </div>
-  </div>
-  
-  <div id="mobileMenu" class="md:hidden hidden bg-[#1E293B] border-t border-[#334155]">
-    <div class="px-4 py-4 space-y-2">
-      <input type="text" placeholder="搜索资源..." class="w-full px-4 py-2 text-sm bg-[#0F172A] border border-[#475569] rounded-xl text-white placeholder-gray-500" />
-      <a href="/" class="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">首页</a>
-      <a href="/category" class="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">全部分类</a>
-      <a href="/sites" class="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">外站导航</a>
-      <a href="/about" class="block px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-lg">关于我们</a>
+    
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="md:hidden hidden pb-4">
+      <div class="flex flex-col gap-2 pt-4 border-t border-surface-border dark:border-[#333333]">
+        <input 
+          type="text" 
+          placeholder="搜索文章..." 
+          class="w-full px-3 py-2 text-sm bg-surface-card dark:bg-[#1E1E1E] border border-surface-border dark:border-[#333333] rounded-lg"
+        />
+        <a href="/" class="px-3 py-2 text-text-secondary dark:text-[#A6A6A6] hover:bg-surface-card dark:hover:bg-[#1E1E1E] rounded-lg transition-colors">首页</a>
+        <a href="/categories" class="px-3 py-2 text-text-secondary dark:text-[#A6A6A6] hover:bg-surface-card dark:hover:bg-[#1E1E1E] rounded-lg transition-colors">分类归档</a>
+        <a href="/sites" class="px-3 py-2 text-text-secondary dark:text-[#A6A6A6] hover:bg-surface-card dark:hover:bg-[#1E1E1E] rounded-lg transition-colors">外站导航</a>
+        <a href="/about" class="px-3 py-2 text-text-secondary dark:text-[#A6A6A6] hover:bg-surface-card dark:hover:bg-[#1E1E1E] rounded-lg transition-colors">关于我们</a>
+      </div>
     </div>
   </div>
 </nav>
 
-<script>
+<script is:inline>
+  // 移动端菜单
   document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
     document.getElementById('mobileMenu')?.classList.toggle('hidden');
+  });
+  
+  // 导航栏滚动效果
+  window.addEventListener('scroll', () => {
+    const navbar = document.getElementById('navbar');
+    if (window.scrollY > 50) {
+      navbar?.classList.add('border-surface-border', 'dark:border-[#333333]');
+      navbar?.classList.remove('border-transparent');
+    } else {
+      navbar?.classList.remove('border-surface-border', 'dark:border-[#333333]');
+      navbar?.classList.add('border-transparent');
+    }
+  });
+  
+  // 搜索功能
+  const searchInput = document.getElementById('searchInput');
+  const searchResults = document.getElementById('searchResults');
+  
+  searchInput?.addEventListener('input', async (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    
+    if (query.length < 2) {
+      searchResults?.classList.add('hidden');
+      return;
+    }
+    
+    try {
+      const res = await fetch('/search.json');
+      const posts = await res.json();
+      
+      const filtered = posts.filter(post => 
+        post.title.toLowerCase().includes(query) ||
+        post.description.toLowerCase().includes(query) ||
+        post.content?.toLowerCase().includes(query)
+      ).slice(0, 6);
+      
+      if (filtered.length === 0) {
+        searchResults?.classList.add('hidden');
+        return;
+      }
+      
+      searchResults?.classList.remove('hidden');
+      searchResults.innerHTML = filtered.map(post => `
+        <a href="${post.url}" class="block px-4 py-3 hover:bg-surface-card dark:hover:bg-[#333333] transition-colors border-b border-surface-border dark:border-[#333333] last:border-b-0">
+          <div class="font-medium text-text-primary dark:text-[#E5E6EB]">${post.title}</div>
+          <div class="text-xs text-text-muted dark:text-[#666666] truncate">${post.description}</div>
+        </a>
+      `).join('');
+    } catch (err) {
+      console.error('搜索失败:', err);
+    }
+  });
+  
+  // 点击外部关闭搜索结果
+  document.addEventListener('click', (e) => {
+    if (!searchInput?.contains(e.target) && !searchResults?.contains(e.target)) {
+      searchResults?.classList.add('hidden');
+    }
   });
 </script>

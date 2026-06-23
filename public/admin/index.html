@@ -1,63 +1,71 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Decap CMS - 资源分享博客</title>
-    <link rel="stylesheet" href="https://unpkg.com/netlify-cms@^2.0.0/dist/netlify-cms.css" />
-  </head>
-  <body>
-    <script src="https://unpkg.com/netlify-cms@^2.0.0/dist/netlify-cms.js"></script>
-    <script>
-      CMS.init({
-        config: {
-          backend: {
-            name: 'github',
-            repo: 'your-username/your-repo',
-            branch: 'main',
-            base_url: 'https://api.github.com',
-          },
-          load_config_file: false,
-          media_folder: 'public/uploads',
-          public_folder: '/uploads',
-          collections: [
-            {
-              name: 'posts',
-              label: '文章',
-              folder: 'src/content/posts',
-              create: true,
-              slug: '{{year}}-{{month}}-{{day}}-{{slug}}',
-              fields: [
-                { label: '标题', name: 'title', widget: 'string' },
-                { label: '描述', name: 'description', widget: 'text' },
-                { label: '发布日期', name: 'pubDate', widget: 'date' },
-                { label: '更新日期', name: 'updatedDate', widget: 'date', required: false },
-                { label: '分类', name: 'category', widget: 'string' },
-                { label: '标签', name: 'tags', widget: 'list' },
-                { label: '置顶', name: 'isFeatured', widget: 'boolean', default: false },
-                { label: '草稿', name: 'isDraft', widget: 'boolean', default: false },
-                { label: '正文', name: 'body', widget: 'markdown' },
-              ],
-            },
-            {
-              name: 'sites',
-              label: '外站导航',
-              folder: 'src/content/sites',
-              create: true,
-              slug: '{{slug}}',
-              extension: 'json',
-              format: 'json',
-              fields: [
-                { label: '网站名称', name: 'name', widget: 'string' },
-                { label: '官网链接', name: 'url', widget: 'string' },
-                { label: '简介', name: 'description', widget: 'text' },
-                { label: '分类', name: 'category', widget: 'string' },
-                { label: '图标地址', name: 'icon', widget: 'string', required: false },
-              ],
-            },
-          ],
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>内容管理 | 资源分享博客</title>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body>
+  <!-- 引入 Decap CMS -->
+  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  
+  <!-- CMS 配置 -->
+  <script>
+    CMS.init({
+      config: {
+        backend: {
+          name: 'github',
+          repo: 'your-username/your-repo', // 替换为你的 GitHub 仓库
+          branch: 'main',
         },
-      });
-    </script>
-  </body>
+        media_folder: 'public/uploads',
+        public_folder: '/uploads',
+        locale: 'zh',
+        collections: [
+          // 博客文章集合
+          {
+            name: 'blog',
+            label: '博客文章',
+            folder: 'src/content/blog',
+            create: true,
+            slug: '{{slug}}',
+            fields: [
+              { label: '标题', name: 'title', widget: 'string', required: true },
+              { label: '摘要', name: 'description', widget: 'text', required: true },
+              { label: '封面图', name: 'cover', widget: 'image', required: false },
+              { label: '分类', name: 'category', widget: 'string', required: true },
+              { label: '标签', name: 'tags', widget: 'list', required: true },
+              { label: '发布日期', name: 'pubDate', widget: 'datetime', required: true },
+              { label: '更新日期', name: 'updatedDate', widget: 'datetime', required: false },
+              { label: '置顶', name: 'featured', widget: 'boolean', default: false },
+              { label: '草稿', name: 'draft', widget: 'boolean', default: false },
+              { label: '正文内容', name: 'body', widget: 'markdown', required: true },
+            ],
+          },
+          // 外站导航集合
+          {
+            name: 'sites',
+            label: '外站导航',
+            file: 'src/content/sites/data.json',
+            fields: [
+              {
+                label: '网站列表',
+                name: 'sites',
+                widget: 'list',
+                fields: [
+                  { label: '网站名称', name: 'name', widget: 'string', required: true },
+                  { label: '官网链接', name: 'url', widget: 'string', required: true },
+                  { label: '一句话介绍', name: 'description', widget: 'string', required: true },
+                  { label: '所属分类', name: 'category', widget: 'string', required: true },
+                  { label: '网站图标', name: 'icon', widget: 'string', required: false },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+  </script>
+</body>
 </html>
