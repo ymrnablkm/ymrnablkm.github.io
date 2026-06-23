@@ -10,6 +10,7 @@ interface Props {
 const { title, description = '资源分享站 - 分享优质的绿化软件、影视动漫、PC工具、游戏资源和实用教程' } = Astro.props;
 ---
 
+<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -18,10 +19,13 @@ const { title, description = '资源分享站 - 分享优质的绿化软件、�
     <title>{title} | 资源分享站</title>
     <link rel="stylesheet" href="/styles/global.css" />
     <link rel="icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-bg-main">
+  <body class="bg-[#0F172A]">
     <Navbar />
-    <main class="min-h-screen">
+    <main>
       <slot />
     </main>
     <Footer />

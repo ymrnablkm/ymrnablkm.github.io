@@ -9,36 +9,32 @@ const hotPosts = getHotPosts();
 const allPosts = posts.filter(p => !p.isDraft);
 ---
 
-<Layout title="首页" description="资源分享站 - 分享优质的绿化软件、影视动漫、PC工具、游戏资源和实用教程">
+<Layout title="首页">
   <!-- Hero Section -->
-  <section class="relative pt-32 pb-20 px-4 overflow-hidden">
-    <!-- Background Effects -->
-    <div class="absolute inset-0 overflow-hidden">
-      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[128px]"></div>
-      <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[128px]"></div>
-    </div>
+  <section class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900/50 to-slate-900">
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAgTCAwIDEwIEwgMTAgMTAgWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NiwgMTM4LCAyNDYsIDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
     
-    <div class="max-w-6xl mx-auto relative">
-      <div class="text-center animate-fade-in-up">
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
-          <span>✨</span>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+      <div class="text-center max-w-3xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm mb-6">
+          <span>🚀</span>
           <span>发现优质资源</span>
         </div>
         
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
-          <span class="text-text-primary">资源分享站</span>
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+          <span class="gradient-text">资源分享站</span>
         </h1>
         
-        <p class="text-xl text-text-secondary max-w-2xl mx-auto mb-8">
+        <p class="text-lg sm:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
           分享优质的绿化软件、影视动漫、PC工具、游戏资源和实用教程
         </p>
         
-        <div class="flex flex-wrap justify-center gap-3 mb-12">
-          {categories.slice(0, 5).map(cat => (
+        <div class="flex flex-wrap justify-center gap-3 mb-10">
+          {categories.map((cat, i) => (
             <a 
               key={cat.name}
               href={`/category/${encodeURIComponent(cat.name)}`}
-              class="px-5 py-2.5 rounded-full bg-bg-card border border-border text-text-secondary hover:border-primary hover:text-primary transition-all text-sm font-medium"
+              class="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-blue-500/50 transition-all text-sm font-medium backdrop-blur-sm"
             >
               {cat.name}
             </a>
@@ -46,192 +42,182 @@ const allPosts = posts.filter(p => !p.isDraft);
         </div>
       </div>
     </div>
+    
+    <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0F172A] to-transparent"></div>
   </section>
-  
-  <!-- Main Content -->
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-    <div class="flex flex-col xl:flex-row gap-8">
-      <!-- Left Content -->
-      <div class="flex-1">
-        <!-- Featured Section -->
-        {featuredPosts.length > 0 && (
-          <section class="mb-12 animate-stagger">
-            <div class="flex items-center gap-3 mb-6">
-              <div class="w-1 h-6 bg-gradient-to-b from-primary to-purple-500 rounded-full"></div>
-              <h2 class="text-xl font-bold text-text-primary">🔥 置顶推荐</h2>
-            </div>
-            
-            <article class="card card-glow p-6 relative overflow-hidden">
-              <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-purple-500/10 rounded-full blur-3xl"></div>
-              
-              <div class="relative flex flex-col lg:flex-row lg:items-start gap-6">
-                <div class="flex-1">
-                  <div class="flex flex-wrap items-center gap-2 mb-4">
-                    <span 
-                      class="tag"
-                      style={`background: ${featuredPosts[0].categoryColor}20; color: ${featuredPosts[0].categoryColor}; border-color: ${featuredPosts[0].categoryColor}40;`}
-                    >
-                      {featuredPosts[0].category}
-                    </span>
-                    <span class="tag">⭐ 置顶</span>
-                  </div>
-                  
-                  <h3 class="text-2xl font-bold text-text-primary mb-3 hover:text-primary transition-colors">
-                    <a href={`/posts/${featuredPosts[0].id}`}>{featuredPosts[0].title}</a>
-                  </h3>
-                  
-                  <p class="text-text-muted mb-4 line-clamp-2">{featuredPosts[0].description}</p>
-                  
-                  <div class="flex flex-wrap gap-2">
-                    {featuredPosts[0].tags.map(tag => (
-                      <span key={tag} class="px-2.5 py-1 text-xs bg-bg-elevated rounded-lg text-text-dim">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                
-                <div class="flex-shrink-0">
-                  <a 
-                    href={featuredPosts[0].downloadUrl}
-                    class="btn-download"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span>⬇️</span>
-                    <span>立即下载</span>
-                  </a>
-                </div>
-              </div>
-            </article>
-          </section>
-        )}
-        
-        <!-- Latest Resources -->
-        <section class="animate-stagger">
-          <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-3">
-              <div class="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
-              <h2 class="text-xl font-bold text-text-primary">📦 最新资源</h2>
-            </div>
-            <a href="/category" class="text-sm text-primary hover:underline">查看全部 →</a>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {regularPosts.map(post => (
-              <article key={post.id} class="card card-glow p-5 group">
-                <div class="flex items-start gap-4">
-                  <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-bg-elevated to-bg-card flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                    📦
-                  </div>
-                  
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-2">
-                      <span 
-                        class="tag text-xs"
-                        style={`background: ${post.categoryColor}15; color: ${post.categoryColor}; border-color: ${post.categoryColor}30;`}
-                      >
-                        {post.category}
-                      </span>
-                    </div>
-                    
-                    <h3 class="font-semibold text-text-primary mb-1.5 line-clamp-1 group-hover:text-primary transition-colors">
-                      <a href={`/posts/${post.id}`}>{post.title}</a>
-                    </h3>
-                    
-                    <p class="text-sm text-text-muted line-clamp-2 mb-2">{post.description}</p>
-                    
-                    <div class="flex items-center justify-between">
-                      <div class="flex gap-1.5">
-                        {post.tags.slice(0, 2).map(tag => (
-                          <span key={tag} class="px-2 py-0.5 text-xs bg-bg-elevated rounded text-text-dim">
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                      <span class="text-xs text-text-dim">{new Date(post.pubDate).toLocaleDateString('zh-CN')}</span>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      </div>
-      
-      <!-- Right Sidebar -->
-      <aside class="w-full xl:w-80 flex-shrink-0 space-y-6">
-        <!-- Categories -->
-        <div class="card p-5 animate-fade-in" style="animation-delay: 0.2s;">
-          <h3 class="font-semibold text-text-primary mb-4 flex items-center gap-2">
-            <span>📁</span>
-            <span>资源分类</span>
-          </h3>
-          <div class="space-y-2">
-            {categories.map(cat => {
-              const count = allPosts.filter(p => p.category === cat.name).length;
-              return (
-                <a 
-                  key={cat.name}
-                  href={`/category/${encodeURIComponent(cat.name)}`}
-                  class="flex items-center justify-between p-3 rounded-lg hover:bg-bg-elevated transition-all group"
-                >
-                  <div class="flex items-center gap-3">
-                    <span 
-                      class="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: cat.color }}
-                    ></span>
-                    <span class="text-sm text-text-secondary group-hover:text-text-primary transition-colors">{cat.name}</span>
-                  </div>
-                  <span class="text-xs text-text-dim bg-bg-elevated px-2 py-1 rounded-full">{count}</span>
-                </a>
-              );
-            })}
-          </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Featured -->
+    {featuredPosts.length > 0 && (
+      <section class="mb-12">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+          <h2 class="text-2xl font-bold text-white">置顶推荐</h2>
         </div>
         
-        <!-- Hot Rankings -->
-        <div class="card p-5 animate-fade-in" style="animation-delay: 0.3s;">
-          <h3 class="font-semibold text-text-primary mb-4 flex items-center gap-2">
-            <span>🔥</span>
-            <span>热门排行</span>
-          </h3>
-          <div class="space-y-3">
+        <div class="card p-8 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-purple-500/10">
+          <div class="flex flex-col lg:flex-row lg:items-center gap-6">
+            <div class="flex-1">
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="badge badge-primary">{featuredPosts[0].category}</span>
+                <span class="badge badge-purple">⭐ 置顶</span>
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-3">{featuredPosts[0].title}</h3>
+              <p class="text-gray-400 mb-4">{featuredPosts[0].description}</p>
+              <div class="flex flex-wrap gap-2">
+                {featuredPosts[0].tags.map(tag => (
+                  <span key={tag} class="px-3 py-1 text-xs bg-white/5 rounded-lg text-gray-400">#{tag}</span>
+                ))}
+              </div>
+            </div>
+            <div class="flex-shrink-0">
+              <a href={featuredPosts[0].downloadUrl} target="_blank" class="btn btn-success text-base px-8 py-4">
+                <span class="text-xl">⬇️</span>
+                <span>立即下载</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- Categories Grid -->
+    <section class="mb-12">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+          <h2 class="text-2xl font-bold text-white">资源分类</h2>
+        </div>
+        <a href="/category" class="text-blue-400 hover:text-blue-300 text-sm">查看全部 →</a>
+      </div>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {categories.map(cat => {
+          const count = allPosts.filter(p => p.category === cat.name).length;
+          return (
+            <a 
+              key={cat.name}
+              href={`/category/${encodeURIComponent(cat.name)}`}
+              class="card p-6 text-center group"
+            >
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-3 text-3xl group-hover:scale-110 transition-transform">
+                📦
+              </div>
+              <h3 class="font-semibold text-white mb-1">{cat.name}</h3>
+              <p class="text-sm text-gray-500">{count} 个资源</p>
+            </a>
+          );
+        })}
+      </div>
+    </section>
+
+    <!-- Latest Resources -->
+    <section class="mb-12">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-1 h-8 bg-gradient-to-b from-green-500 to-emerald-500 rounded-full"></div>
+          <h2 class="text-2xl font-bold text-white">最新资源</h2>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {regularPosts.map(post => (
+          <article key={post.id} class="card p-6 group">
+            <div class="flex items-start gap-4">
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                📦
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="badge badge-primary text-xs">{post.category}</span>
+                </div>
+                <h3 class="font-semibold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                  <a href={`/posts/${post.id}`}>{post.title}</a>
+                </h3>
+                <p class="text-sm text-gray-400 line-clamp-2 mb-3">{post.description}</p>
+                <div class="flex items-center justify-between">
+                  <div class="flex gap-1.5">
+                    {post.tags.slice(0, 2).map(tag => (
+                      <span key={tag} class="px-2 py-0.5 text-xs bg-white/5 rounded text-gray-500">#{tag}</span>
+                    ))}
+                  </div>
+                  <span class="text-xs text-gray-500">{new Date(post.pubDate).toLocaleDateString('zh-CN')}</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- Sidebar + Bottom -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Hot -->
+      <div class="lg:col-span-2">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-1 h-8 bg-gradient-to-b from-orange-500 to-red-500 rounded-full"></div>
+          <h2 class="text-2xl font-bold text-white">热门排行</h2>
+        </div>
+        
+        <div class="card p-6">
+          <div class="space-y-4">
             {hotPosts.map((post, index) => (
-              <a 
-                key={post.id}
-                href={`/posts/${post.id}`}
-                class="flex items-start gap-3 p-2 -mx-2 rounded-lg hover:bg-bg-elevated transition-all group"
-              >
-                <span 
-                  class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold"
-                  style={{
-                    background: index < 3 ? 'linear-gradient(135deg, #F87171, #EF4444)' : 'var(--color-bg-elevated)',
-                    color: index < 3 ? 'white' : 'var(--color-text-dim)'
-                  }}
-                >
+              <a key={post.id} href={`/posts/${post.id}`} class="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-white/5 transition-colors group">
+                <span class={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${index < 3 ? 'bg-gradient-to-br from-orange-500 to-red-500 text-white' : 'bg-slate-700 text-gray-400'}`}>
                   {index + 1}
                 </span>
                 <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium text-text-primary line-clamp-1 group-hover:text-primary transition-colors">{post.title}</div>
-                  <div class="text-xs text-text-dim">{post.category}</div>
+                  <div class="font-medium text-white line-clamp-1 group-hover:text-blue-400 transition-colors">{post.title}</div>
+                  <div class="text-xs text-gray-500">{post.category}</div>
                 </div>
+                <span class="text-xs text-gray-500">{new Date(post.pubDate).toLocaleDateString('zh-CN')}</span>
               </a>
             ))}
           </div>
         </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-1 h-8 bg-gradient-to-b from-cyan-500 to-blue-500 rounded-full"></div>
+          <h2 class="text-2xl font-bold text-white">快捷入口</h2>
+        </div>
         
-        <!-- CTA Card -->
-        <div class="card p-5 bg-gradient-to-br from-primary/20 to-purple-500/20 border-primary/30 animate-fade-in" style="animation-delay: 0.4s;">
-          <h3 class="font-semibold text-text-primary mb-2">💡 提示</h3>
-          <p class="text-sm text-text-muted mb-4">
-            发现有用的资源？别忘了收藏和分享给朋友！
-          </p>
-          <a href="/about" class="btn btn-primary w-full text-sm">
-            了解更多
+        <div class="space-y-4">
+          <a href="/category/绿化软件" class="card p-4 flex items-center gap-4 group">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-2xl">💻</div>
+            <div>
+              <div class="font-medium text-white">绿化软件</div>
+              <div class="text-xs text-gray-500">免安装软件</div>
+            </div>
+          </a>
+          
+          <a href="/category/影视动漫" class="card p-4 flex items-center gap-4 group">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-2xl">🎬</div>
+            <div>
+              <div class="font-medium text-white">影视动漫</div>
+              <div class="text-xs text-gray-500">高清影视资源</div>
+            </div>
+          </a>
+          
+          <a href="/category/游戏相关" class="card p-4 flex items-center gap-4 group">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center text-2xl">🎮</div>
+            <div>
+              <div class="font-medium text-white">游戏相关</div>
+              <div class="text-xs text-gray-500">热门游戏资源</div>
+            </div>
+          </a>
+          
+          <a href="/sites" class="card p-4 flex items-center gap-4 group border-cyan-500/30">
+            <div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center text-2xl">🔗</div>
+            <div>
+              <div class="font-medium text-white">外站导航</div>
+              <div class="text-xs text-gray-500">优质网站推荐</div>
+            </div>
           </a>
         </div>
-      </aside>
+      </div>
     </div>
   </div>
 </Layout>
