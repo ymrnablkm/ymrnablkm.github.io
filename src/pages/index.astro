@@ -1,0 +1,122 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getFeaturedPosts, getRegularPosts, getCategories, posts } from '../data/posts';
+
+const featuredPosts = getFeaturedPosts();
+const regularPosts = getRegularPosts();
+const categories = getCategories();
+const allPosts = posts.filter(p => !p.isDraft);
+---
+
+<Layout title="首页" description="资源分享博客 - 分享优质资源和技术文章">
+  <div class="flex flex-col lg:flex-row gap-8">
+    <div class="flex-1">
+      {featuredPosts.length > 0 && (
+        <section class="mb-8">
+          <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+            <span>⭐</span>
+            <span>置顶文章</span>
+          </h2>
+          <div class="space-y-4">
+            {featuredPosts.map(post => (
+              <article key={post.id} class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <span class="inline-block px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full mb-2">
+                      {post.category}
+                    </span>
+                    <h3 class="text-xl font-bold mb-2">
+                      <a href={`/posts/${post.id}`} class="hover:text-primary transition-colors">
+                        {post.title}
+                      </a>
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400 line-clamp-2">{post.description}</p>
+                  </div>
+                  <span class="text-xs text-gray-400 whitespace-nowrap">
+                    {new Date(post.pubDate).toLocaleDateString('zh-CN')}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2 mt-4">
+                  {post.tags.map(tag => (
+                    <span key={tag} class="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+      
+      <section>
+        <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <span>📝</span>
+          <span>最新文章</span>
+        </h2>
+        <div class="space-y-4">
+          {regularPosts.map(post => (
+            <article key={post.id} class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:shadow-md transition-shadow">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="inline-block px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full mb-2">
+                    {post.category}
+                  </span>
+                  <h3 class="text-lg font-semibold mb-1">
+                    <a href={`/posts/${post.id}`} class="hover:text-primary transition-colors">
+                      {post.title}
+                    </a>
+                  </h3>
+                  <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">{post.description}</p>
+                </div>
+                <span class="text-xs text-gray-400 whitespace-nowrap">
+                  {new Date(post.pubDate).toLocaleDateString('zh-CN')}
+                </span>
+              </div>
+              <div class="flex items-center gap-2 mt-3">
+                {post.tags.map(tag => (
+                  <span key={tag} class="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+    
+    <aside class="w-full lg:w-64">
+      <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 sticky top-20">
+        <h3 class="font-semibold mb-4">分类</h3>
+        <ul class="space-y-2">
+          {categories.map(category => (
+            <li key={category}>
+              <a href={`/category/${encodeURIComponent(category)}`} class="flex items-center justify-between px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                <span>{category}</span>
+                <span class="text-xs text-gray-400">
+                  {allPosts.filter(p => p.category === category).length}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      
+      <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 mt-4">
+        <h3 class="font-semibold mb-4">标签云</h3>
+        <div class="flex flex-wrap gap-2">
+          {[...new Set(allPosts.flatMap(p => p.tags))].map(tag => (
+            <a 
+              key={tag} 
+              href={`/?tag=${encodeURIComponent(tag)}`} 
+              class="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-primary hover:text-white transition-colors"
+            >
+              #{tag}
+            </a>
+          ))}
+        </div>
+      </div>
+    </aside>
+  </div>
+</Layout>

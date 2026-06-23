@@ -1,0 +1,77 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getPostsByCategory, getCategories, posts } from '../../data/posts';
+
+export async function getStaticPaths() {
+  const categories = getCategories();
+  return categories.map(category => ({
+    params: { name: category },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props;
+const categoryPosts = getPostsByCategory(category);
+const allPosts = posts.filter(p => !p.isDraft);
+---
+
+<Layout title={`分类: ${category}`}>
+  <div class="flex flex-col lg:flex-row gap-8">
+    <div class="flex-1">
+      <h1 class="text-2xl font-bold mb-6">分类: {category}</h1>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">共 {categoryPosts.length} 篇文章</p>
+      
+      <div class="space-y-4">
+        {categoryPosts.length === 0 ? (
+          <p class="text-gray-500 dark:text-gray-400">该分类暂无文章</p>
+        ) : (
+          categoryPosts.map(post => (
+            <article key={post.id} class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:shadow-md transition-shadow">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="inline-block px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full mb-2">
+                    {post.category}
+                  </span>
+                  <h3 class="text-lg font-semibold mb-1">
+                    <a href={`/posts/${post.id}`} class="hover:text-primary transition-colors">
+                      {post.title}
+                    </a>
+                  </h3>
+                  <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">{post.description}</p>
+                </div>
+                <span class="text-xs text-gray-400 whitespace-nowrap">
+                  {new Date(post.pubDate).toLocaleDateString('zh-CN')}
+                </span>
+              </div>
+              <div class="flex items-center gap-2 mt-3">
+                {post.tags.map(tag => (
+                  <span key={tag} class="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+    </div>
+    
+    <aside class="w-full lg:w-64">
+      <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 sticky top-20">
+        <h3 class="font-semibold mb-4">所有分类</h3>
+        <ul class="space-y-2">
+          {getCategories().map(cat => (
+            <li key={cat}>
+              <a href={`/category/${encodeURIComponent(cat)}`} class={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${cat === category ? 'bg-primary text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+                <span>{cat}</span>
+                <span class="text-xs">
+                  {allPosts.filter(p => p.category === cat).length}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </aside>
+  </div>
+</Layout>

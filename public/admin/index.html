@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Decap CMS - 资源分享博客</title>
+    <link rel="stylesheet" href="https://unpkg.com/netlify-cms@^2.0.0/dist/netlify-cms.css" />
+  </head>
+  <body>
+    <script src="https://unpkg.com/netlify-cms@^2.0.0/dist/netlify-cms.js"></script>
+    <script>
+      CMS.init({
+        config: {
+          backend: {
+            name: 'github',
+            repo: 'your-username/your-repo',
+            branch: 'main',
+            base_url: 'https://api.github.com',
+          },
+          load_config_file: false,
+          media_folder: 'public/uploads',
+          public_folder: '/uploads',
+          collections: [
+            {
+              name: 'posts',
+              label: '文章',
+              folder: 'src/content/posts',
+              create: true,
+              slug: '{{year}}-{{month}}-{{day}}-{{slug}}',
+              fields: [
+                { label: '标题', name: 'title', widget: 'string' },
+                { label: '描述', name: 'description', widget: 'text' },
+                { label: '发布日期', name: 'pubDate', widget: 'date' },
+                { label: '更新日期', name: 'updatedDate', widget: 'date', required: false },
+                { label: '分类', name: 'category', widget: 'string' },
+                { label: '标签', name: 'tags', widget: 'list' },
+                { label: '置顶', name: 'isFeatured', widget: 'boolean', default: false },
+                { label: '草稿', name: 'isDraft', widget: 'boolean', default: false },
+                { label: '正文', name: 'body', widget: 'markdown' },
+              ],
+            },
+            {
+              name: 'sites',
+              label: '外站导航',
+              folder: 'src/content/sites',
+              create: true,
+              slug: '{{slug}}',
+              extension: 'json',
+              format: 'json',
+              fields: [
+                { label: '网站名称', name: 'name', widget: 'string' },
+                { label: '官网链接', name: 'url', widget: 'string' },
+                { label: '简介', name: 'description', widget: 'text' },
+                { label: '分类', name: 'category', widget: 'string' },
+                { label: '图标地址', name: 'icon', widget: 'string', required: false },
+              ],
+            },
+          ],
+        },
+      });
+    </script>
+  </body>
+</html>
