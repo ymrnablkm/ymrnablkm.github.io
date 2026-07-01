@@ -9,7 +9,7 @@ const blog = defineCollection({
     description: z.string(),
     cover: z.string().optional(),
     category: z.string(),
-    tags: z.array(z.string()),
+    tags: z.array(z.string()).default([]),
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
     featured: z.boolean().default(false),
@@ -20,6 +20,7 @@ const blog = defineCollection({
       url: z.string(),
       password: z.string().optional(),
     })).optional(),
+    // 兼容旧文章，不强制要求
     seoTitle: z.string().optional(),
     seoDescription: z.string().optional(),
   }),
