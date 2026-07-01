@@ -3,69 +3,145 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>内容管理 | 资源分享博客</title>
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <meta name="robots" content="noindex, nofollow" />
+  <title>内容管理 | Aether Yard</title>
+  <style>
+    body { margin: 0; }
+  </style>
 </head>
 <body>
-  <!-- 引入 Decap CMS -->
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
-  
+  <!-- Sveltia CMS - 比 Decap CMS 更现代、更好用 -->
+  <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js" type="module"></script>
+
   <!-- CMS 配置 -->
   <script>
-    CMS.init({
-      config: {
-        backend: {
-          name: 'github',
-          repo: 'ymrnablkm/ymrnablkm.github.io',
-          branch: 'main',
-        },
-        media_folder: 'public/uploads',
-        public_folder: '/uploads',
-        locale: 'zh',
-        collections: [
-          // 博客文章集合
-          {
-            name: 'blog',
-            label: '博客文章',
-            folder: 'src/content/blog',
-            create: true,
-            slug: '{{slug}}',
-            fields: [
-              { label: '标题', name: 'title', widget: 'string', required: true },
-              { label: '摘要', name: 'description', widget: 'text', required: true },
-              { label: '封面图', name: 'cover', widget: 'image', required: false },
-              { label: '分类', name: 'category', widget: 'string', required: true },
-              { label: '标签', name: 'tags', widget: 'list', required: true },
-              { label: '发布日期', name: 'pubDate', widget: 'datetime', required: true },
-              { label: '更新日期', name: 'updatedDate', widget: 'datetime', required: false },
-              { label: '置顶', name: 'featured', widget: 'boolean', default: false },
-              { label: '草稿', name: 'draft', widget: 'boolean', default: false },
-              { label: '正文内容', name: 'body', widget: 'markdown', required: true },
-            ],
-          },
-          // 外站导航集合
-          {
-            name: 'sites',
-            label: '外站导航',
-            file: 'src/content/sites/data.json',
-            fields: [
+    // 等待 CMS 加载完成后初始化配置
+    window.addEventListener('load', () => {
+      if (window.SveltiaCMS) {
+        window.SveltiaCMS.init({
+          config: {
+            backend: {
+              name: 'github',
+              repo: 'ymrnablkm/ymrnablkm.github.io',
+              branch: 'main',
+              base_url: '/api',
+              auth_endpoint: 'auth',
+            },
+            media_folder: 'public/uploads',
+            public_folder: '/uploads',
+            locale: 'zh',
+            collections: [
+              // ===== 博客文章 =====
               {
-                label: '网站列表',
-                name: 'sites',
-                widget: 'list',
+                name: 'blog',
+                label: '📝 博客文章',
+                label_singular: '文章',
+                folder: 'src/content/blog',
+                create: true,
+                delete: true,
+                slug: '{{slug}}',
+                summary: '{{title}} ({{category}})',
+                sortable_fields: {
+                  fields: ['pubDate', 'title', 'category'],
+                  default: { field: 'pubDate', direction: 'descending' },
+                },
                 fields: [
-                  { label: '网站名称', name: 'name', widget: 'string', required: true },
-                  { label: '官网链接', name: 'url', widget: 'string', required: true },
-                  { label: '一句话介绍', name: 'description', widget: 'string', required: true },
-                  { label: '所属分类', name: 'category', widget: 'string', required: true },
-                  { label: '网站图标', name: 'icon', widget: 'string', required: false },
+                  { label: '标题', name: 'title', widget: 'string', required: true, hint: '文章的标题，会显示在文章列表和详情页' },
+                  { label: '摘要', name: 'description', widget: 'text', required: true, hint: '一段话概括文章内容，显示在列表中' },
+                  { label: '封面图', name: 'cover', widget: 'image', required: false, hint: '文章封面图片，建议尺寸 1200x630' },
+                  { label: '分类', name: 'category', widget: 'select', required: true, options: ['实用教程', '软件推荐', '开发工具', '学习资源', '资源网站', '技术分享', '前端开发', '后端开发', '其他'], hint: '选择文章分类' },
+                  { label: '标签', name: 'tags', widget: 'list', required: true, hint: '添加标签，方便搜索和分类，每行一个' },
+                  { label: '发布日期', name: 'pubDate', widget: 'datetime', required: true, hint: '文章发布时间' },
+                  { label: '更新日期', name: 'updatedDate', widget: 'datetime', required: false, hint: '文章最后更新时间（可选）' },
+                  { label: '作者', name: 'author', widget: 'string', required: false, default: 'Admin', hint: '文章作者名称' },
+                  { label: '置顶', name: 'featured', widget: 'boolean', default: false, hint: '开启后文章会在首页置顶显示' },
+                  { label: '草稿', name: 'draft', widget: 'boolean', default: false, hint: '开启后文章不会在网站显示，只有后台能看到' },
+                  {
+                    label: '下载链接',
+                    name: 'downloadLinks',
+                    widget: 'list',
+                    required: false,
+                    hint: '添加资源下载链接（可选）',
+                    fields: [
+                      { label: '链接名称', name: 'name', widget: 'string', required: true, hint: '如：百度网盘、阿里云盘' },
+                      { label: '链接地址', name: 'url', widget: 'string', required: true, hint: '下载链接 URL' },
+                      { label: '提取码', name: 'password', widget: 'string', required: false, hint: '提取码/解压码（可选）' },
+                    ],
+                  },
+                  { label: 'SEO 标题', name: 'seoTitle', widget: 'string', required: false, hint: '搜索引擎优化标题，不填则使用文章标题' },
+                  { label: 'SEO 描述', name: 'seoDescription', widget: 'text', required: false, hint: '搜索引擎优化描述，不填则使用摘要' },
+                  { label: '正文内容', name: 'body', widget: 'markdown', required: true, hint: '文章正文，支持 Markdown 语法' },
+                ],
+              },
+
+              // ===== 外站导航 =====
+              {
+                name: 'sites',
+                label: '🔗 外站导航',
+                label_singular: '网站',
+                file: 'src/content/sites/sites.json',
+                fields: [
+                  {
+                    label: '网站列表',
+                    name: 'sites',
+                    widget: 'list',
+                    required: false,
+                    hint: '管理外站导航的网站列表',
+                    fields: [
+                      { label: '网站名称', name: 'name', widget: 'string', required: true },
+                      { label: '官网链接', name: 'url', widget: 'string', required: true, hint: '完整的网址，如 https://example.com' },
+                      { label: '一句话介绍', name: 'description', widget: 'string', required: true },
+                      { label: '所属分类', name: 'category', widget: 'select', required: true, options: ['开发工具', '学习资源', '资源网站', '设计素材', '在线工具', '社区论坛', '其他'] },
+                      { label: '网站图标', name: 'icon', widget: 'string', required: false, hint: '图标 URL，不填会显示默认图标' },
+                    ],
+                  },
+                ],
+              },
+
+              // ===== 站点设置 =====
+              {
+                name: 'settings',
+                label: '⚙️ 站点设置',
+                label_singular: '设置',
+                file: 'src/content/settings/settings.json',
+                fields: [
+                  { label: '站点名称', name: 'siteName', widget: 'string', required: false, hint: '显示在浏览器标签和页脚' },
+                  { label: '站点描述', name: 'siteDescription', widget: 'text', required: false, hint: 'SEO 用途的站点描述' },
+                  { label: '公告内容', name: 'announcement', widget: 'text', required: false, hint: '显示在首页侧边栏的公告' },
+                  { label: '开启公告', name: 'announcementEnabled', widget: 'boolean', default: true, hint: '关闭后首页不显示公告' },
+                  { label: '联系邮箱', name: 'contactEmail', widget: 'string', required: false, hint: '联系邮箱地址' },
+                  { label: '页脚文字', name: 'footerText', widget: 'string', required: false, hint: '页脚显示的版权信息' },
+                  { label: '备案号', name: 'icp', widget: 'string', required: false, hint: 'ICP 备案号（可选）' },
+                  {
+                    label: '社交媒体链接',
+                    name: 'socialLinks',
+                    widget: 'list',
+                    required: false,
+                    hint: '页脚显示的社交媒体链接',
+                    fields: [
+                      { label: '名称', name: 'name', widget: 'string', required: true, hint: '如 GitHub、微博、微信' },
+                      { label: '链接', name: 'url', widget: 'string', required: true },
+                      { label: '图标', name: 'icon', widget: 'string', required: false, hint: '图标名称（可选）' },
+                    ],
+                  },
                 ],
               },
             ],
           },
-        ],
-      },
+        });
+      }
     });
+  </script>
+
+  <!-- Fallback: 如果 Sveltia CMS 加载失败，回退到 Decap CMS -->
+  <script>
+    setTimeout(() => {
+      if (!window.SveltiaCMS) {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js';
+        document.body.appendChild(script);
+      }
+    }, 5000);
   </script>
 </body>
 </html>

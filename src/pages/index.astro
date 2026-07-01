@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
+import settingsData from '../content/settings/settings.json';
 
 // 获取所有文章
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
@@ -17,6 +18,9 @@ const categoryCounts = categories.map(cat => ({
 
 // 热门文章（按时间排序取前5）
 const hotPosts = regularPosts.slice(0, 5);
+
+// 站点设置
+const settings = settingsData;
 ---
 
 <Layout title="首页">
@@ -156,15 +160,17 @@ const hotPosts = regularPosts.slice(0, 5);
       </div>
       
       <!-- 网站公告 -->
-      <div class="bg-gradient-to-br from-primary/10 to-primary/5 rounded-card border border-primary/20 p-5">
-        <h3 class="font-semibold text-text-primary dark:text-[#E5E6EB] mb-3 flex items-center gap-2">
-          <span>📢</span>
-          <span>网站公告</span>
-        </h3>
-        <p class="text-sm text-text-secondary dark:text-[#A6A6A6] leading-relaxed">
-          欢迎访问资源分享博客！所有资源仅供学习交流使用，请勿用于商业用途。如有问题请在评论区反馈。
-        </p>
-      </div>
+      {settings.announcementEnabled !== false && settings.announcement && (
+        <div class="bg-gradient-to-br from-primary/10 to-primary/5 rounded-card border border-primary/20 p-5">
+          <h3 class="font-semibold text-text-primary dark:text-[#E5E6EB] mb-3 flex items-center gap-2">
+            <span>📢</span>
+            <span>网站公告</span>
+          </h3>
+          <p class="text-sm text-text-secondary dark:text-[#A6A6A6] leading-relaxed">
+            {settings.announcement}
+          </p>
+        </div>
+      )}
     </aside>
   </div>
 </Layout>

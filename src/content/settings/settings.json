@@ -1,0 +1,12 @@
+{
+  "siteName": "资源分享博客",
+  "siteDescription": "分享优质资源和技术文章",
+  "announcement": "欢迎访问资源分享博客！所有资源仅供学习交流使用，请勿用于商业用途。",
+  "announcementEnabled": true,
+  "contactEmail": "contact@example.com",
+  "socialLinks": [
+    { "name": "GitHub", "url": "https://github.com", "icon": "github" }
+  ],
+  "footerText": "© 2024 资源分享博客. All rights reserved.",
+  "icp": ""
+}

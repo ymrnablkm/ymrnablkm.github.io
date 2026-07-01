@@ -67,6 +67,9 @@ const tocItems = headings.map(h => {
             <span>🔄 更新于 {new Date(post.data.updatedDate).toLocaleDateString('zh-CN')}</span>
           )}
           <span>⏱️ 预计阅读 {readingTime} 分钟</span>
+          {post.data.author && (
+            <span>✍️ {post.data.author}</span>
+          )}
         </div>
         
         <div class="flex flex-wrap gap-2 mt-4">
@@ -86,6 +89,36 @@ const tocItems = headings.map(h => {
           </div>
         </div>
       </div>
+      
+      <!-- 下载链接 -->
+      {post.data.downloadLinks && post.data.downloadLinks.length > 0 && (
+        <div class="mt-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-card border border-primary/20 p-6">
+          <h2 class="text-lg font-semibold text-text-primary dark:text-[#E5E6EB] mb-4 flex items-center gap-2">
+            <span>📥</span>
+            <span>下载链接</span>
+          </h2>
+          <div class="space-y-3">
+            {post.data.downloadLinks.map((link, index) => (
+              <div class="flex items-center justify-between bg-surface-card dark:bg-[#1E1E1E] rounded-lg p-4 border border-surface-border dark:border-[#333333]">
+                <div class="flex items-center gap-3">
+                  <span class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary text-lg">
+                    {link.name.includes('百度') ? '☁️' : link.name.includes('阿里') ? '💿' : link.name.includes('蓝奏') ? '🎵' : '🔗'}
+                  </span>
+                  <div>
+                    <p class="font-medium text-text-primary dark:text-[#E5E6EB]">{link.name}</p>
+                    {link.password && (
+                      <p class="text-xs text-text-muted dark:text-[#666666]">提取码/解压码：{link.password}</p>
+                    )}
+                  </div>
+                </div>
+                <a href={link.url} target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors">
+                  立即下载
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       
       <!-- 相关推荐 -->
       {relatedPosts.length > 0 && (
