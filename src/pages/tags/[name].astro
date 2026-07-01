@@ -1,0 +1,67 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+  const tags = [...new Set(allPosts.flatMap(post => post.data.tags))];
+  return tags.map(tag => ({
+    params: { name: tag },
+    props: {
+      tag,
+      posts: allPosts.filter(post => post.data.tags.includes(tag))
+        .sort((a, b) => new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime()),
+    },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<Layout title={`标签: ${tag}`}>
+  <div class="mb-8">
+    <nav class="flex items-center gap-2 text-sm text-text-muted dark:text-[#666666] mb-6">
+      <a href="/" class="hover:text-primary transition-colors">首页</a>
+      <span>/</span>
+      <a href="/tags" class="hover:text-primary transition-colors">标签</a>
+      <span>/</span>
+      <span class="text-text-secondary dark:text-[#A6A6A6]">#{tag}</span>
+    </nav>
+
+    <div class="flex items-center gap-3 mb-2">
+      <h1 class="text-2xl font-bold text-text-primary dark:text-[#E5E6EB]">#{tag}</h1>
+      <span class="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full">{posts.length} 篇文章</span>
+    </div>
+  </div>
+
+  <div class="space-y-4">
+    {posts.map(post => (
+      <article class="card-hover bg-surface-card dark:bg-[#1E1E1E] rounded-card border border-surface-border dark:border-[#333333] p-5">
+        <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="tag text-xs">{post.data.category}</span>
+              {post.data.featured && (
+                <span class="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-full">置顶</span>
+              )}
+            </div>
+            <h3 class="text-lg font-semibold text-text-primary dark:text-[#E5E6EB] mb-2 hover:text-primary transition-colors">
+              <a href={`/posts/${post.id}`}>{post.data.title}</a>
+            </h3>
+            <p class="text-text-secondary dark:text-[#A6A6A6] text-sm line-clamp-2 mb-3">{post.data.description}</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                {post.data.tags.filter(t => t !== tag).slice(0, 2).map(t => (
+                  <span class="px-2 py-0.5 text-xs bg-surface-border dark:bg-[#333333] text-text-muted dark:text-[#666666] rounded">#{t}</span>
+                ))}
+              </div>
+              <time class="text-xs text-text-muted dark:text-[#666666]">
+                {new Date(post.data.pubDate).toLocaleDateString('zh-CN')}
+              </time>
+            </div>
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
+</Layout>

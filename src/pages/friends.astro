@@ -1,0 +1,46 @@
+---
+import Layout from '../layouts/Layout.astro';
+import friendsData from '../content/friends/friends.json';
+---
+
+<Layout title="友情链接">
+  <div class="text-center mb-10">
+    <h1 class="text-3xl font-bold text-text-primary dark:text-[#E5E6EB] mb-3">🤝 友情链接</h1>
+    <p class="text-text-muted dark:text-[#666666]">优质网站互相推荐，共同进步</p>
+  </div>
+
+  <!-- 友链列表 -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+    {friendsData.map((friend, index) => (
+      <a
+        key={index}
+        href={friend.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="card-hover bg-surface-card dark:bg-[#1E1E1E] rounded-card border border-surface-border dark:border-[#333333] p-5 group"
+      >
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform overflow-hidden">
+            {friend.avatar ? (
+              <img src={friend.avatar} alt={friend.name} class="w-full h-full object-cover" loading="lazy" />
+            ) : (
+              <span class="text-xl font-bold text-primary">{friend.name.charAt(0)}</span>
+            )}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-text-primary dark:text-[#E5E6EB] mb-1 group-hover:text-primary transition-colors truncate">
+              {friend.name}
+            </h3>
+            <p class="text-sm text-text-secondary dark:text-[#A6A6A6] line-clamp-2">{friend.description}</p>
+          </div>
+        </div>
+      </a>
+    ))}
+  </div>
+
+  <!-- 申请友链 -->
+  <div class="bg-gradient-to-br from-primary/10 to-primary/5 rounded-card border border-primary/20 p-6 text-center">
+    <h2 class="text-lg font-semibold text-text-primary dark:text-[#E5E6EB] mb-2">申请友链</h2>
+    <p class="text-sm text-text-secondary dark:text-[#A6A6A6] mb-4">欢迎优质网站互换友链，请在后台「友情链接」中添加或通过邮件联系我</p>
+  </div>
+</Layout>
