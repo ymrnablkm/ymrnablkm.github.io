@@ -6,9 +6,21 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  date?: string;
 }
 
-const { title, description = 'Aether Yard - 优质资源分享站' } = Astro.props;
+const {
+  title,
+  description = 'Aether Yard - 优质资源分享站',
+  image = '',
+  type = 'website',
+  date,
+} = Astro.props;
+
+const siteName = 'Aether Yard';
+const url = Astro.url.toString();
 ---
 
 <!DOCTYPE html>
@@ -17,12 +29,61 @@ const { title, description = 'Aether Yard - 优质资源分享站' } = Astro.pro
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#165DFF" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href={url} />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content={siteName} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
-    <link rel="canonical" href={Astro.url} />
-    <title>{title} | Aether Yard</title>
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={url} />
+    {image && <meta property="og:image" content={image} />}
+    {date && <meta property="article:published_time" content={date} />}
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {image && <meta name="twitter:image" content={image} />}
+
+    <title>{title} | {siteName}</title>
     <link rel="icon" href="/favicon.ico" />
+
+    <!-- 结构化数据 -->
+    {type === 'article' && date && (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: title,
+        description: description,
+        datePublished: date,
+        url: url,
+        image: image,
+        author: {
+          '@type': 'Organization',
+          name: siteName,
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: siteName,
+        },
+      })} />
+    )}
+    {type === 'website' && (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: siteName,
+        description: description,
+        url: url,
+      })} />
+    )}
+
+    <!-- 预连接 DNS -->
+    <link rel="dns-prefetch" href="https://unpkg.com" />
   </head>
   <body class="bg-white dark:bg-[#121212] text-text-primary dark:text-[#E5E6EB] min-h-screen">
     <Navbar />
@@ -42,17 +103,22 @@ const { title, description = 'Aether Yard - 优质资源分享站' } = Astro.pro
       </svg>
     </button>
 
-    <!-- 主题切换脚本 -->
+    <!-- 主题切换 & 回到顶部脚本 -->
     <script is:inline>
+      (function() {
+        var html = document.documentElement;
+        var savedTheme = localStorage.getItem('theme');
+        var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+          html.classList.add('dark');
+        }
+      })();
+    </script>
+
+    <script>
       const themeToggle = document.getElementById('themeToggle');
       const html = document.documentElement;
-
-      const savedTheme = localStorage.getItem('theme');
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-      if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
-        html.classList.add('dark');
-      }
 
       themeToggle?.addEventListener('click', () => {
         html.classList.toggle('dark');
@@ -67,7 +133,7 @@ const { title, description = 'Aether Yard - 优质资源分享站' } = Astro.pro
         } else {
           backToTop?.classList.remove('visible');
         }
-      });
+      }, { passive: true });
 
       backToTop?.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });

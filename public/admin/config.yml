@@ -28,7 +28,8 @@ collections:
         field: date
         direction: descending
     fields:
-      - { name: "title", label: "标题", widget: "string", required: true, hint: "文章标题" }
-      - { name: "date", label: "发布日期", widget: "datetime", required: true, hint: "默认当前时间" }
-      - { name: "description", label: "简介", widget: "string", required: false, hint: "一句话介绍（可选）" }
-      - { name: "body", label: "正文内容", widget: "markdown", required: true, hint: "写文章内容，下载链接也写在这里" }
+      - { name: "title", label: "标题", widget: "string", required: true, hint: "文章标题，写清楚这篇是啥" }
+      - { name: "date", label: "发布日期", widget: "datetime", required: true, hint: "默认现在的时间" }
+      - { name: "description", label: "简介", widget: "string", required: false, hint: "一句话介绍，选填" }
+      - { name: "cover", label: "封面图", widget: "image", required: false, hint: "选填，没有也行" }
+      - { name: "body", label: "正文内容", widget: "markdown", required: true, hint: "写文章，下载链接也写在这里" }

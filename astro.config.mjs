@@ -10,6 +10,12 @@ export default defineConfig({
     build: {
       cssMinify: true,
       minify: true,
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: undefined,
+        },
+      },
     },
   },
   output: 'static',
@@ -17,4 +23,10 @@ export default defineConfig({
     inlineStylesheets: 'auto',
   },
   compressHTML: true,
+  prefetch: {
+    defaultStrategy: 'hover',
+  },
+  image: {
+    remotePatterns: [{ protocol: 'https' }],
+  },
 });
