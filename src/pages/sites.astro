@@ -1,8 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import sitesData from '../content/sites/sites.json';
+import sitesFile from '../content/sites/sites.json';
 
-const sites = sitesData;
+const sites = sitesFile.sites || [];
 
 // 获取分类
 const categories = [...new Set(sites.map(site => site.category))];

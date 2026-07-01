@@ -1,6 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import friendsData from '../content/friends/friends.json';
+import friendsFile from '../content/friends/friends.json';
+
+const friendsData = friendsFile.friends || [];
 ---
 
 <Layout title="友情链接">

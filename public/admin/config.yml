@@ -1,0 +1,138 @@
+backend:
+  name: github
+  repo: ymrnablkm/ymrnablkm.github.io
+  branch: main
+  base_url: /api
+  auth_endpoint: auth
+
+media_folder: public/uploads
+public_folder: /uploads
+
+locale: zh
+
+collections:
+  # ===== 博客文章 =====
+  - name: blog
+    label: "📝 博客文章"
+    label_singular: "文章"
+    folder: src/content/blog
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    summary: "{{title}} — {{category}}"
+    sortable_fields:
+      fields:
+        - pubDate
+        - title
+        - category
+      default:
+        field: pubDate
+        direction: descending
+    fields:
+      - { label: "标题", name: title, widget: string, required: true, hint: "文章标题" }
+      - { label: "摘要", name: description, widget: text, required: true, hint: "一段话概括文章内容" }
+      - { label: "封面图", name: cover, widget: image, required: false, hint: "文章封面图片（可选）" }
+      - label: "分类"
+        name: category
+        widget: select
+        required: true
+        options:
+          - "实用教程"
+          - "软件推荐"
+          - "开发工具"
+          - "学习资源"
+          - "资源网站"
+          - "技术分享"
+          - "前端开发"
+          - "后端开发"
+          - "绿化软件"
+          - "游戏相关"
+          - "影视动漫"
+          - "其他"
+      - { label: "标签", name: tags, widget: list, required: true, hint: "每行一个标签" }
+      - { label: "发布日期", name: pubDate, widget: datetime, required: true }
+      - { label: "更新日期", name: updatedDate, widget: datetime, required: false }
+      - { label: "作者", name: author, widget: string, required: false, default: "Admin" }
+      - { label: "置顶", name: featured, widget: boolean, default: false, hint: "开启后首页置顶" }
+      - { label: "草稿", name: draft, widget: boolean, default: false, hint: "开启后前台不显示" }
+      - label: "下载链接"
+        name: downloadLinks
+        widget: list
+        required: false
+        hint: "添加资源下载链接（可选）"
+        fields:
+          - { label: "链接名称", name: name, widget: string, required: true, hint: "如：百度网盘、阿里云盘" }
+          - { label: "链接地址", name: url, widget: string, required: true }
+          - { label: "提取码", name: password, widget: string, required: false, hint: "提取码/解压码" }
+      - { label: "SEO 标题", name: seoTitle, widget: string, required: false }
+      - { label: "SEO 描述", name: seoDescription, widget: text, required: false }
+      - { label: "正文内容", name: body, widget: markdown, required: true }
+
+  # ===== 外站导航 =====
+  - name: sites
+    label: "🔗 外站导航"
+    label_singular: "网站"
+    file: src/content/sites/sites.json
+    fields:
+      - label: "网站列表"
+        name: sites
+        widget: list
+        required: false
+        hint: "添加/删除/排序外站导航"
+        fields:
+          - { label: "网站名称", name: name, widget: string, required: true }
+          - { label: "官网链接", name: url, widget: string, required: true }
+          - { label: "一句话介绍", name: description, widget: string, required: true }
+          - label: "所属分类"
+            name: category
+            widget: select
+            required: true
+            options:
+              - "开发工具"
+              - "学习资源"
+              - "资源网站"
+              - "设计素材"
+              - "在线工具"
+              - "社区论坛"
+              - "其他"
+          - { label: "网站图标", name: icon, widget: string, required: false, hint: "图标 URL" }
+
+  # ===== 友情链接 =====
+  - name: friends
+    label: "🤝 友情链接"
+    label_singular: "友链"
+    file: src/content/friends/friends.json
+    fields:
+      - label: "友链列表"
+        name: friends
+        widget: list
+        required: false
+        hint: "添加/删除友情链接"
+        fields:
+          - { label: "网站名称", name: name, widget: string, required: true }
+          - { label: "网站链接", name: url, widget: string, required: true }
+          - { label: "头像/Logo", name: avatar, widget: string, required: false, hint: "头像图片 URL" }
+          - { label: "网站介绍", name: description, widget: string, required: true }
+
+  # ===== 站点设置 =====
+  - name: settings
+    label: "⚙️ 站点设置"
+    label_singular: "设置"
+    file: src/content/settings/settings.json
+    fields:
+      - { label: "站点名称", name: siteName, widget: string, required: false }
+      - { label: "站点描述", name: siteDescription, widget: text, required: false }
+      - { label: "公告内容", name: announcement, widget: text, required: false, hint: "首页侧边栏公告" }
+      - { label: "开启公告", name: announcementEnabled, widget: boolean, default: true }
+      - { label: "联系邮箱", name: contactEmail, widget: string, required: false }
+      - { label: "页脚文字", name: footerText, widget: string, required: false }
+      - { label: "备案号", name: icp, widget: string, required: false }
+      - label: "社交媒体"
+        name: socialLinks
+        widget: list
+        required: false
+        hint: "页脚社交媒体链接"
+        fields:
+          - { label: "名称", name: name, widget: string, required: true }
+          - { label: "链接", name: url, widget: string, required: true }
+          - { label: "图标", name: icon, widget: string, required: false }

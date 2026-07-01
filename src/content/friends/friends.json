@@ -1,20 +1,22 @@
-[
-  {
-    "name": "阮一峰的博客",
-    "url": "https://www.ruanyifeng.com",
-    "avatar": "",
-    "description": "科技爱好者周刊，前端技术分享"
-  },
-  {
-    "name": "少数派",
-    "url": "https://sspai.com",
-    "avatar": "",
-    "description": "高效工作和生活品质的数字生活指南"
-  },
-  {
-    "name": "V2EX",
-    "url": "https://www.v2ex.com",
-    "avatar": "",
-    "description": "创意工作者的社区"
-  }
-]
+{
+  "friends": [
+    {
+      "name": "阮一峰的博客",
+      "url": "https://www.ruanyifeng.com",
+      "avatar": "",
+      "description": "科技爱好者周刊，前端技术分享"
+    },
+    {
+      "name": "少数派",
+      "url": "https://sspai.com",
+      "avatar": "",
+      "description": "高效工作和生活品质的数字生活指南"
+    },
+    {
+      "name": "V2EX",
+      "url": "https://www.v2ex.com",
+      "avatar": "",
+      "description": "创意工作者的社区"
+    }
+  ]
+}
