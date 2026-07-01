@@ -1,13 +1,14 @@
 ---
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import '../styles/global.css';
 
 interface Props {
   title: string;
   description?: string;
 }
 
-const { title, description = '资源分享博客 - 分享优质资源和技术文章' } = Astro.props;
+const { title, description = 'Aether Yard - 优质资源分享站' } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -20,8 +21,7 @@ const { title, description = '资源分享博客 - 分享优质资源和技术�
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <link rel="canonical" href={Astro.url} />
-    <title>{title} | 资源分享博客</title>
-    <link rel="stylesheet" href="/styles/global.css" />
+    <title>{title} | Aether Yard</title>
     <link rel="icon" href="/favicon.ico" />
   </head>
   <body class="bg-white dark:bg-[#121212] text-text-primary dark:text-[#E5E6EB] min-h-screen">
@@ -30,10 +30,10 @@ const { title, description = '资源分享博客 - 分享优质资源和技术�
       <slot />
     </main>
     <Footer />
-    
+
     <!-- 回到顶部按钮 -->
-    <button 
-      id="backToTop" 
+    <button
+      id="backToTop"
       class="back-to-top fixed bottom-6 right-6 w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:bg-primary-dark"
       aria-label="回到顶部"
     >
@@ -41,30 +41,26 @@ const { title, description = '资源分享博客 - 分享优质资源和技术�
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
       </svg>
     </button>
-    
+
     <!-- 主题切换脚本 -->
     <script is:inline>
-      // 主题切换逻辑
       const themeToggle = document.getElementById('themeToggle');
       const html = document.documentElement;
-      
-      // 初始化主题
+
       const savedTheme = localStorage.getItem('theme');
       const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      
+
       if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
         html.classList.add('dark');
       }
-      
-      // 切换主题
+
       themeToggle?.addEventListener('click', () => {
         html.classList.toggle('dark');
         localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
       });
-      
-      // 回到顶部
+
       const backToTop = document.getElementById('backToTop');
-      
+
       window.addEventListener('scroll', () => {
         if (window.scrollY > 500) {
           backToTop?.classList.add('visible');
@@ -72,7 +68,7 @@ const { title, description = '资源分享博客 - 分享优质资源和技术�
           backToTop?.classList.remove('visible');
         }
       });
-      
+
       backToTop?.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });

@@ -30,7 +30,6 @@ body {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-/* 深色模式卡片 */
 .dark .card-hover:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
@@ -88,15 +87,6 @@ a {
   transition: color 0.2s ease;
 }
 
-/* 按钮样式 */
-.btn {
-  transition: all 0.2s ease;
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-}
-
 /* 导航栏毛玻璃效果 */
 .nav-glass {
   backdrop-filter: blur(12px);
@@ -118,55 +108,4 @@ a {
 .back-to-top.visible {
   opacity: 1;
   visibility: visible;
-}
-
-/* 目录导航样式 */
-.toc-link {
-  transition: color 0.2s ease;
-}
-
-.toc-link:hover {
-  color: #165DFF;
-}
-
-.toc-link.active {
-  color: #165DFF;
-  font-weight: 500;
-}
-
-/* 标签样式 */
-.tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: 9999px;
-  background: rgba(22, 93, 255, 0.1);
-  color: #165DFF;
-  transition: all 0.2s ease;
-}
-
-.tag:hover {
-  background: rgba(22, 93, 255, 0.2);
-}
-
-/* 分页样式 */
-.pagination-btn {
-  transition: all 0.2s ease;
-}
-
-.pagination-btn:hover:not(.disabled) {
-  background: #165DFF;
-  color: white;
-}
-
-.pagination-btn.active {
-  background: #165DFF;
-  color: white;
-}
-
-.pagination-btn.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }

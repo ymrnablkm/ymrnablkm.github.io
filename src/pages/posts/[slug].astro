@@ -1,9 +1,10 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 
+// 根据 Markdown 自动生成文章页面
 export async function getStaticPaths() {
-  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  const posts = await getCollection('posts');
   return posts.map(post => ({
     params: { slug: post.id },
     props: { post },
@@ -11,28 +12,7 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
-
-// 获取相关文章（同分类或同标签）
-const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const relatedPosts = allPosts
-  .filter(p => p.id !== post.id && (
-    p.data.category === post.data.category ||
-    p.data.tags.some(tag => post.data.tags.includes(tag))
-  ))
-  .slice(0, 4);
-
-// 计算阅读时长
-const wordCount = post.body?.split(/\s+/).length || 0;
-const readingTime = Math.ceil(wordCount / 200);
-
-// 提取标题生成目录
-const headings = post.body?.match(/^#{1,3}\s+.+/gm) || [];
-const tocItems = headings.map(h => {
-  const level = h.match(/^#+/)?.[0]?.length || 1;
-  const text = h.replace(/^#+\s+/, '');
-  const id = text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-  return { level, text, id };
-});
+const { Content } = await render(post);
 ---
 
 <Layout title={post.data.title} description={post.data.description}>
@@ -40,128 +20,37 @@ const tocItems = headings.map(h => {
   <nav class="flex items-center gap-2 text-sm text-text-muted dark:text-[#666666] mb-6">
     <a href="/" class="hover:text-primary transition-colors">首页</a>
     <span>/</span>
-    <a href={`/categories/${encodeURIComponent(post.data.category)}`} class="hover:text-primary transition-colors">{post.data.category}</a>
-    <span>/</span>
     <span class="text-text-secondary dark:text-[#A6A6A6]">{post.data.title}</span>
   </nav>
-  
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-    <!-- 文章内容 -->
-    <article class="lg:col-span-3">
-      <!-- 文章头部 -->
-      <header class="mb-8">
-        <div class="flex items-center gap-2 mb-4">
-          <span class="tag">{post.data.category}</span>
-          {post.data.featured && (
-            <span class="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">置顶</span>
-          )}
-        </div>
-        
-        <h1 class="text-3xl font-bold text-text-primary dark:text-[#E5E6EB] mb-4">{post.data.title}</h1>
-        
-        <p class="text-lg text-text-secondary dark:text-[#A6A6A6] mb-4">{post.data.description}</p>
-        
-        <div class="flex flex-wrap items-center gap-4 text-sm text-text-muted dark:text-[#666666]">
-          <span>📅 {new Date(post.data.pubDate).toLocaleDateString('zh-CN')}</span>
-          {post.data.updatedDate && (
-            <span>🔄 更新于 {new Date(post.data.updatedDate).toLocaleDateString('zh-CN')}</span>
-          )}
-          <span>⏱️ 预计阅读 {readingTime} 分钟</span>
-          {post.data.author && (
-            <span>✍️ {post.data.author}</span>
-          )}
-        </div>
-        
-        <div class="flex flex-wrap gap-2 mt-4">
-          {post.data.tags.map(tag => (
-            <a href={`/tags/${encodeURIComponent(tag)}`} class="px-3 py-1 text-xs bg-surface-card dark:bg-[#1E1E1E] text-text-muted dark:text-[#666666] rounded-lg hover:text-primary transition-colors">
-              #{tag}
-            </a>
-          ))}
-        </div>
-      </header>
-      
-      <!-- 文章正文 -->
-      <div class="bg-surface-card dark:bg-[#1E1E1E] rounded-card border border-surface-border dark:border-[#333333] p-6 sm:p-8">
-        <div class="prose prose-lg dark:prose-invert max-w-none">
-          <div class="text-text-secondary dark:text-[#A6A6A6] leading-[1.75]">
-            {post.body}
-          </div>
-        </div>
+
+  <article class="max-w-3xl mx-auto">
+    <!-- 文章头部 -->
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold text-text-primary dark:text-[#E5E6EB] mb-4">
+        {post.data.title}
+      </h1>
+      <p class="text-sm text-text-muted dark:text-[#666666]">
+        {new Date(post.data.date).toLocaleDateString('zh-CN')}
+      </p>
+      {post.data.description && (
+        <p class="text-lg text-text-secondary dark:text-[#A6A6A6] mt-4">
+          {post.data.description}
+        </p>
+      )}
+    </header>
+
+    <!-- 文章正文（Markdown 渲染） -->
+    <div class="bg-surface-card dark:bg-[#1E1E1E] rounded-card border border-surface-border dark:border-[#333333] p-6 sm:p-8">
+      <div class="prose prose-lg dark:prose-invert max-w-none text-text-secondary dark:text-[#A6A6A6] leading-[1.75]">
+        <Content />
       </div>
-      
-      <!-- 下载链接 -->
-      {post.data.downloadLinks && post.data.downloadLinks.length > 0 && (
-        <div class="mt-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-card border border-primary/20 p-6">
-          <h2 class="text-lg font-semibold text-text-primary dark:text-[#E5E6EB] mb-4 flex items-center gap-2">
-            <span>📥</span>
-            <span>下载链接</span>
-          </h2>
-          <div class="space-y-3">
-            {post.data.downloadLinks.map((link, index) => (
-              <div class="flex items-center justify-between bg-surface-card dark:bg-[#1E1E1E] rounded-lg p-4 border border-surface-border dark:border-[#333333]">
-                <div class="flex items-center gap-3">
-                  <span class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary text-lg">
-                    {link.name.includes('百度') ? '☁️' : link.name.includes('阿里') ? '💿' : link.name.includes('夸克') ? '🚀' : link.name.includes('蓝奏') ? '🎵' : link.name.includes('123') ? '💾' : link.name.includes('GitHub') ? '🐙' : '🔗'}
-                  </span>
-                  <div>
-                    <p class="font-medium text-text-primary dark:text-[#E5E6EB]">{link.name}</p>
-                    {link.password && (
-                      <p class="text-xs text-text-muted dark:text-[#666666]">提取码/解压码：{link.password}</p>
-                    )}
-                  </div>
-                </div>
-                <a href={link.url} target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors">
-                  立即下载
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      <!-- 相关推荐 -->
-      {relatedPosts.length > 0 && (
-        <section class="mt-10">
-          <h2 class="text-xl font-semibold text-text-primary dark:text-[#E5E6EB] mb-6 flex items-center gap-2">
-            <span>📚</span>
-            <span>相关推荐</span>
-          </h2>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {relatedPosts.map(related => (
-              <article class="card-hover bg-surface-card dark:bg-[#1E1E1E] rounded-card border border-surface-border dark:border-[#333333] p-4">
-                <span class="tag text-xs mb-2">{related.data.category}</span>
-                <h3 class="font-semibold text-text-primary dark:text-[#E5E6EB] mb-2 line-clamp-2 hover:text-primary transition-colors">
-                  <a href={`/posts/${related.id}`}>{related.data.title}</a>
-                </h3>
-                <p class="text-xs text-text-muted dark:text-[#666666]">{new Date(related.data.pubDate).toLocaleDateString('zh-CN')}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
-    </article>
-    
-    <!-- 目录导航 -->
-    <aside class="lg:col-span-1">
-      {tocItems.length > 0 && (
-        <div class="sticky top-24 bg-surface-card dark:bg-[#1E1E1E] rounded-card border border-surface-border dark:border-[#333333] p-5">
-          <h3 class="font-semibold text-text-primary dark:text-[#E5E6EB] mb-4 flex items-center gap-2">
-            <span>📑</span>
-            <span>目录导航</span>
-          </h3>
-          <ul class="space-y-2">
-            {tocItems.map(item => (
-              <li class={`pl-${(item.level - 1) * 3}`}>
-                <a href={`#${item.id}`} class="toc-link text-sm text-text-secondary dark:text-[#A6A6A6] hover:text-primary transition-colors">
-                  {item.text}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </aside>
-  </div>
+    </div>
+
+    <!-- 返回首页 -->
+    <div class="mt-8 text-center">
+      <a href="/" class="inline-block px-6 py-3 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors">
+        ← 返回首页
+      </a>
+    </div>
+  </article>
 </Layout>

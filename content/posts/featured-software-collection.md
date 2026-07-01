@@ -1,12 +1,7 @@
 ---
-title: '2024年度精品软件合集推荐'
-description: '精选本年度最实用的10款绿化软件，涵盖办公、设计、开发等多个领域，全部免费可用，一键下载即可使用。'
-cover: '/uploads/featured-cover.jpg'
-category: '绿化软件'
-tags: ['推荐', '合集', '精品', '软件']
-pubDate: 2024-01-20
-featured: true
-draft: false
+title: 2024年度精品软件合集推荐
+date: 2024-01-20
+description: 精选本年度最实用的10款绿化软件，涵盖办公、设计、开发等多个领域，全部免费可用，一键下载即可使用。
 ---
 
 ## 资源介绍
@@ -34,7 +29,7 @@ draft: false
 ## 下载地址
 
 > [点击下载完整合集](https://pan.example.com/s/software2024)
-> 
+>
 > **提取码**: `2024`
 
 ## 使用说明

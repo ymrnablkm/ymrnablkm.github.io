@@ -1,50 +1,16 @@
 ---
-const currentYear = new Date().getFullYear();
+const year = new Date().getFullYear();
 ---
 
-<footer class="bg-surface-card dark:bg-[#1E1E1E] border-t border-surface-border dark:border-[#333333] mt-16">
-  <div class="max-w-content mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-      <!-- Brand -->
-      <div class="md:col-span-2">
-        <div class="flex items-center gap-2 mb-4">
-          <span class="text-2xl">📦</span>
-          <span class="font-semibold text-lg text-text-primary dark:text-[#E5E6EB]">资源分享博客</span>
-        </div>
-        <p class="text-text-muted dark:text-[#666666] text-sm leading-relaxed max-w-md">
-          分享优质资源和技术文章，帮助大家更好地学习和工作。所有内容仅供学习交流使用。
-        </p>
-      </div>
-      
-      <!-- Quick Links -->
-      <div>
-        <h3 class="font-semibold text-text-primary dark:text-[#E5E6EB] mb-4">快速链接</h3>
-        <ul class="space-y-2">
-          <li><a href="/" class="text-sm text-text-muted dark:text-[#666666] hover:text-primary transition-colors">首页</a></li>
-          <li><a href="/categories" class="text-sm text-text-muted dark:text-[#666666] hover:text-primary transition-colors">分类归档</a></li>
-          <li><a href="/tags" class="text-sm text-text-muted dark:text-[#666666] hover:text-primary transition-colors">标签云</a></li>
-          <li><a href="/sites" class="text-sm text-text-muted dark:text-[#666666] hover:text-primary transition-colors">外站导航</a></li>
-          <li><a href="/friends" class="text-sm text-text-muted dark:text-[#666666] hover:text-primary transition-colors">友情链接</a></li>
-          <li><a href="/about" class="text-sm text-text-muted dark:text-[#666666] hover:text-primary transition-colors">关于我们</a></li>
-        </ul>
-      </div>
-      
-      <!-- Categories -->
-      <div>
-        <h3 class="font-semibold text-text-primary dark:text-[#E5E6EB] mb-4">资源分类</h3>
-        <ul class="space-y-2">
-          <li><a href="/categories/绿化软件" class="text-sm text-text-muted dark:text-[#666666] hover:text-primary transition-colors">绿化软件</a></li>
-          <li><a href="/categories/技术分享" class="text-sm text-text-muted dark:text-[#666666] hover:text-primary transition-colors">技术分享</a></li>
-          <li><a href="/categories/实用教程" class="text-sm text-text-muted dark:text-[#666666] hover:text-primary transition-colors">实用教程</a></li>
-          <li><a href="/categories/游戏相关" class="text-sm text-text-muted dark:text-[#666666] hover:text-primary transition-colors">游戏相关</a></li>
-        </ul>
-      </div>
-    </div>
-    
-    <!-- Bottom -->
-    <div class="border-t border-surface-border dark:border-[#333333] mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p class="text-sm text-text-muted dark:text-[#666666]">© {currentYear} 资源分享博客. 仅供学习交流使用.</p>
-      <p class="text-sm text-text-muted dark:text-[#666666]">Made with 💜</p>
+<footer class="border-t border-surface-border dark:border-[#333333] bg-surface-card dark:bg-[#1E1E1E]">
+  <div class="max-w-content mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-sm text-text-muted dark:text-[#666666]">
+        © {year} Aether Yard. All rights reserved.
+      </p>
+      <p class="text-sm text-text-muted dark:text-[#666666]">
+        所有资源仅供学习交流使用
+      </p>
     </div>
   </div>
 </footer>
