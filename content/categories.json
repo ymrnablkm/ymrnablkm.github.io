@@ -20,16 +20,6 @@
     "visible": true
   },
   {
-    "id": "frontend",
-    "name": "前端开发",
-    "slug": "frontend",
-    "icon": "💻",
-    "description": "前端工具与开发实践",
-    "cover": "",
-    "order": 3,
-    "visible": true
-  },
-  {
     "id": "安卓资源",
     "name": "安卓资源",
     "slug": "安卓资源",
