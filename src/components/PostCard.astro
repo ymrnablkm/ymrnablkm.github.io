@@ -1,0 +1,63 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { categoryBySlug } from '../lib/site';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+  compact?: boolean;
+}
+
+const { post, compact = false } = Astro.props;
+const category = post.data.category ? categoryBySlug(post.data.category) : undefined;
+const readingTime = Math.max(1, Math.ceil((post.body?.split(/\s+/).length || 0) / 200));
+---
+
+<article class="card-hover bg-surface-card dark:bg-[#1E1E1E] rounded-card border border-surface-border dark:border-[#333333] overflow-hidden h-full">
+  <a href={`/posts/${post.id}`} class="block group h-full flex flex-col">
+    {post.data.cover && (
+      <div class="aspect-[16/9] overflow-hidden bg-surface-card dark:bg-[#1E1E1E]">
+        <img
+          src={post.data.cover}
+          alt={post.data.title}
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+        />
+      </div>
+    )}
+    <div class={`p-6 flex flex-col flex-1 ${compact ? 'sm:p-5' : ''}`}>
+      <div class="flex items-center gap-2 mb-2 flex-wrap">
+        {post.data.pinned && (
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-500 dark:bg-red-500/10">置顶</span>
+        )}
+        {category && (
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+            {category.icon} {category.name}
+          </span>
+        )}
+      </div>
+
+      <h2 class="text-lg font-semibold text-text-primary dark:text-[#E5E6EB] mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+        {post.data.title}
+      </h2>
+
+      <div class="flex items-center gap-3 text-xs text-text-muted dark:text-[#666666] mb-3">
+        <span>📅 {new Date(post.data.date).toLocaleDateString('zh-CN')}</span>
+        <span>·</span>
+        <span>⏱️ {readingTime} 分钟</span>
+      </div>
+
+      {post.data.description && (
+        <p class="text-sm text-text-secondary dark:text-[#A6A6A6] line-clamp-2 leading-relaxed flex-1">
+          {post.data.description}
+        </p>
+      )}
+
+      {post.data.resources.length > 0 && (
+        <div class="mt-3 flex items-center gap-1.5 text-xs text-primary">
+          <span>📦</span>
+          <span>{post.data.resources.filter((item) => item.visible).length} 个下载渠道</span>
+        </div>
+      )}
+    </div>
+  </a>
+</article>

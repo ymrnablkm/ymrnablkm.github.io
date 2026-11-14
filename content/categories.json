@@ -1,0 +1,32 @@
+[
+  {
+    "id": "cloud",
+    "name": "云盘资源",
+    "slug": "cloud",
+    "icon": "☁️",
+    "description": "网盘分享与下载技巧",
+    "cover": "",
+    "order": 1,
+    "visible": true
+  },
+  {
+    "id": "software",
+    "name": "软件工具",
+    "slug": "software",
+    "icon": "🧰",
+    "description": "实用软件与效率工具",
+    "cover": "",
+    "order": 2,
+    "visible": true
+  },
+  {
+    "id": "frontend",
+    "name": "前端开发",
+    "slug": "frontend",
+    "icon": "💻",
+    "description": "前端工具与开发实践",
+    "cover": "",
+    "order": 3,
+    "visible": true
+  }
+]

@@ -2,6 +2,9 @@
 title: 2024年度精品软件合集推荐
 date: 2024-01-20
 description: 精选本年度最实用的10款绿化软件，涵盖办公、设计、开发等多个领域，全部免费可用，一键下载即可使用。
+category: software
+tags:
+  - tools
 ---
 
 ## 资源介绍

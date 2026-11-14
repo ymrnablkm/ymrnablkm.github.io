@@ -1,0 +1,32 @@
+{
+  "announcement": {
+    "text": "本站资源全部免费分享，持续更新中，建议收藏本站。",
+    "link": "",
+    "visible": true
+  },
+  "hero": {
+    "title": "",
+    "subtitle": "",
+    "image": "",
+    "visible": true
+  },
+  "slides": [],
+  "featured": [],
+  "footer": "",
+  "categories": [],
+  "modules": [
+    {
+      "id": "latest",
+      "type": "latest",
+      "title": "最新发布",
+      "visible": true,
+      "limit": 12
+    },
+    {
+      "id": "categories",
+      "type": "categories",
+      "title": "内容分类",
+      "visible": true
+    }
+  ]
+}

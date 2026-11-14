@@ -1,0 +1,46 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+import { tags, tagBySlug } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('posts')).filter((post) => !post.data.draft);
+  const slugs = new Set<string>();
+  posts.forEach((post) => post.data.tags.forEach((tag) => slugs.add(tag)));
+  tags.forEach((tag) => slugs.add(tag.slug));
+
+  return [...slugs].map((slug) => ({
+    params: { tag: slug },
+    props: { slug, name: tagBySlug(slug)?.name || slug },
+  }));
+}
+
+const { slug, name } = Astro.props;
+const posts = (await getCollection('posts'))
+  .filter((post) => !post.data.draft && post.data.tags.includes(slug))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<Layout title={`标签：${name}`} description={`带有「${name}」标签的文章`}>
+  <header class="mb-8">
+    <nav class="flex items-center gap-2 text-sm text-text-muted dark:text-[#666666] mb-4">
+      <a href="/" class="hover:text-primary transition-colors">首页</a>
+      <span>/</span>
+      <span class="text-text-secondary dark:text-[#A6A6A6]">标签</span>
+    </nav>
+    <h1 class="text-3xl font-bold text-text-primary dark:text-[#E5E6EB] mb-2">#{name}</h1>
+    <p class="text-xs text-text-muted dark:text-[#666666]">共 {posts.length} 篇文章</p>
+  </header>
+
+  {posts.length === 0 ? (
+    <div class="text-center py-20 text-text-muted dark:text-[#666666]">
+      <div class="text-5xl mb-3">🏷️</div>
+      <p>这个标签下还没有文章</p>
+    </div>
+  ) : (
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {posts.map((post) => <PostCard post={post} />)}
+    </div>
+  )}
+</Layout>

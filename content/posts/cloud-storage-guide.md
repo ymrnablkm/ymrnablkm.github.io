@@ -2,6 +2,10 @@
 title: 云盘资源高效分享指南
 date: 2024-01-10
 description: 详细介绍如何高效地分享和管理云盘资源，包括百度网盘、阿里云盘等主流云存储服务的使用技巧。
+category: cloud
+tags:
+  - baidu-pan
+  - aliyun-pan
 ---
 
 ## 百度网盘

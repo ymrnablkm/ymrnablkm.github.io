@@ -1,0 +1,22 @@
+[
+  {
+    "id": "baidu-pan",
+    "name": "百度网盘",
+    "slug": "baidu-pan"
+  },
+  {
+    "id": "aliyun-pan",
+    "name": "阿里云盘",
+    "slug": "aliyun-pan"
+  },
+  {
+    "id": "tools",
+    "name": "工具",
+    "slug": "tools"
+  },
+  {
+    "id": "vscode",
+    "name": "VS Code",
+    "slug": "vscode"
+  }
+]

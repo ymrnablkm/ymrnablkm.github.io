@@ -1,0 +1,48 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+import { categories } from '../../lib/site';
+
+export async function getStaticPaths() {
+  return categories.map((category) => ({
+    params: { slug: category.slug },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props;
+const posts = (await getCollection('posts'))
+  .filter((post) => !post.data.draft && post.data.category === category.slug)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<Layout
+  title={category.seoTitle || category.name}
+  description={category.seoDescription || category.description}
+  noindex={!category.visible}
+>
+  <header class="mb-8">
+    <nav class="flex items-center gap-2 text-sm text-text-muted dark:text-[#666666] mb-4">
+      <a href="/" class="hover:text-primary transition-colors">首页</a>
+      <span>/</span>
+      <span class="text-text-secondary dark:text-[#A6A6A6]">{category.name}</span>
+    </nav>
+    <h1 class="text-3xl font-bold text-text-primary dark:text-[#E5E6EB] mb-2">
+      {category.icon} {category.name}
+    </h1>
+    <p class="text-sm text-text-secondary dark:text-[#A6A6A6]">{category.description}</p>
+    <p class="text-xs text-text-muted dark:text-[#666666] mt-2">共 {posts.length} 篇文章</p>
+  </header>
+
+  {posts.length === 0 ? (
+    <div class="text-center py-20 text-text-muted dark:text-[#666666]">
+      <div class="text-5xl mb-3">📂</div>
+      <p>这个分类下还没有文章</p>
+    </div>
+  ) : (
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {posts.map((post) => <PostCard post={post} />)}
+    </div>
+  )}
+</Layout>

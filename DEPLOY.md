@@ -1,135 +1,121 @@
-# 资源分享博客 - GitHub 部署指南
+# 部署指南（新版后台）
 
-## 第一步：创建 GitHub 仓库
+本项目的后台需要服务端 API，推荐部署到 **Cloudflare Pages**；也可部署到 Vercel。
+前台可以继续使用 GitHub Pages，但 GitHub Pages 不运行 Functions，后台登录与保存不可用。
 
-1. 打开 GitHub 网站：https://github.com
-2. 点击右上角的 `+` 号，选择 `New repository`
-3. 填写仓库信息：
-   - **Repository name**: `resource-blog`（或你喜欢的名字）
-   - **Description**: `资源分享博客 - 高颜值高性能的静态网站`
-   - 选择 **Public**（公开）或 **Private**（私有）
-   - **不要**勾选 "Add a README file"（我们已有代码）
-4. 点击 **Create repository**
+---
 
-## 第二步：推送代码到 GitHub
+## 一、Cloudflare Pages（推荐）
 
-创建仓库后，GitHub 会显示推送指南，执行以下命令（注意替换你的用户名和仓库名）：
+### 1. 推送代码到 GitHub
 
 ```bash
-# 添加远程仓库（替换 YOUR_USERNAME 和 YOUR_REPO_NAME）
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-
-# 推送代码到 GitHub
-git branch -M main
-git push -u origin main
+git add .
+git commit -m "升级可视化内容管理系统"
+git push
 ```
 
-## 第三步：配置 Decap CMS
-
-1. 编辑 `public/admin/index.html`
-2. 将 `your-username/your-repo` 替换为你的 GitHub 仓库地址（例如：`mygithub/resource-blog`）
-
-```javascript
-backend: {
-  name: 'github',
-  repo: 'mygithub/resource-blog',  // 改成你的
-  branch: 'main',
-}
-```
-
-## 第四步：创建 GitHub OAuth App（用于后台登录）
-
-1. 打开 GitHub Settings → Developer settings → OAuth Apps
-2. 点击 **New OAuth App**
-3. 填写信息：
-   - **Application name**: `资源分享博客 CMS`
-   - **Homepage URL**: `https://your-site.pages.dev`
-   - **Authorization callback URL**: `https://your-site.pages.dev/admin/auth`
-4. 点击 **Register application**
-5. 保存 **Client ID** 和 **Client Secret**
-
-## 第五步：部署到 Cloudflare Pages
-
-### 方法一：连接 GitHub 自动部署（推荐）
+### 2. 创建 Pages 项目
 
 1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. 进入 **Workers & Pages** → **Create application** → **Pages**
-3. 点击 **Connect to Git**
-4. 选择你的 GitHub 仓库
-5. 配置构建设置：
-   - **Build command**: `npm run build`
-   - **Build output directory**: `dist`
-6. 点击 **Deploy site**
+2. **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
+3. 选择仓库
+4. 构建配置：
+   - **Framework preset**：Astro（或 None）
+   - **Build command**：`npm run build`
+   - **Build output directory**：`dist`
+5. 点击 **Save and Deploy**
 
-### 方法二：手动部署
+> `npm run build` 会先构建后台（Vite），再构建前台（Astro），无需额外命令。
+> 根目录的 `functions/` 会被自动识别为 Pages Functions。
 
-```bash
-# 构建项目
-npm run build
+### 3. 配置环境变量
 
-# 安装 Wrangler
-npm install -g wrangler
+项目 → **Settings** → **Environment variables**，添加：
 
-# 部署
-wrangler pages deploy dist
+```
+GITHUB_CLIENT_ID
+GITHUB_CLIENT_SECRET
+ADMIN_GITHUB_LOGIN
+SESSION_SECRET
+GITHUB_TOKEN
 ```
 
-## 第六步：配置自定义域名（可选）
+详细申请步骤见 [OAUTH_SETUP_GUIDE.md](./OAUTH_SETUP_GUIDE.md)。
 
-1. 在 Cloudflare Pages 设置中点击 **Custom domains**
-2. 添加你的域名
-3. 按照提示配置 DNS
+配置完成后重新部署。
 
-## 完成后访问
+### 4. 访问
 
-- 网站地址：`https://your-site.pages.dev`
-- 后台地址：`https://your-site.pages.dev/admin`
+- 网站：`https://<项目名>.pages.dev/`
+- 后台：`https://<项目名>.pages.dev/admin/app/`
+- 旧地址 `/admin` 会自动跳转到新后台。
 
-## 后续使用
+### 5. 绑定自定义域名（可选）
 
-### 添加/编辑文章
-1. 访问 `/admin`
-2. 使用 GitHub 账号登录
-3. 选择「博客文章」进行管理
+Pages 项目 → **Custom domains** → 添加域名 → 按提示配置 DNS。
+绑定后请把 OAuth App 的 **Authorization callback URL** 改为：
 
-### 添加/编辑外站导航
-1. 访问 `/admin`
-2. 选择「外站导航」进行管理
-
-## 常见问题
-
-### Q: 推送时提示权限错误？
-A: 确保 GitHub 账号有仓库的推送权限，或者使用 Personal Access Token。
-
-### Q: CMS 登录失败？
-A: 检查 OAuth App 的 Callback URL 是否正确配置。
-
-### Q: 构建失败？
-A: 确保所有依赖已安装：`npm install`
-
-## 快速命令汇总
-
-```bash
-# 安装依赖
-npm install
-
-# 本地开发
-npm run dev
-
-# 构建生产版本
-npm run build
-
-# 预览构建结果
-npm run preview
-
-# 推送到 GitHub
-git add .
-git commit -m "更新内容"
-git push
+```
+https://你的域名/api/auth/callback
 ```
 
 ---
 
-**提示**：修改代码后推送到 GitHub，Cloudflare Pages 会自动重新部署！
+## 二、Vercel（可选）
 
-有问题请提交 Issue 或联系开发者。
+1. 导入仓库，Framework 选择 Astro（或 Other）。
+2. Build Command：`npm run build`
+3. Output Directory：`dist`
+4. 配置同样的 5 个环境变量。
+5. `api/[...path].js` 会自动作为 Serverless Function 处理 `/api/*`。
+
+OAuth 回调地址：`https://你的域名/api/auth/callback`。
+
+---
+
+## 三、GitHub Pages（仅前台）
+
+仓库中的 `.github/workflows/deploy.yml` 会把构建结果发布到 GitHub Pages。
+它包含前台与后台静态文件，但由于没有服务端：
+
+- 后台页面可以打开，但登录与保存接口不可用；
+- 适合只发布前台内容。
+
+如需完整后台，请使用 Cloudflare Pages 或 Vercel，并把域名指向该平台。
+
+---
+
+## 四、本地构建与部署检查
+
+```bash
+npm install
+npm run build        # 后台 + 前台
+npm run dev:local    # 本地全栈验证（127.0.0.1:4322）
+```
+
+部署前确认：
+
+- `dist/` 中包含 `admin/app/index.html` 与 `admin/app/assets/*`
+- `dist/` 中包含 `_headers`、`robots.txt`、`sitemap-index.xml`、`rss.xml`
+- `functions/api/[[path]].js` 存在
+- 环境变量已配置且已重新部署
+
+---
+
+## 五、常见问题
+
+**构建失败**
+`npm ci` 后执行 `npm run build` 本地复现，优先检查 Node 版本（需 22+）。
+
+**后台登录后 404**
+OAuth 回调地址应为 `https://你的域名/api/auth/callback`，注意不是 `/admin/`。
+
+**保存提示 403/500**
+检查 `GITHUB_TOKEN` 是否有目标仓库的 Contents 读写权限，以及 `GITHUB_REPO` 是否正确。
+
+**部署成功但前台没更新**
+Cloudflare Pages 重新构建需要 1–2 分钟；到后台「系统状态」查看部署运行结果。
+
+**预览域名无法登录**
+预览域名每次不同，OAuth 回调地址固定，建议只在正式域名使用后台。

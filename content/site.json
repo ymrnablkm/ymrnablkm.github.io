@@ -1,0 +1,27 @@
+{
+  "name": "Aether Yard",
+  "subtitle": "优质资源分享站",
+  "description": "Aether Yard - 优质资源分享站",
+  "logo": "/favicon.svg",
+  "icon": "/favicon.ico",
+  "domain": "https://ymrnablkm.github.io",
+  "announcement": "",
+  "intro": "收录实用软件、技术教程与在线工具，所有资源免费分享。",
+  "footerText": "所有资源仅供学习交流使用",
+  "copyright": "All rights reserved.",
+  "contact": "",
+  "icp": "",
+  "defaultCover": "",
+  "social": [],
+  "seo": {
+    "title": "Aether Yard",
+    "description": "Aether Yard - 优质资源分享站，收录实用软件、技术教程与在线工具。",
+    "keywords": [
+      "资源分享",
+      "软件下载",
+      "技术教程",
+      "在线工具"
+    ],
+    "ogImage": ""
+  }
+}

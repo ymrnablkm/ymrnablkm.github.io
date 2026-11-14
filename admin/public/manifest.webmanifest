@@ -1,0 +1,18 @@
+{
+  "name": "网站管理中心",
+  "short_name": "管理中心",
+  "description": "手机优先的网站内容管理后台",
+  "start_url": "/admin/app/",
+  "scope": "/admin/app/",
+  "display": "standalone",
+  "background_color": "#f2f4f8",
+  "theme_color": "#165DFF",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+# 后台页面安全响应头（Cloudflare Pages / Netlify 支持 _headers 文件）
+/admin/app/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/admin/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Cache-Control: no-store
+
+/api/*
+  X-Content-Type-Options: nosniff
+  Cache-Control: no-store

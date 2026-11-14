@@ -1,0 +1,13 @@
+# 复制本文件为 .dev.vars 后填写，.dev.vars 已被 .gitignore 忽略，不会提交。
+# 这个文件只用于本地运行 scripts/setup-cloudflare-secrets.ps1 读取密钥，
+# 不要把真实密钥写进本示例文件。
+
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+ADMIN_GITHUB_LOGIN=ymrnablkm
+SESSION_SECRET=
+GITHUB_TOKEN=
+
+# 可选：仓库地址与分支（不填时默认使用 ymrnablkm/ymrnablkm.github.io 与 main）
+# GITHUB_REPO=ymrnablkm/ymrnablkm.github.io
+# GITHUB_BRANCH=main
