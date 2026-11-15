@@ -34,5 +34,17 @@
     "visible": true,
     "seoTitle": "",
     "seoDescription": ""
+  },
+  {
+    "id": "网站",
+    "name": "网站",
+    "slug": "网站",
+    "icon": "🌐",
+    "description": "主要分享各类网站！",
+    "cover": "",
+    "order": 4,
+    "visible": true,
+    "seoTitle": "",
+    "seoDescription": ""
   }
 ]
