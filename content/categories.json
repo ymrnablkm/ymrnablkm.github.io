@@ -10,5 +10,17 @@
     "visible": true,
     "seoTitle": "",
     "seoDescription": ""
+  },
+  {
+    "id": "pc",
+    "name": "PC",
+    "slug": "pc",
+    "icon": "🖥",
+    "description": "主要更新PC资源！",
+    "cover": "",
+    "order": 2,
+    "visible": true,
+    "seoTitle": "",
+    "seoDescription": ""
   }
 ]
