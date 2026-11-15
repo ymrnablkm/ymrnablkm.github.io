@@ -46,5 +46,17 @@
     "visible": true,
     "seoTitle": "",
     "seoDescription": ""
+  },
+  {
+    "id": "老司机",
+    "name": "老司机",
+    "slug": "老司机",
+    "icon": "🍑",
+    "description": "这里有你想要的资源！",
+    "cover": "",
+    "order": 5,
+    "visible": true,
+    "seoTitle": "",
+    "seoDescription": ""
   }
 ]
