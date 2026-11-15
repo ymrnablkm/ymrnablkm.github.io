@@ -1,15 +1,5 @@
 [
   {
-    "id": "software",
-    "name": "软件工具",
-    "slug": "software",
-    "icon": "🧰",
-    "description": "实用软件与效率工具",
-    "cover": "",
-    "order": 2,
-    "visible": true
-  },
-  {
     "id": "安卓资源",
     "name": "安卓资源",
     "slug": "安卓资源",
