@@ -22,5 +22,17 @@
     "visible": true,
     "seoTitle": "",
     "seoDescription": ""
+  },
+  {
+    "id": "影视",
+    "name": "影视",
+    "slug": "影视",
+    "icon": "🎬",
+    "description": "主要更新跟影视相关内容！",
+    "cover": "",
+    "order": 3,
+    "visible": true,
+    "seoTitle": "",
+    "seoDescription": ""
   }
 ]
