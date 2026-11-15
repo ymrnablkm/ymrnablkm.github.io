@@ -4,10 +4,9 @@ import { categoryBySlug } from '../lib/site';
 
 interface Props {
   post: CollectionEntry<'posts'>;
-  compact?: boolean;
 }
 
-const { post, compact = false } = Astro.props;
+const { post } = Astro.props;
 const category = post.data.category ? categoryBySlug(post.data.category) : undefined;
 
 // 从正文中按出现顺序提取图片，最多 3 张；正文没有图片时回退到封面图
@@ -40,7 +39,7 @@ const visibleResources = post.data.resources.filter((item) => item.visible).leng
 
 <article class="card-hover bg-surface-card dark:bg-[#1E1E1E] rounded-card border border-surface-border dark:border-[#333333] overflow-hidden h-full">
   <a href={`/posts/${post.id}`} class="block group h-full flex flex-col">
-    <div class={`p-5 flex flex-col flex-1 sm:p-6 ${compact ? 'sm:p-5' : ''}`}>
+    <div class="p-5 flex flex-col flex-1 sm:p-6">
       <h2 class="text-lg font-semibold text-text-primary dark:text-[#E5E6EB] mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
         {post.data.title}
       </h2>
