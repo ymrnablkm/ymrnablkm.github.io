@@ -1,15 +1,5 @@
 [
   {
-    "id": "cloud",
-    "name": "云盘资源",
-    "slug": "cloud",
-    "icon": "☁️",
-    "description": "网盘分享与下载技巧",
-    "cover": "",
-    "order": 1,
-    "visible": true
-  },
-  {
     "id": "software",
     "name": "软件工具",
     "slug": "software",
