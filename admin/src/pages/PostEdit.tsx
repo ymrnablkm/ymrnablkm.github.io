@@ -85,9 +85,11 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [tagInput, setTagInput] = useState('');
+  const [moreOpen, setMoreOpen] = useState(false);
   const [seoOpen, setSeoOpen] = useState(false);
   const [resourceOpen, setResourceOpen] = useState(false);
   const [autoSavedAt, setAutoSavedAt] = useState('');
+  const [lastSyncedAt, setLastSyncedAt] = useState('');
   const [backup, setBackup] = useState<Post | null>(null);
   const initialSnapshot = useRef(JSON.stringify(original || emptyPost()));
   const dirty = JSON.stringify(post) !== initialSnapshot.current;
@@ -148,6 +150,20 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
       toast('正文内容太短，无法发布', 'error');
       return;
     }
+    if (publish) {
+      const warnings: string[] = [];
+      if (!post.category) warnings.push('还没有选择分类');
+      const downloadCount = post.resources.filter((item) => item.visible && item.url.trim()).length;
+      if (downloadCount === 0) warnings.push('资源下载信息中还没有可用的下载地址');
+      if (warnings.length > 0) {
+        const ok = await confirm({
+          title: '发布前检查',
+          message: `以下内容还没有完善：\n\n- ${warnings.join('\n- ')}\n\n只做提醒，不会修改你填写的内容。仍然要现在发布吗？`,
+          confirmText: '仍然发布',
+        });
+        if (!ok) return;
+      }
+    }
     const nextPost = { ...post, draft: publish === undefined ? post.draft : !publish };
     setSaving(true);
     setError('');
@@ -158,6 +174,7 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
           body: { post: nextPost, slug: nextPost.slug || nextPost.title },
         });
         localStorage.removeItem(backupKey);
+        setLastSyncedAt(new Date().toLocaleTimeString('zh-CN', { hour12: false }));
         toast('文章已创建并同步到 GitHub', 'success');
         await refresh();
         navigate(`/posts/${result.slug}`);
@@ -167,6 +184,7 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
           body: { post: nextPost, sha: post.sha, newSlug: nextPost.slug || slug },
         });
         localStorage.removeItem(backupKey);
+        setLastSyncedAt(new Date().toLocaleTimeString('zh-CN', { hour12: false }));
         toast('已保存并同步到 GitHub', 'success');
         await refresh();
         if (result.slug !== slug) navigate(`/posts/${result.slug}`);
@@ -253,8 +271,18 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
         <div className="card-head">
           <h2>{isNew ? '新建文章' : '编辑文章'}</h2>
           <span className={`badge ${post.draft ? 'gray' : 'green'}`}>{post.draft ? '草稿' : '已发布'}</span>
-          {dirty && <span className="badge orange">未保存</span>}
-          {autoSavedAt && <span className="muted">本机自动保存：{autoSavedAt}</span>}
+          {saving ? (
+            <span className="badge orange">正在保存到 GitHub…</span>
+          ) : dirty ? (
+            <>
+              <span className="badge orange">有未保存修改</span>
+              {autoSavedAt && (
+                <span className="muted">本机草稿已保存（仅本机，未同步 GitHub）：{autoSavedAt}</span>
+              )}
+            </>
+          ) : lastSyncedAt ? (
+            <span className="badge green">已同步到 GitHub：{lastSyncedAt}</span>
+          ) : null}
         </div>
         <div className="card-body">
           <div className="stack">
@@ -266,22 +294,6 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
                 placeholder="例如：2026 年最值得收藏的效率工具合集"
                 onChange={(event) => update('title', event.target.value)}
               />
-            </div>
-
-            <div className="grid-2">
-              <div className="field">
-                <label>副标题</label>
-                <input className="input" value={post.subtitle} onChange={(event) => update('subtitle', event.target.value)} />
-              </div>
-              <div className="field">
-                <label>文章 URL（留空自动生成）</label>
-                <input
-                  className="input"
-                  value={post.slug}
-                  placeholder="例如：best-tools-2026"
-                  onChange={(event) => update('slug', event.target.value)}
-                />
-              </div>
             </div>
 
             <div className="field">
@@ -322,97 +334,142 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
               )}
             </div>
 
-            <div className="grid-2">
-              <div className="field">
-                <label>分类</label>
-                <select className="select" value={post.category} onChange={(event) => update('category', event.target.value)}>
-                  <option value="">未分类</option>
-                  {data.categories.map((item) => (
-                    <option key={item.id} value={item.slug}>
-                      {item.icon} {item.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="field">
-                <label>发布时间</label>
+            <div className="field">
+              <label>分类</label>
+              <select className="select" value={post.category} onChange={(event) => update('category', event.target.value)}>
+                <option value="">未分类</option>
+                {data.categories.map((item) => (
+                  <option key={item.id} value={item.slug}>
+                    {item.icon} {item.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field">
+              <label>标签（输入后回车添加）</label>
+              <div className="row" style={{ gap: 6 }}>
                 <input
                   className="input"
-                  type="datetime-local"
-                  value={post.date.slice(0, 16)}
-                  onChange={(event) => update('date', event.target.value)}
+                  style={{ flex: 1, minWidth: 120 }}
+                  value={tagInput}
+                  placeholder="例如：效率工具"
+                  onChange={(event) => setTagInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ',') {
+                      event.preventDefault();
+                      addTag(tagInput);
+                    }
+                  }}
                 />
+                <button className="btn btn-sm" type="button" onClick={() => addTag(tagInput)}>
+                  添加
+                </button>
               </div>
-            </div>
-
-            <div className="grid-2">
-              <div className="field">
-                <label>作者</label>
-                <input className="input" value={post.author} onChange={(event) => update('author', event.target.value)} />
-              </div>
-              <div className="field">
-                <label>标签（输入后回车添加）</label>
-                <div className="row" style={{ gap: 6 }}>
-                  <input
-                    className="input"
-                    style={{ flex: 1, minWidth: 120 }}
-                    value={tagInput}
-                    placeholder="例如：效率工具"
-                    onChange={(event) => setTagInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ',') {
-                        event.preventDefault();
-                        addTag(tagInput);
-                      }
-                    }}
-                  />
-                  <button className="btn btn-sm" type="button" onClick={() => addTag(tagInput)}>
-                    添加
-                  </button>
-                </div>
-                <div className="row" style={{ gap: 6, marginTop: 6 }}>
-                  {post.tags.map((tag) => (
-                    <span className="tag-chip" key={tag}>
-                      {tag}
-                      <button type="button" onClick={() => update('tags', post.tags.filter((item) => item !== tag))}>
-                        ✕
-                      </button>
-                    </span>
+              <div className="row" style={{ gap: 6, marginTop: 6 }}>
+                {post.tags.map((tag) => (
+                  <span className="tag-chip" key={tag}>
+                    {tag}
+                    <button type="button" onClick={() => update('tags', post.tags.filter((item) => item !== tag))}>
+                      ✕
+                    </button>
+                  </span>
+                ))}
+                {data.tags
+                  .filter((item) => !post.tags.includes(item.slug) && !post.tags.includes(item.name))
+                  .slice(0, 8)
+                  .map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="tag-chip"
+                      style={{ cursor: 'pointer', border: 'none' }}
+                      onClick={() => addTag(item.slug)}
+                    >
+                      ＋ {item.name}
+                    </button>
                   ))}
-                  {data.tags
-                    .filter((item) => !post.tags.includes(item.slug) && !post.tags.includes(item.name))
-                    .slice(0, 8)
-                    .map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        className="tag-chip"
-                        style={{ cursor: 'pointer', border: 'none' }}
-                        onClick={() => addTag(item.slug)}
-                      >
-                        ＋ {item.name}
-                      </button>
-                    ))}
-                </div>
               </div>
             </div>
 
-            <div className="row" style={{ gap: 18 }}>
-              <label className="checkbox">
-                <input type="checkbox" checked={post.pinned} onChange={(event) => update('pinned', event.target.checked)} />
-                置顶文章
-              </label>
-              <label className="checkbox">
-                <input type="checkbox" checked={post.featured} onChange={(event) => update('featured', event.target.checked)} />
-                推荐到首页
-              </label>
-              <label className="checkbox">
-                <input type="checkbox" checked={post.draft} onChange={(event) => update('draft', event.target.checked)} />
-                保存为草稿（不在前台显示）
-              </label>
+            <label className="checkbox">
+              <input type="checkbox" checked={post.draft} onChange={(event) => update('draft', event.target.checked)} />
+              保存为草稿（不在前台显示）
+            </label>
+
+            <div style={{ border: '1px dashed var(--border)', borderRadius: 10, padding: '10px 12px' }}>
+              <button
+                type="button"
+                className="row-between"
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  font: 'inherit',
+                  color: 'inherit',
+                  textAlign: 'left',
+                }}
+                onClick={() => setMoreOpen((value) => !value)}
+              >
+                <span style={{ fontWeight: 500 }}>更多可选设置（副标题、文章 URL、作者、时间、置顶、推荐）</span>
+                <span className="link-btn">{moreOpen ? '收起' : '展开'}</span>
+              </button>
+              {moreOpen && (
+                <div className="stack" style={{ marginTop: 12 }}>
+                  <div className="grid-2">
+                    <div className="field">
+                      <label>副标题</label>
+                      <input className="input" value={post.subtitle} onChange={(event) => update('subtitle', event.target.value)} />
+                    </div>
+                    <div className="field">
+                      <label>文章 URL（留空自动生成）</label>
+                      <input
+                        className="input"
+                        value={post.slug}
+                        placeholder="例如：best-tools-2026"
+                        onChange={(event) => update('slug', event.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid-2">
+                    <div className="field">
+                      <label>作者</label>
+                      <input className="input" value={post.author} onChange={(event) => update('author', event.target.value)} />
+                    </div>
+                    <div className="field">
+                      <label>发布时间</label>
+                      <input
+                        className="input"
+                        type="datetime-local"
+                        value={post.date.slice(0, 16)}
+                        onChange={(event) => update('date', event.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="row" style={{ gap: 18 }}>
+                    <label className="checkbox">
+                      <input type="checkbox" checked={post.pinned} onChange={(event) => update('pinned', event.target.checked)} />
+                      置顶文章
+                    </label>
+                    <label className="checkbox">
+                      <input type="checkbox" checked={post.featured} onChange={(event) => update('featured', event.target.checked)} />
+                      推荐到首页
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
+      </div>
+
+      <div>
+        <h2 style={{ fontSize: 15, margin: '4px 0 10px' }}>正文内容</h2>
+        <RichEditor value={post.body} onChange={(value) => update('body', value)} />
       </div>
 
       <div className="card">
@@ -599,11 +656,6 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
             ))}
           </div>
         )}
-      </div>
-
-      <div>
-        <h2 style={{ fontSize: 15, margin: '4px 0 10px' }}>正文内容</h2>
-        <RichEditor value={post.body} onChange={(value) => update('body', value)} />
       </div>
 
       <div className="card">

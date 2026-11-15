@@ -505,7 +505,7 @@ export function RichEditor({
 
       <div className="row-between" style={{ padding: '8px 14px', borderTop: '1px solid var(--border)' }}>
         <span className="muted">{editor.getText().replace(/\s/g, '').length} 字</span>
-        <span className="muted">内容以 Markdown 保存，兼容原有文章格式；拖动左侧 ⠿ 可调整段落顺序</span>
+        <span className="muted">内容以 Markdown 保存，兼容原有文章格式<span className="drag-hint">；拖动左侧 ⠿ 可调整段落顺序</span></span>
       </div>
 
       <MediaPicker

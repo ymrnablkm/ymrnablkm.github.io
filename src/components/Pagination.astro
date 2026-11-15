@@ -1,0 +1,53 @@
+---
+interface Props {
+  currentPage: number;
+  lastPage: number;
+  basePath: string;
+}
+
+const { currentPage, lastPage, basePath } = Astro.props;
+const href = (page: number) => (page === 1 ? basePath : `${basePath}/${page}`);
+const pages = Array.from({ length: lastPage }, (_, index) => index + 1);
+---
+
+{lastPage > 1 && (
+  <nav class="mt-10 flex items-center justify-center gap-2 flex-wrap" aria-label="分页导航">
+    <a
+      href={href(Math.max(1, currentPage - 1))}
+      class={`px-3 py-2 text-sm rounded-lg border border-surface-border dark:border-[#333333] transition-colors ${
+        currentPage === 1
+          ? 'pointer-events-none opacity-40 text-text-muted dark:text-[#666666]'
+          : 'text-text-secondary dark:text-[#A6A6A6] hover:border-primary hover:text-primary'
+      }`}
+      aria-disabled={currentPage === 1}
+    >
+      上一页
+    </a>
+
+    {pages.map((page) => (
+      <a
+        href={href(page)}
+        class={`min-w-9 text-center px-3 py-2 text-sm rounded-lg border transition-colors ${
+          page === currentPage
+            ? 'border-primary bg-primary text-white'
+            : 'border-surface-border dark:border-[#333333] text-text-secondary dark:text-[#A6A6A6] hover:border-primary hover:text-primary'
+        }`}
+        aria-current={page === currentPage ? 'page' : undefined}
+      >
+        {page}
+      </a>
+    ))}
+
+    <a
+      href={href(Math.min(lastPage, currentPage + 1))}
+      class={`px-3 py-2 text-sm rounded-lg border border-surface-border dark:border-[#333333] transition-colors ${
+        currentPage === lastPage
+          ? 'pointer-events-none opacity-40 text-text-muted dark:text-[#666666]'
+          : 'text-text-secondary dark:text-[#A6A6A6] hover:border-primary hover:text-primary'
+      }`}
+      aria-disabled={currentPage === lastPage}
+    >
+      下一页
+    </a>
+  </nav>
+)}

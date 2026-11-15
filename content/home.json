@@ -16,17 +16,17 @@
   "categories": [],
   "modules": [
     {
-      "id": "latest",
-      "type": "latest",
-      "title": "最新发布",
-      "visible": true,
-      "limit": 12
-    },
-    {
       "id": "categories",
       "type": "categories",
       "title": "内容分类",
       "visible": true
+    },
+    {
+      "id": "latest",
+      "type": "latest",
+      "title": "最新发布",
+      "visible": true,
+      "limit": 6
     }
   ]
 }

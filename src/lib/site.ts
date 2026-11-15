@@ -9,6 +9,7 @@ export interface SiteSettings {
   subtitle: string;
   description: string;
   logo: string;
+  logoDark?: string;
   icon?: string;
   domain: string;
   announcement?: string;
@@ -84,6 +85,7 @@ export const site: SiteSettings = {
   subtitle: rawSite.subtitle || '',
   description: rawSite.description || '',
   logo: rawSite.logo || '/favicon.svg',
+  logoDark: rawSite.logoDark || rawSite.logo || '/favicon.svg',
   icon: rawSite.icon || rawSite.logo || '/favicon.ico',
   domain: rawSite.domain || '',
   announcement: rawSite.announcement || '',

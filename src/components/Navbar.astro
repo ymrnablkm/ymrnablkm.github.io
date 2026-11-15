@@ -17,7 +17,22 @@ const items = [...nav, ...extraLinks];
   <div class="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
       <a href="/" class="flex items-center gap-2 shrink-0">
-        <img src={site.logo} alt={site.name} class="w-6 h-6" loading="eager" />
+        <img
+          src={site.logo}
+          alt={site.name}
+          class="w-6 h-6 object-contain dark:hidden"
+          width="24"
+          height="24"
+          loading="eager"
+        />
+        <img
+          src={site.logoDark}
+          alt={site.name}
+          class="w-6 h-6 object-contain hidden dark:block"
+          width="24"
+          height="24"
+          loading="lazy"
+        />
         <span class="text-xl font-bold text-primary">{site.name}</span>
       </a>
 
@@ -90,7 +105,7 @@ const items = [...nav, ...extraLinks];
     </div>
 
     <!-- 手机端菜单 -->
-    <div id="navPanel" class="hidden md:hidden pb-4">
+    <div id="navPanel" class="hidden md:hidden pb-4 max-h-[calc(100vh-4rem)] overflow-y-auto bg-white dark:bg-[#121212] -mx-4 px-4">
       <div class="flex flex-col gap-1">
         {items.map((item) => (
           <div>
@@ -107,7 +122,7 @@ const items = [...nav, ...extraLinks];
                 href={child.href}
                 target={child.external ? '_blank' : undefined}
                 rel={child.external ? 'noopener' : undefined}
-                class="block px-6 py-2 rounded-lg text-sm text-text-muted dark:text-[#666666] hover:bg-surface-card dark:hover:bg-[#1E1E1E]"
+                class="block px-6 py-2 rounded-lg text-sm text-text-muted dark:text-[#A6A6A6] hover:bg-surface-card dark:hover:bg-[#1E1E1E]"
               >
                 {child.label}
               </a>

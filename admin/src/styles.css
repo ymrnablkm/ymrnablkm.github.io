@@ -1411,10 +1411,17 @@ img {
     padding: 14px;
   }
   .editor-toolbar {
-    top: 56px;
+    position: static;
     overflow-x: auto;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .drag-handle {
+    display: none;
+  }
+  .drag-hint {
+    display: none;
   }
   .tool-btn {
     min-width: 34px;
