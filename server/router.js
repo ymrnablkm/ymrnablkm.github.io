@@ -469,7 +469,11 @@ export async function handleApi(request, env, store) {
 
       if (method === 'GET') {
         const count = await viewsStore.getViewCount(slug);
-        return json({ ok: true, slug, views: count }, 200, corsHeaders);
+        // CDN 缓存 5 秒：重复 GET 命中 Cloudflare 边缘缓存，延迟 <50ms
+        return json({ ok: true, slug, views: count }, 200, {
+          ...corsHeaders,
+          'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30',
+        });
       }
 
       if (method === 'POST') {

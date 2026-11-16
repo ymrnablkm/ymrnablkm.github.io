@@ -235,7 +235,7 @@ const tocItems = headings.map((h) => {
     window.addEventListener('scroll', updateActiveToc, { passive: true });
     updateActiveToc();
 
-    // 浏览量统计：智能选择 API 域名
+    // 浏览量统计：localStorage 即时显示 + 后台异步更新
     (function () {
       var slugEl = document.querySelector('[data-post-slug]');
       var slug = slugEl ? slugEl.getAttribute('data-post-slug') : '';
@@ -243,28 +243,38 @@ const tocItems = headings.map((h) => {
       var countEl = document.getElementById('post-view-count');
       if (!slug || !wrap) return;
 
-      // API 基础 URL：GitHub Pages 没有后端，需跨域调用 Cloudflare Pages
       var CF_DOMAIN = 'https://ymrnablkm-github-io.pages.dev';
       var isGitHubPages = location.hostname.indexOf('github.io') !== -1;
       var apiBase = isGitHubPages ? CF_DOMAIN : '';
-      var withCred = isGitHubPages; // 跨域时带 credentials 才能读写 Cookie
+      var withCred = isGitHubPages;
 
       function apiUrl(path) { return apiBase + path; }
       var credOpts = withCred ? { credentials: 'include' } : {};
       var postOpts = Object.assign({ method: 'POST' }, credOpts);
+      var cacheKey = 'ay_views_' + slug;
 
-      // 异步获取当前浏览量并显示
+      // 1) 先从 localStorage 读取，立即显示（零延迟）
+      try {
+        var cached = parseInt(localStorage.getItem(cacheKey) || '0', 10);
+        if (cached > 0) {
+          countEl.textContent = String(cached);
+          wrap.classList.remove('hidden');
+        }
+      } catch (e) {}
+
+      // 2) 异步 GET 拉取最新值，覆盖显示 + 回写缓存
       fetch(apiUrl('/api/views/' + encodeURIComponent(slug)), credOpts)
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (data && typeof data.views === 'number') {
             countEl.textContent = String(data.views);
             wrap.classList.remove('hidden');
+            try { localStorage.setItem(cacheKey, String(data.views)); } catch (e) {}
           }
         })
-        .catch(function () { /* 静默失败，不影响页面 */ });
+        .catch(function () { /* 静默失败 */ });
 
-      // 异步记录浏览（服务端负责去重）
+      // 3) 异步 POST 记录浏览
       var sessionKey = 'ay_viewed_' + slug;
       if (!sessionStorage.getItem(sessionKey)) {
         sessionStorage.setItem(sessionKey, '1');
@@ -274,6 +284,7 @@ const tocItems = headings.map((h) => {
             if (data && typeof data.views === 'number') {
               countEl.textContent = String(data.views);
               wrap.classList.remove('hidden');
+              try { localStorage.setItem(cacheKey, String(data.views)); } catch (e) {}
             }
           })
           .catch(function () { /* 静默失败 */ });

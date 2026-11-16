@@ -167,7 +167,7 @@ const absoluteImage = image?.startsWith('http') ? image : `${base.replace(/\/$/,
       });
     </script>
 
-    <!-- 文章卡片浏览量批量加载 -->
+    <!-- 文章卡片浏览量批量加载：localStorage 即时显示 + 后台异步批量拉取 -->
     <script is:inline>
     (function () {
       var cards = document.querySelectorAll('[data-card-slug]');
@@ -178,14 +178,24 @@ const absoluteImage = image?.startsWith('http') ? image : `${base.replace(/\/$/,
       var apiBase = isGitHubPages ? CF_DOMAIN : '';
       var credOpts = isGitHubPages ? { credentials: 'include' } : {};
 
+      // 0) 先从 localStorage 批量读取所有卡片，立即显示（零延迟）
       var slugs = [];
       cards.forEach(function (el) {
         var slug = el.getAttribute('data-card-slug');
         if (slug && slugs.indexOf(slug) === -1) slugs.push(slug);
+        try {
+          var cached = parseInt(localStorage.getItem('ay_views_' + slug) || '0', 10);
+          if (cached > 0) {
+            var num = el.querySelector('.card-view-num');
+            if (num) num.textContent = formatViews(cached);
+            el.classList.remove('hidden');
+          }
+        } catch (e) {}
       });
 
       if (!slugs.length) return;
 
+      // 1) 批量 GET 拉取最新值（已显示 localStorage 的会被覆盖为真实值）
       Promise.all(slugs.map(function (slug) {
         return fetch(apiBase + '/api/views/' + encodeURIComponent(slug), credOpts)
           .then(function (r) { return r.json(); })
@@ -200,6 +210,7 @@ const absoluteImage = image?.startsWith('http') ? image : `${base.replace(/\/$/,
             if (num) num.textContent = formatViews(r.views);
             el.classList.remove('hidden');
           });
+          try { localStorage.setItem('ay_views_' + r.slug, String(r.views)); } catch (e) {}
         });
       });
 
