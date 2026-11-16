@@ -22,8 +22,6 @@ const currentIndex = allPosts.findIndex((p) => p.id === post.id);
 const prevPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
 const nextPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null;
 
-const wordCount = post.body?.split(/\s+/).length || 0;
-const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 const category = post.data.category ? categoryBySlug(post.data.category) : undefined;
 const resources = (post.data.resources || []).filter((item) => item.visible && item.url);
 
@@ -63,6 +61,8 @@ const tocItems = headings.map((h) => {
   <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
     <article class="lg:col-span-3">
       <header class="mb-8">
+        <!-- 注入文章 slug 给前端脚本 -->
+        <span data-post-slug={post.id} style="display:none" aria-hidden="true"></span>
         {post.data.cover && (
           <div class="mb-6 rounded-card overflow-hidden">
             <img src={post.data.cover} alt={post.data.title} class="w-full h-auto" loading="eager" />
@@ -77,8 +77,9 @@ const tocItems = headings.map((h) => {
         )}
         <div class="flex flex-wrap items-center gap-4 text-sm text-text-muted dark:text-[#666666] mb-4">
           <span>📅 {new Date(post.data.date).toLocaleDateString('zh-CN')}</span>
-          <span>⏱️ 阅读 {readingTime} 分钟</span>
-          <span>📝 {wordCount} 字</span>
+          <span id="post-view-count-wrap" class="hidden">
+            👁️ <span id="post-view-count">0</span> 次浏览
+          </span>
           {post.data.author && <span>✍️ {post.data.author}</span>}
         </div>
         {post.data.description && (
@@ -100,6 +101,12 @@ const tocItems = headings.map((h) => {
           </div>
         )}
       </header>
+
+      <div class="bg-surface-card dark:bg-[#1E1E1E] rounded-card border border-surface-border dark:border-[#333333] p-6 sm:p-8 mb-8">
+        <div class="markdown-body max-w-none">
+          <Content />
+        </div>
+      </div>
 
       <!-- 资源下载区 -->
       {resources.length > 0 && (
@@ -154,12 +161,6 @@ const tocItems = headings.map((h) => {
           </div>
         </section>
       )}
-
-      <div class="bg-surface-card dark:bg-[#1E1E1E] rounded-card border border-surface-border dark:border-[#333333] p-6 sm:p-8">
-        <div class="markdown-body max-w-none">
-          <Content />
-        </div>
-      </div>
 
       {(prevPost || nextPost) && (
         <nav class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -233,6 +234,42 @@ const tocItems = headings.map((h) => {
 
     window.addEventListener('scroll', updateActiveToc, { passive: true });
     updateActiveToc();
+
+    // 浏览量统计：slug 通过 data-post-slug 属性注入
+    (function () {
+      var slugEl = document.querySelector('[data-post-slug]');
+      var slug = slugEl ? slugEl.getAttribute('data-post-slug') : '';
+      var wrap = document.getElementById('post-view-count-wrap');
+      var countEl = document.getElementById('post-view-count');
+      if (!slug || !wrap) return;
+
+      // 异步获取当前浏览量并显示
+      fetch('/api/views/' + encodeURIComponent(slug))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data && typeof data.views === 'number') {
+            countEl.textContent = String(data.views);
+            wrap.classList.remove('hidden');
+          }
+        })
+        .catch(function () { /* 静默失败，不影响页面 */ });
+
+      // 异步记录浏览（服务端负责去重）
+      // 前端 sessionStorage 标记，避免同一标签页刷新时重复发请求
+      var sessionKey = 'ay_viewed_' + slug;
+      if (!sessionStorage.getItem(sessionKey)) {
+        sessionStorage.setItem(sessionKey, '1');
+        fetch('/api/views/' + encodeURIComponent(slug), { method: 'POST' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data && typeof data.views === 'number') {
+              countEl.textContent = String(data.views);
+              wrap.classList.remove('hidden');
+            }
+          })
+          .catch(function () { /* 静默失败 */ });
+      }
+    })();
   </script>
 </Layout>
 

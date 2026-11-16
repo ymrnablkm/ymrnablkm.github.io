@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { handleApi } from '../server/router.js';
 import { createLocalStore } from '../server/lib/local-store.js';
+import { createViewsStore } from '../server/lib/views-store.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
@@ -16,6 +17,7 @@ const env = {
   SESSION_SECRET: process.env.SESSION_SECRET || 'local-dev-secret-change-me',
   GITHUB_REPO: 'ymrnablkm/ymrnablkm.github.io',
   GITHUB_BRANCH: 'main',
+  VIEWS_STORE: createViewsStore({}), // 共享实例，进程内持久化浏览量
 };
 
 const store = createLocalStore(env);

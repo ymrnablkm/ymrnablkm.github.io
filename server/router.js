@@ -1,6 +1,7 @@
 // 管理后台 API 路由：所有写入都在服务端完成身份校验、CSRF 校验和 SHA 并发校验
 import { json, fail, ok, readJson, getCookie, serializeCookie, requestOrigin, isSecureRequest } from './lib/http.js';
 import { createSession, readSession, sessionCookieName, sessionMaxAge, randomToken } from './lib/session.js';
+import { createViewsStore } from './lib/views-store.js';
 import {
   POSTS_DIR,
   PAGES_DIR,
@@ -437,6 +438,41 @@ export async function handleApi(request, env, store) {
           }),
         }
       );
+    }
+
+    // ---------- 浏览量统计（公开接口，无需登录） ----------
+    if (parts[0] === 'views') {
+      const slug = parts[1] ? decodeURIComponent(parts[1]) : '';
+      if (!slug) return fail('缺少文章标识', 400);
+
+      const viewsStore = createViewsStore(env);
+
+      if (method === 'GET') {
+        const count = await viewsStore.getViewCount(slug);
+        return json({ ok: true, slug, views: count });
+      }
+
+      if (method === 'POST') {
+        // 获取或生成访客标识（Cookie 持久化 1 年）
+        const cookieName = 'ay_visitor_id';
+        let visitorId = getCookie(request, cookieName);
+        const secure = isSecureRequest(request);
+        const extraHeaders = {};
+
+        if (!visitorId || visitorId.length < 8) {
+          visitorId = randomToken(16);
+          extraHeaders['Set-Cookie'] = serializeCookie(cookieName, visitorId, {
+            maxAge: 365 * 24 * 60 * 60,
+            secure,
+            sameSite: 'Lax',
+          });
+        }
+
+        const count = await viewsStore.recordView(slug, visitorId);
+        return json({ ok: true, slug, views: count }, 200, extraHeaders);
+      }
+
+      return fail('方法不允许', 405);
     }
 
     // ---------- 以下接口必须登录 ----------
