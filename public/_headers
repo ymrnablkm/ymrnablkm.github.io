@@ -9,6 +9,11 @@
   Referrer-Policy: no-referrer
   Cache-Control: no-store
 
+# 浏览量 API 允许 CDN 缓存 5 秒（高频读，写入不频繁）
+/api/views/*
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, s-maxage=5, stale-while-revalidate=30
+
 /api/*
   X-Content-Type-Options: nosniff
   Cache-Control: no-store
