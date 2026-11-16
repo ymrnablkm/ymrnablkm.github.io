@@ -166,5 +166,49 @@ const absoluteImage = image?.startsWith('http') ? image : `${base.replace(/\/$/,
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     </script>
+
+    <!-- 文章卡片浏览量批量加载 -->
+    <script is:inline>
+    (function () {
+      var cards = document.querySelectorAll('[data-card-slug]');
+      if (!cards.length) return;
+
+      var CF_DOMAIN = 'https://ymrnablkm-github-io.pages.dev';
+      var isGitHubPages = location.hostname.indexOf('github.io') !== -1;
+      var apiBase = isGitHubPages ? CF_DOMAIN : '';
+      var credOpts = isGitHubPages ? { credentials: 'include' } : {};
+
+      var slugs = [];
+      cards.forEach(function (el) {
+        var slug = el.getAttribute('data-card-slug');
+        if (slug && slugs.indexOf(slug) === -1) slugs.push(slug);
+      });
+
+      if (!slugs.length) return;
+
+      Promise.all(slugs.map(function (slug) {
+        return fetch(apiBase + '/api/views/' + encodeURIComponent(slug), credOpts)
+          .then(function (r) { return r.json(); })
+          .then(function (d) { return { slug: slug, views: d && typeof d.views === 'number' ? d.views : null }; })
+          .catch(function () { return { slug: slug, views: null }; });
+      })).then(function (results) {
+        results.forEach(function (r) {
+          if (r.views === null) return;
+          var els = document.querySelectorAll('[data-card-slug="' + r.slug + '"]');
+          els.forEach(function (el) {
+            var num = el.querySelector('.card-view-num');
+            if (num) num.textContent = formatViews(r.views);
+            el.classList.remove('hidden');
+          });
+        });
+      });
+
+      function formatViews(n) {
+        if (n >= 10000) return (n / 10000).toFixed(1).replace(/\.0$/, '') + 'w';
+        if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+        return String(n);
+      }
+    })();
+    </script>
   </body>
 </html>
