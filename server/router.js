@@ -440,31 +440,51 @@ export async function handleApi(request, env, store) {
       );
     }
 
-    // ---------- 浏览量统计（公开接口，无需登录） ----------
+    // ---------- 浏览量统计（公开接口，无需登录，支持跨域） ----------
     if (parts[0] === 'views') {
       const slug = parts[1] ? decodeURIComponent(parts[1]) : '';
       if (!slug) return fail('缺少文章标识', 400);
+
+      const allowedOrigins = [
+        'https://ymrnablkm.github.io',
+        'https://ymrnablkm-github-io.pages.dev',
+      ];
+      const origin = request.headers.get('origin') || '';
+      const corsHeaders = origin && allowedOrigins.includes(origin)
+        ? {
+            'Access-Control-Allow-Origin': origin,
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Max-Age': '86400',
+          }
+        : {};
+
+      // 预检请求
+      if (method === 'OPTIONS') {
+        return json({ ok: true }, 204, corsHeaders);
+      }
 
       const viewsStore = createViewsStore(env);
 
       if (method === 'GET') {
         const count = await viewsStore.getViewCount(slug);
-        return json({ ok: true, slug, views: count });
+        return json({ ok: true, slug, views: count }, 200, corsHeaders);
       }
 
       if (method === 'POST') {
         // 获取或生成访客标识（Cookie 持久化 1 年）
+        // sameSite=None + Secure 允许跨域（GitHub Pages → Cloudflare Pages 调用）
         const cookieName = 'ay_visitor_id';
         let visitorId = getCookie(request, cookieName);
-        const secure = isSecureRequest(request);
-        const extraHeaders = {};
+        const extraHeaders = { ...corsHeaders };
 
         if (!visitorId || visitorId.length < 8) {
           visitorId = randomToken(16);
           extraHeaders['Set-Cookie'] = serializeCookie(cookieName, visitorId, {
             maxAge: 365 * 24 * 60 * 60,
-            secure,
-            sameSite: 'Lax',
+            secure: true,
+            sameSite: 'None',
           });
         }
 

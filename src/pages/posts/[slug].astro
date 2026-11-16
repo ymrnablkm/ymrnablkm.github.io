@@ -235,7 +235,7 @@ const tocItems = headings.map((h) => {
     window.addEventListener('scroll', updateActiveToc, { passive: true });
     updateActiveToc();
 
-    // 浏览量统计：slug 通过 data-post-slug 属性注入
+    // 浏览量统计：智能选择 API 域名
     (function () {
       var slugEl = document.querySelector('[data-post-slug]');
       var slug = slugEl ? slugEl.getAttribute('data-post-slug') : '';
@@ -243,8 +243,18 @@ const tocItems = headings.map((h) => {
       var countEl = document.getElementById('post-view-count');
       if (!slug || !wrap) return;
 
+      // API 基础 URL：GitHub Pages 没有后端，需跨域调用 Cloudflare Pages
+      var CF_DOMAIN = 'https://ymrnablkm-github-io.pages.dev';
+      var isGitHubPages = location.hostname.indexOf('github.io') !== -1;
+      var apiBase = isGitHubPages ? CF_DOMAIN : '';
+      var withCred = isGitHubPages; // 跨域时带 credentials 才能读写 Cookie
+
+      function apiUrl(path) { return apiBase + path; }
+      var credOpts = withCred ? { credentials: 'include' } : {};
+      var postOpts = Object.assign({ method: 'POST' }, credOpts);
+
       // 异步获取当前浏览量并显示
-      fetch('/api/views/' + encodeURIComponent(slug))
+      fetch(apiUrl('/api/views/' + encodeURIComponent(slug)), credOpts)
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (data && typeof data.views === 'number') {
@@ -255,11 +265,10 @@ const tocItems = headings.map((h) => {
         .catch(function () { /* 静默失败，不影响页面 */ });
 
       // 异步记录浏览（服务端负责去重）
-      // 前端 sessionStorage 标记，避免同一标签页刷新时重复发请求
       var sessionKey = 'ay_viewed_' + slug;
       if (!sessionStorage.getItem(sessionKey)) {
         sessionStorage.setItem(sessionKey, '1');
-        fetch('/api/views/' + encodeURIComponent(slug), { method: 'POST' })
+        fetch(apiUrl('/api/views/' + encodeURIComponent(slug)), postOpts)
           .then(function (r) { return r.json(); })
           .then(function (data) {
             if (data && typeof data.views === 'number') {
