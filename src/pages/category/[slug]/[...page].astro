@@ -8,7 +8,10 @@ import { categories } from '../../../lib/site';
 export async function getStaticPaths({ paginate }) {
   const allPosts = (await getCollection('posts'))
     .filter((post) => !post.data.draft)
-    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+    .sort((a, b) => {
+      if (Boolean(a.data.pinned) !== Boolean(b.data.pinned)) return a.data.pinned ? -1 : 1;
+      return b.data.date.getTime() - a.data.date.getTime();
+    });
 
   return categories.flatMap((category) => {
     const posts = allPosts.filter((post) => post.data.category === category.slug);

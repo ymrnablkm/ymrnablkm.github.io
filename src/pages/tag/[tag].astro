@@ -19,7 +19,10 @@ export async function getStaticPaths() {
 const { slug, name } = Astro.props;
 const posts = (await getCollection('posts'))
   .filter((post) => !post.data.draft && post.data.tags.includes(slug))
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  .sort((a, b) => {
+    if (Boolean(a.data.pinned) !== Boolean(b.data.pinned)) return a.data.pinned ? -1 : 1;
+    return b.data.date.getTime() - a.data.date.getTime();
+  });
 ---
 
 <Layout title={`标签：${name}`} description={`带有「${name}」标签的文章`}>
