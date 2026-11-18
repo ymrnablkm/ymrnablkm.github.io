@@ -511,11 +511,15 @@ export function RichEditor({
       <MediaPicker
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
-        onPick={(url) => {
-          if (editor.isActive('image')) {
-            chain().updateAttributes('image', { src: url }).run();
+        onPick={(urls) => {
+          if (urls.length === 0) return;
+          // 仅选中一张且当前正好选中图片节点时，替换该图片；否则按选择顺序依次插入光标位置
+          if (urls.length === 1 && editor.isActive('image')) {
+            chain().updateAttributes('image', { src: urls[0] }).run();
           } else {
-            chain().setImage({ src: url }).run();
+            const next = chain();
+            urls.forEach((url) => next.setImage({ src: url }));
+            next.run();
           }
         }}
       />

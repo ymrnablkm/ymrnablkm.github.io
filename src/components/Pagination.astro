@@ -8,6 +8,9 @@ interface Props {
 const { currentPage, lastPage, basePath } = Astro.props;
 const href = (page: number) => (page === 1 ? basePath : `${basePath}/${page}`);
 const pages = Array.from({ length: lastPage }, (_, index) => index + 1);
+// 项目未启用 tailwind.config 自定义色，自定义颜色类不会生成，这里使用显式色值
+const hoverable =
+  'text-text-secondary dark:text-[#A6A6A6] hover:border-[#165DFF] hover:text-[#165DFF] dark:hover:border-[#4080FF] dark:hover:text-[#4080FF]';
 ---
 
 {lastPage > 1 && (
@@ -17,7 +20,7 @@ const pages = Array.from({ length: lastPage }, (_, index) => index + 1);
       class={`px-3 py-2 text-sm rounded-lg border border-surface-border dark:border-[#333333] transition-colors ${
         currentPage === 1
           ? 'pointer-events-none opacity-40 text-text-muted dark:text-[#666666]'
-          : 'text-text-secondary dark:text-[#A6A6A6] hover:border-primary hover:text-primary'
+          : hoverable
       }`}
       aria-disabled={currentPage === 1}
     >
@@ -29,8 +32,8 @@ const pages = Array.from({ length: lastPage }, (_, index) => index + 1);
         href={href(page)}
         class={`min-w-9 text-center px-3 py-2 text-sm rounded-lg border transition-colors ${
           page === currentPage
-            ? 'border-primary bg-primary text-white'
-            : 'border-surface-border dark:border-[#333333] text-text-secondary dark:text-[#A6A6A6] hover:border-primary hover:text-primary'
+            ? 'border-[#165DFF] bg-[#165DFF] text-white dark:border-white dark:bg-transparent dark:text-white'
+            : `border-surface-border dark:border-[#333333] ${hoverable}`
         }`}
         aria-current={page === currentPage ? 'page' : undefined}
       >
@@ -43,7 +46,7 @@ const pages = Array.from({ length: lastPage }, (_, index) => index + 1);
       class={`px-3 py-2 text-sm rounded-lg border border-surface-border dark:border-[#333333] transition-colors ${
         currentPage === lastPage
           ? 'pointer-events-none opacity-40 text-text-muted dark:text-[#666666]'
-          : 'text-text-secondary dark:text-[#A6A6A6] hover:border-primary hover:text-primary'
+          : hoverable
       }`}
       aria-disabled={currentPage === lastPage}
     >
