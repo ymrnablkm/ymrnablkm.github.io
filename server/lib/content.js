@@ -98,6 +98,11 @@ function normalizeResource(item = {}, index = 0) {
   };
 }
 
+// 新置顶字段是否已写入（用于决定是否回退旧 pinned）
+function hasPinFields(data) {
+  return data.pinnedHome !== undefined || data.pinnedCategory !== undefined;
+}
+
 export function normalizePost(data, body, slug) {
   const rawDate = data.date instanceof Date ? data.date.toISOString() : data.date;
   return {
@@ -116,6 +121,9 @@ export function normalizePost(data, body, slug) {
     keywords: toArray(data.keywords),
     featured: Boolean(data.featured),
     pinned: Boolean(data.pinned),
+    // 仅当两个新字段都未写入时才回退到旧 pinned（旧行为为首页与分类同时置顶）
+    pinnedHome: hasPinFields(data) ? Boolean(data.pinnedHome) : Boolean(data.pinned),
+    pinnedCategory: hasPinFields(data) ? Boolean(data.pinnedCategory) : Boolean(data.pinned),
     draft: Boolean(data.draft),
     resources: Array.isArray(data.resources) ? data.resources.map(normalizeResource) : [],
   };
@@ -139,6 +147,8 @@ export function serializePost(post) {
     author: post.author || undefined,
     featured: post.featured || undefined,
     pinned: post.pinned || undefined,
+    pinnedHome: post.pinnedHome || undefined,
+    pinnedCategory: post.pinnedCategory || undefined,
     draft: post.draft || undefined,
     seoTitle: post.seoTitle || undefined,
     seoDescription: post.seoDescription || undefined,

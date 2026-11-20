@@ -4,9 +4,12 @@ import { categoryBySlug } from '../lib/site';
 
 interface Props {
   post: CollectionEntry<'posts'>;
+  /** 是否显示置顶标识；不传时沿用旧字段 pinned 的行为 */
+  showPinned?: boolean;
 }
 
-const { post } = Astro.props;
+const { post, showPinned } = Astro.props;
+const pinned = showPinned === undefined ? Boolean(post.data.pinned) : showPinned;
 const category = post.data.category ? categoryBySlug(post.data.category) : undefined;
 
 // 从正文中按出现顺序提取图片，最多 3 张；正文没有图片时回退到封面图
@@ -117,7 +120,7 @@ const visibleResources = post.data.resources.filter((item) => item.visible).leng
 
       <div class="mt-auto flex items-center justify-between gap-2 flex-wrap text-xs text-text-muted dark:text-[#666666]">
         <div class="flex items-center gap-2 flex-wrap">
-          {post.data.pinned && (
+          {pinned && (
             <span class="px-2 py-0.5 rounded-full bg-red-50 text-red-500 dark:bg-red-500/10">置顶</span>
           )}
           {category && (

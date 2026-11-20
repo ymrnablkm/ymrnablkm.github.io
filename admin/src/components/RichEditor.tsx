@@ -513,14 +513,19 @@ export function RichEditor({
         onClose={() => setPickerOpen(false)}
         onPick={(urls) => {
           if (urls.length === 0) return;
-          // 仅选中一张且当前正好选中图片节点时，替换该图片；否则按选择顺序依次插入光标位置
+          // 仅选中一张且当前正好选中图片节点时，替换该图片
           if (urls.length === 1 && editor.isActive('image')) {
             chain().updateAttributes('image', { src: urls[0] }).run();
-          } else {
-            const next = chain();
-            urls.forEach((url) => next.setImage({ src: url }));
-            next.run();
+            return;
           }
+          // 一次性插入全部图片：逐次 setImage 会让后续命令命中上一张图片的 NodeSelection，
+          // 变成替换 src，导致最终只剩最后一张
+          const content: any[] = [];
+          urls.forEach((url, index) => {
+            if (index > 0) content.push({ type: 'paragraph' });
+            content.push({ type: 'image', attrs: { src: url } });
+          });
+          chain().insertContent(content).run();
         }}
       />
 

@@ -45,6 +45,8 @@ function emptyPost(): Post {
     keywords: [],
     featured: false,
     pinned: false,
+    pinnedHome: false,
+    pinnedCategory: false,
     draft: true,
     resources: [],
   };
@@ -452,14 +454,29 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
 
                   <div className="row" style={{ gap: 18 }}>
                     <label className="checkbox">
-                      <input type="checkbox" checked={post.pinned} onChange={(event) => update('pinned', event.target.checked)} />
-                      置顶文章
+                      <input
+                        type="checkbox"
+                        checked={post.pinnedHome}
+                        onChange={(event) => update('pinnedHome', event.target.checked)}
+                      />
+                      首页置顶
+                    </label>
+                    <label className="checkbox">
+                      <input
+                        type="checkbox"
+                        checked={post.pinnedCategory}
+                        onChange={(event) => update('pinnedCategory', event.target.checked)}
+                      />
+                      分类置顶
                     </label>
                     <label className="checkbox">
                       <input type="checkbox" checked={post.featured} onChange={(event) => update('featured', event.target.checked)} />
                       推荐到首页
                     </label>
                   </div>
+                  <p className="muted" style={{ marginTop: 6 }}>
+                    首页置顶只影响网站首页，分类置顶只影响该文章所属分类页，两者可独立开启。
+                  </p>
                 </div>
               )}
             </div>

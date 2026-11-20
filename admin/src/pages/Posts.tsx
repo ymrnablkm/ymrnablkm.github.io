@@ -4,6 +4,9 @@ import { useData } from '../context';
 import type { Post } from '../types';
 import { navigate, useConfirm, useToast } from '../components/ui';
 
+// 列表页只做快速开关：任一置顶开启即视为置顶
+const isPinned = (post: Post) => Boolean(post.pinnedHome || post.pinnedCategory || post.pinned);
+
 export function PostsPage() {
   const { data, refresh } = useData();
   const toast = useToast();
@@ -33,7 +36,7 @@ export function PostsPage() {
     if (category) list = list.filter((post) => post.category === category);
     if (status === 'draft') list = list.filter((post) => post.draft);
     if (status === 'published') list = list.filter((post) => !post.draft);
-    if (status === 'pinned') list = list.filter((post) => post.pinned);
+    if (status === 'pinned') list = list.filter(isPinned);
     if (status === 'featured') list = list.filter((post) => post.featured);
     if (dateFrom) list = list.filter((post) => post.date.slice(0, 10) >= dateFrom);
     if (sort === 'old') list.sort((a, b) => a.date.localeCompare(b.date));
@@ -72,7 +75,12 @@ export function PostsPage() {
   const toggleDraft = (post: Post) =>
     run(() => updatePost(post, { draft: !post.draft }), post.draft ? '已发布文章' : '已撤回为草稿');
 
-  const togglePin = (post: Post) => run(() => updatePost(post, { pinned: !post.pinned }), post.pinned ? '已取消置顶' : '已置顶');
+  // 列表页快速置顶：两个置顶选项一起切换，细粒度设置请到编辑页
+  const togglePin = (post: Post) =>
+    run(
+      () => updatePost(post, isPinned(post) ? { pinnedHome: false, pinnedCategory: false } : { pinnedHome: true, pinnedCategory: true }),
+      isPinned(post) ? '已取消置顶' : '已置顶'
+    );
 
   const duplicate = (post: Post) =>
     run(async () => {
@@ -285,7 +293,7 @@ export function PostsPage() {
               </div>
               <div className="meta">
                 <span className={`badge ${post.draft ? 'gray' : 'green'}`}>{post.draft ? '草稿' : '已发布'}</span>
-                {post.pinned && <span className="badge orange">置顶</span>}
+                {isPinned(post) && <span className="badge orange">置顶</span>}
                 {post.featured && <span className="badge">推荐</span>}
                 <span className="muted">
                   {data.categories.find((item) => item.slug === post.category)?.name || '未分类'}
@@ -300,7 +308,7 @@ export function PostsPage() {
                   {post.draft ? '发布' : '撤回'}
                 </button>
                 <button className="btn btn-sm" disabled={busy} onClick={() => togglePin(post)}>
-                  {post.pinned ? '取消置顶' : '置顶'}
+                  {isPinned(post) ? '取消置顶' : '置顶'}
                 </button>
                 <button className="btn btn-sm btn-danger" disabled={busy} onClick={() => remove(post)}>
                   删除
@@ -362,7 +370,7 @@ export function PostsPage() {
                   <td>
                     <div className="row" style={{ gap: 4 }}>
                       <span className={`badge ${post.draft ? 'gray' : 'green'}`}>{post.draft ? '草稿' : '发布'}</span>
-                      {post.pinned && <span className="badge orange">置顶</span>}
+                      {isPinned(post) && <span className="badge orange">置顶</span>}
                       {post.featured && <span className="badge">推荐</span>}
                     </div>
                   </td>
@@ -375,7 +383,7 @@ export function PostsPage() {
                         {post.draft ? '发布' : '撤回'}
                       </button>
                       <button className="btn btn-sm" disabled={busy} onClick={() => togglePin(post)}>
-                        {post.pinned ? '取消置顶' : '置顶'}
+                        {isPinned(post) ? '取消置顶' : '置顶'}
                       </button>
                       <button className="btn btn-sm" disabled={busy} onClick={() => duplicate(post)}>
                         复制

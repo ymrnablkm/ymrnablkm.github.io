@@ -67,6 +67,8 @@ export interface Post {
   keywords: string[];
   featured: boolean;
   pinned: boolean;
+  pinnedHome: boolean;
+  pinnedCategory: boolean;
   draft: boolean;
   resources: Resource[];
   sha?: string;

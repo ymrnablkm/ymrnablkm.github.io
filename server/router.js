@@ -100,10 +100,11 @@ async function loadPosts(store) {
       }
     })
   );
+  const pinnedOf = (post) => Boolean(post.pinnedHome || post.pinnedCategory);
   return posts
     .filter(Boolean)
     .sort((a, b) => {
-      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      if (pinnedOf(a) !== pinnedOf(b)) return pinnedOf(a) ? -1 : 1;
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 }

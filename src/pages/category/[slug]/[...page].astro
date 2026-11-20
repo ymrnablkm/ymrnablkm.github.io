@@ -6,10 +6,16 @@ import { getCollection } from 'astro:content';
 import { categories } from '../../../lib/site';
 
 export async function getStaticPaths({ paginate }) {
+  // 分类页只读取「分类置顶」；两个新字段都未写入时按旧 pinned 的原行为处理
+  const pinnedCategory = (post: { data: any }) => {
+    const data = post.data;
+    const hasNewFields = data.pinnedHome !== undefined || data.pinnedCategory !== undefined;
+    return hasNewFields ? Boolean(data.pinnedCategory) : Boolean(data.pinned);
+  };
   const allPosts = (await getCollection('posts'))
     .filter((post) => !post.data.draft)
     .sort((a, b) => {
-      if (Boolean(a.data.pinned) !== Boolean(b.data.pinned)) return a.data.pinned ? -1 : 1;
+      if (pinnedCategory(a) !== pinnedCategory(b)) return pinnedCategory(a) ? -1 : 1;
       return b.data.date.getTime() - a.data.date.getTime();
     });
 
@@ -53,7 +59,16 @@ const posts = page.data;
   ) : (
     <>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {posts.map((post) => <PostCard post={post} />)}
+        {posts.map((post) => (
+          <PostCard
+            post={post}
+            showPinned={
+              post.data.pinnedHome !== undefined || post.data.pinnedCategory !== undefined
+                ? Boolean(post.data.pinnedCategory)
+                : Boolean(post.data.pinned)
+            }
+          />
+        ))}
       </div>
       <Pagination
         currentPage={page.currentPage}

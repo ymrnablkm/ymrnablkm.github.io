@@ -5,10 +5,18 @@ import { getCollection } from 'astro:content';
 import { site, home, categories } from '../lib/site';
 
 const allPosts = await getCollection('posts');
+
+// 首页只读取「首页置顶」；两个新字段都未写入时按旧 pinned 的原行为处理
+const pinnedHome = (post: (typeof allPosts)[number]) => {
+  const data = post.data;
+  const hasNewFields = data.pinnedHome !== undefined || data.pinnedCategory !== undefined;
+  return hasNewFields ? Boolean(data.pinnedHome) : Boolean(data.pinned);
+};
+
 const posts = allPosts
   .filter((post) => !post.data.draft)
   .sort((a, b) => {
-    if (Boolean(a.data.pinned) !== Boolean(b.data.pinned)) return a.data.pinned ? -1 : 1;
+    if (pinnedHome(a) !== pinnedHome(b)) return pinnedHome(a) ? -1 : 1;
     return b.data.date.getTime() - a.data.date.getTime();
   });
 
@@ -101,7 +109,7 @@ const heroSubtitle = home.hero?.subtitle || site.subtitle;
               </div>
             ) : (
               <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {list.map((post) => <PostCard post={post} />)}
+                {list.map((post) => <PostCard post={post} showPinned={pinnedHome(post)} />)}
               </div>
             )}
           </section>
@@ -115,7 +123,7 @@ const heroSubtitle = home.hero?.subtitle || site.subtitle;
           <section>
             <h2 class="text-xl font-semibold text-text-primary dark:text-[#E5E6EB] mb-4">{module.title}</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {list.map((post) => <PostCard post={post} />)}
+              {list.map((post) => <PostCard post={post} showPinned={pinnedHome(post)} />)}
             </div>
           </section>
         );
@@ -128,7 +136,7 @@ const heroSubtitle = home.hero?.subtitle || site.subtitle;
           <section>
             <h2 class="text-xl font-semibold text-text-primary dark:text-[#E5E6EB] mb-4">{module.title}</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {list.map((post) => <PostCard post={post} />)}
+              {list.map((post) => <PostCard post={post} showPinned={pinnedHome(post)} />)}
             </div>
           </section>
         );
