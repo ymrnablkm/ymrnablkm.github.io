@@ -10,6 +10,7 @@ tags:
   - '外网'
 author: 'Aether Yard'
 pinned: true
+pinnedCategory: true
 resources:
   - name: 'Aether Yard资源分享'
     channel: '网盘'
