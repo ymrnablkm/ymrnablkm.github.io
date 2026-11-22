@@ -13,10 +13,10 @@
   },
   {
     "id": "pc",
-    "name": "PC",
+    "name": "助仓",
     "slug": "pc",
-    "icon": "🖥",
-    "description": "主要更新PC资源！",
+    "icon": "📦",
+    "description": "收纳各类教程、实用技巧与福利资源，按需自取。",
     "cover": "",
     "order": 2,
     "visible": true,
