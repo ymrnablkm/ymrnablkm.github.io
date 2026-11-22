@@ -7,7 +7,6 @@ tags:
   - '漫画'
   - '视频'
   - '资源全'
-author: 'AY'
 resources:
   - name: '妖姬视频'
     channel: '网盘'

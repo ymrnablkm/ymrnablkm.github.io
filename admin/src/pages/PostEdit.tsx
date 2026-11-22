@@ -38,7 +38,6 @@ function emptyPost(): Post {
     category: '',
     tags: [],
     date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`,
-    author: '',
     body: '',
     seoTitle: '',
     seoDescription: '',
@@ -415,7 +414,7 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
                 }}
                 onClick={() => setMoreOpen((value) => !value)}
               >
-                <span style={{ fontWeight: 500 }}>更多可选设置（副标题、文章 URL、作者、时间、置顶、推荐）</span>
+                <span style={{ fontWeight: 500 }}>更多可选设置（副标题、文章 URL、时间、置顶、推荐）</span>
                 <span className="link-btn">{moreOpen ? '收起' : '展开'}</span>
               </button>
               {moreOpen && (
@@ -437,10 +436,6 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
                   </div>
 
                   <div className="grid-2">
-                    <div className="field">
-                      <label>作者</label>
-                      <input className="input" value={post.author} onChange={(event) => update('author', event.target.value)} />
-                    </div>
                     <div className="field">
                       <label>发布时间</label>
                       <input

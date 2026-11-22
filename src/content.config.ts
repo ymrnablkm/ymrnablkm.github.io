@@ -36,7 +36,6 @@ const posts = defineCollection({
     subtitle: z.string().optional(),
     category: z.string().optional(),
     tags: z.array(z.string()).default([]),
-    author: z.string().optional(),
     featured: z.boolean().default(false),
     // 旧字段：保留以兼容历史文章，未设置新字段时按原行为（首页+分类同时置顶）处理
     pinned: z.boolean().optional(),

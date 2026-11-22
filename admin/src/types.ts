@@ -60,7 +60,6 @@ export interface Post {
   category: string;
   tags: string[];
   date: string;
-  author: string;
   body: string;
   seoTitle: string;
   seoDescription: string;

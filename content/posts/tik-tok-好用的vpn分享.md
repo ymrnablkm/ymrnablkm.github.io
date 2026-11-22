@@ -8,7 +8,6 @@ tags:
   - 'VPN'
   - 'tools'
   - '外网'
-author: 'Aether Yard'
 pinned: true
 pinnedCategory: true
 resources:

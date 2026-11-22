@@ -7,7 +7,6 @@ tags:
   - '片'
   - '18+'
   - '资源全'
-author: 'AY'
 resources:
   - name: '在校生Vlog'
     channel: '网盘'
