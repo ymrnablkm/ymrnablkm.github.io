@@ -82,11 +82,6 @@ function normalizeResource(item = {}, index = 0) {
   return {
     name: String(item.name || `下载渠道 ${index + 1}`).trim(),
     channel: String(item.channel || '').trim(),
-    type: String(item.type || '').trim(),
-    version: String(item.version || '').trim(),
-    size: String(item.size || '').trim(),
-    platform: String(item.platform || '').trim(),
-    language: String(item.language || '').trim(),
     updated: String(item.updated || '').trim(),
     summary: String(item.summary || '').trim(),
     url: String(item.url || '').trim(),
@@ -156,11 +151,6 @@ export function serializePost(post) {
         ? post.resources.map((item) => ({
             name: item.name,
             channel: item.channel || undefined,
-            type: item.type || undefined,
-            version: item.version || undefined,
-            size: item.size || undefined,
-            platform: item.platform || undefined,
-            language: item.language || undefined,
             updated: item.updated || undefined,
             summary: item.summary || undefined,
             url: item.url,

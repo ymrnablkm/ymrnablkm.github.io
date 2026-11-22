@@ -10,11 +10,6 @@ function emptyResource(index: number): Resource {
   return {
     name: `下载渠道 ${index + 1}`,
     channel: '',
-    type: '',
-    version: '',
-    size: '',
-    platform: '',
-    language: '',
     updated: '',
     summary: '',
     url: '',
@@ -620,31 +615,6 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
                         value={resource.password}
                         onChange={(event) => updateResource(index, 'password', event.target.value)}
                       />
-                    </div>
-                    <div className="field">
-                      <label>资源类型</label>
-                      <input className="input" value={resource.type} onChange={(event) => updateResource(index, 'type', event.target.value)} />
-                    </div>
-                    <div className="field">
-                      <label>版本</label>
-                      <input className="input" value={resource.version} onChange={(event) => updateResource(index, 'version', event.target.value)} />
-                    </div>
-                    <div className="field">
-                      <label>大小</label>
-                      <input className="input" value={resource.size} onChange={(event) => updateResource(index, 'size', event.target.value)} />
-                    </div>
-                    <div className="field">
-                      <label>适用平台</label>
-                      <input
-                        className="input"
-                        placeholder="安卓 / iOS / Windows"
-                        value={resource.platform}
-                        onChange={(event) => updateResource(index, 'platform', event.target.value)}
-                      />
-                    </div>
-                    <div className="field">
-                      <label>语言</label>
-                      <input className="input" value={resource.language} onChange={(event) => updateResource(index, 'language', event.target.value)} />
                     </div>
                     <div className="field">
                       <label>更新时间</label>

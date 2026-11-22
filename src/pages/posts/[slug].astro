@@ -116,11 +116,6 @@ const tocItems = headings.map((h) => {
           <div class="space-y-4">
             {resources.map((resource) => {
               const details = [
-                resource.type ? `类型：${resource.type}` : '',
-                resource.version ? `版本：${resource.version}` : '',
-                resource.size ? `大小：${resource.size}` : '',
-                resource.platform ? `平台：${resource.platform}` : '',
-                resource.language ? `语言：${resource.language}` : '',
                 resource.updated ? `更新：${resource.updated}` : '',
               ].filter(Boolean);
               return (

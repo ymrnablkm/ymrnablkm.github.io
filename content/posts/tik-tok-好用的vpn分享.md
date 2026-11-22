@@ -13,8 +13,6 @@ pinnedCategory: true
 resources:
   - name: 'Aether Yard资源分享'
     channel: '网盘'
-    type: '网盘文件'
-    platform: '安卓'
     url: 'https://yun.139.com/shareweb/#/w/i/2yA8HGvm1hB38'
     password: 'AYnb或AY'
     instructions: '保存至网盘后进行下载使用！'

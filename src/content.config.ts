@@ -11,11 +11,6 @@ const optionalText = z.preprocess((value) => {
 const downloadSchema = z.object({
   name: z.coerce.string(),
   channel: optionalText,
-  type: optionalText,
-  version: optionalText,
-  size: optionalText,
-  platform: optionalText,
-  language: optionalText,
   updated: optionalText,
   summary: optionalText,
   url: z.coerce.string(),

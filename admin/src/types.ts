@@ -36,11 +36,6 @@ export interface SiteSettings {
 export interface Resource {
   name: string;
   channel: string;
-  type: string;
-  version: string;
-  size: string;
-  platform: string;
-  language: string;
   updated: string;
   summary: string;
   url: string;
