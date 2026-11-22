@@ -3,7 +3,15 @@ import Layout from '../../layouts/Layout.astro';
 import PostCard from '../../components/PostCard.astro';
 import Pagination from '../../components/Pagination.astro';
 import { getCollection } from 'astro:content';
-import { site } from '../../lib/site';
+import { site, categoryBySlug } from '../../lib/site';
+
+// 列表排序保持原规则：旧置顶优先，其次按发布时间倒序
+function sortPosts<T extends { data: any }>(posts: T[]) {
+  return posts.sort((a, b) => {
+    if (Boolean(a.data.pinned) !== Boolean(b.data.pinned)) return a.data.pinned ? -1 : 1;
+    return b.data.date.getTime() - a.data.date.getTime();
+  });
+}
 
 export async function getStaticPaths({ paginate }) {
   const allPosts = (await getCollection('posts'))
@@ -12,12 +20,31 @@ export async function getStaticPaths({ paginate }) {
       if (Boolean(a.data.pinned) !== Boolean(b.data.pinned)) return a.data.pinned ? -1 : 1;
       return b.data.date.getTime() - a.data.date.getTime();
     });
-
   return paginate(allPosts, { pageSize: 6 });
+}
+
+// 去掉 Markdown 与 HTML 标记，仅保留可检索的纯文本
+function toPlainText(markdown: string) {
+  return (markdown || '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[#>*_`~|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 const { page } = Astro.props;
 const posts = page.data;
+
+const searchIndex = sortPosts((await getCollection('posts')).filter((post) => !post.data.draft)).map((post) => ({
+  t: post.data.title,
+  u: `/posts/${post.id}`,
+  d: post.data.description || '',
+  m: `${categoryBySlug(post.data.category)?.name || '未分类'} · ${post.data.date.toISOString().slice(0, 10)}`,
+  x: toPlainText(post.body || ''),
+}));
 ---
 
 <Layout title="全部文章" description={`${site.name} 的全部文章列表`}>
@@ -26,17 +53,149 @@ const posts = page.data;
     <p class="text-sm text-text-muted dark:text-[#666666]">共 {page.total} 篇已发布文章</p>
   </header>
 
-  {page.total === 0 ? (
-    <div class="text-center py-24 text-text-muted dark:text-[#666666]">
-      <div class="text-6xl mb-4">📝</div>
-      <p>还没有文章</p>
+  <form id="postSearchForm" class="mb-8" role="search" aria-label="搜索文章">
+    <div class="flex items-center gap-2 rounded-lg border border-surface-border dark:border-[#333333] bg-surface-card dark:bg-[#1E1E1E] px-3 py-2">
+      <input
+        id="postSearchInput"
+        type="search"
+        placeholder="搜索文章标题或内容…"
+        autocomplete="off"
+        class="flex-1 min-w-0 bg-transparent text-sm text-text-primary dark:text-[#E5E6EB] outline-none placeholder:text-text-muted dark:placeholder:text-[#666666]"
+      />
+      <button
+        type="submit"
+        class="shrink-0 rounded-md px-3 py-1.5 text-sm text-white"
+        style="background-color: #165DFF;"
+        aria-label="搜索"
+      >
+        搜索
+      </button>
     </div>
-  ) : (
-    <>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {posts.map((post) => <PostCard post={post} />)}
+  </form>
+
+  <div id="searchResults" class="hidden" aria-live="polite">
+    <p id="searchStatus" class="text-sm text-text-muted dark:text-[#666666] mb-4"></p>
+    <div id="searchList" class="grid grid-cols-1 gap-3"></div>
+  </div>
+
+  <div id="postsDefault">
+    {page.total === 0 ? (
+      <div class="text-center py-24 text-text-muted dark:text-[#666666]">
+        <div class="text-6xl mb-4">📝</div>
+        <p>还没有文章</p>
       </div>
-      <Pagination currentPage={page.currentPage} lastPage={page.lastPage} basePath="/posts" />
-    </>
-  )}
+    ) : (
+      <>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {posts.map((post) => <PostCard post={post} />)}
+        </div>
+        <Pagination currentPage={page.currentPage} lastPage={page.lastPage} basePath="/posts" />
+      </>
+    )}
+  </div>
+
+  <script type="application/json" id="postSearchIndex" set:html={JSON.stringify(searchIndex)}></script>
+
+  <script is:inline>
+    (function () {
+      var form = document.getElementById('postSearchForm');
+      var input = document.getElementById('postSearchInput');
+      var results = document.getElementById('searchResults');
+      var list = document.getElementById('searchList');
+      var status = document.getElementById('searchStatus');
+      var defaultBox = document.getElementById('postsDefault');
+      if (!form || !input || !results || !list || !status || !defaultBox) return;
+
+      var raw = [];
+      try {
+        raw = JSON.parse(document.getElementById('postSearchIndex').textContent || '[]');
+      } catch (error) {
+        raw = [];
+      }
+
+      // 首次搜索时才构建小写索引，避免页面加载阶段做多余计算
+      var index = null;
+      function prepare() {
+        if (index) return index;
+        index = raw.map(function (item) {
+          return {
+            t: item.t,
+            u: item.u,
+            d: item.d,
+            m: item.m,
+            title: item.t.toLowerCase(),
+            text: ((item.d || '') + ' ' + (item.x || '')).toLowerCase(),
+          };
+        });
+        return index;
+      }
+
+      function reset() {
+        results.classList.add('hidden');
+        defaultBox.classList.remove('hidden');
+        list.textContent = '';
+      }
+
+      function render(matches, query) {
+        list.textContent = '';
+        if (!matches.length) {
+          status.textContent = '没有找到与「' + query + '」匹配的文章';
+        } else {
+          status.textContent = '找到 ' + matches.length + ' 篇与「' + query + '」相关的文章';
+        }
+        matches.forEach(function (item) {
+          var link = document.createElement('a');
+          link.href = item.u;
+          link.className = 'block rounded-card border border-surface-border dark:border-[#333333] bg-surface-card dark:bg-[#1E1E1E] p-4 hover:border-[#165DFF] transition-colors';
+
+          var title = document.createElement('div');
+          title.className = 'text-base font-semibold text-text-primary dark:text-[#E5E6EB] mb-1';
+          title.textContent = item.t;
+          link.appendChild(title);
+
+          if (item.d) {
+            var desc = document.createElement('p');
+            desc.className = 'text-sm text-text-secondary dark:text-[#A6A6A6] line-clamp-2';
+            desc.textContent = item.d;
+            link.appendChild(desc);
+          }
+
+          var meta = document.createElement('div');
+          meta.className = 'text-xs text-text-muted dark:text-[#666666] mt-2';
+          meta.textContent = item.m;
+          link.appendChild(meta);
+
+          list.appendChild(link);
+        });
+
+        defaultBox.classList.add('hidden');
+        results.classList.remove('hidden');
+      }
+
+      function search() {
+        var query = input.value.trim();
+        if (!query) {
+          reset();
+          return;
+        }
+        var keyword = query.toLowerCase();
+        var titleHits = [];
+        var contentHits = [];
+        prepare().forEach(function (item) {
+          if (item.title.indexOf(keyword) !== -1) titleHits.push(item);
+          else if (item.text.indexOf(keyword) !== -1) contentHits.push(item);
+        });
+        render(titleHits.concat(contentHits), query);
+      }
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        search();
+      });
+
+      input.addEventListener('input', function () {
+        if (!input.value.trim()) reset();
+      });
+    })();
+  </script>
 </Layout>

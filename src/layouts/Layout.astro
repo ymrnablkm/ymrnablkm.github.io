@@ -122,7 +122,7 @@ const absoluteImage = image?.startsWith('http') ? image : `${base.replace(/\/$/,
       class="back-to-top fixed bottom-6 right-6 w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:bg-primary-dark"
       aria-label="回到顶部"
     >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5 text-[#121212] dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
       </svg>
     </button>
@@ -154,12 +154,19 @@ const absoluteImage = image?.startsWith('http') ? image : `${base.replace(/\/$/,
 
       const backToTop = document.getElementById('backToTop');
 
+      // 滚动监听按帧节流，避免每个 scroll 事件都做 DOM 读写
+      let scrollQueued = false;
       window.addEventListener('scroll', () => {
-        if (window.scrollY > 500) {
-          backToTop?.classList.add('visible');
-        } else {
-          backToTop?.classList.remove('visible');
-        }
+        if (scrollQueued) return;
+        scrollQueued = true;
+        requestAnimationFrame(() => {
+          scrollQueued = false;
+          if (window.scrollY > 500) {
+            backToTop?.classList.add('visible');
+          } else {
+            backToTop?.classList.remove('visible');
+          }
+        });
       }, { passive: true });
 
       backToTop?.addEventListener('click', () => {

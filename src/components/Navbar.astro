@@ -15,25 +15,26 @@ const items = [...nav, ...extraLinks];
 
 <nav class="nav-glass fixed top-0 left-0 right-0 z-40 bg-white/85 dark:bg-[#121212]/85 border-b border-surface-border dark:border-[#333333]">
   <div class="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-16">
-      <a href="/" class="flex items-center gap-2 shrink-0">
-        <img
-          src={site.logo}
-          alt={site.name}
-          class="w-6 h-6 object-contain dark:hidden"
-          width="24"
-          height="24"
-          loading="eager"
-        />
-        <img
-          src={site.logoDark}
-          alt={site.name}
-          class="w-6 h-6 object-contain hidden dark:block"
-          width="24"
-          height="24"
-          loading="lazy"
-        />
-        <span class="text-xl font-bold text-primary">{site.name}</span>
+    <div class="relative flex items-center justify-between h-16">
+      <!-- 手机端侧边栏按钮：最左边 -->
+      <button
+        id="navToggle"
+        class="md:hidden p-2 -ml-2 rounded-lg text-text-secondary dark:text-[#A6A6A6]"
+        aria-label="打开侧边栏"
+        aria-expanded="false"
+        aria-controls="navPanel"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+
+      <!-- 文字 Logo：手机端正中，电脑端靠左 -->
+      <a
+        href="/"
+        class="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 text-xl font-bold text-primary whitespace-nowrap"
+      >
+        {site.name}
       </a>
 
       <!-- 电脑端导航 -->
@@ -83,10 +84,21 @@ const items = [...nav, ...extraLinks];
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
           </svg>
         </button>
+
+        <!-- 搜索：跳转全部文章页 -->
+        <a
+          href="/posts/"
+          class="p-2 rounded-lg text-text-secondary dark:text-[#A6A6A6] hover:bg-surface-card dark:hover:bg-[#1E1E1E] transition-colors"
+          aria-label="搜索"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path>
+          </svg>
+        </a>
       </div>
 
-      <!-- 手机端按钮 -->
-      <div class="flex md:hidden items-center gap-2">
+      <!-- 手机端右侧：主题切换 + 搜索 -->
+      <div class="flex md:hidden items-center gap-1">
         <button
           id="themeToggleMobile"
           class="p-2 rounded-lg text-text-secondary dark:text-[#A6A6A6]"
@@ -96,51 +108,73 @@ const items = [...nav, ...extraLinks];
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
           </svg>
         </button>
-        <button id="navToggle" class="p-2 rounded-lg text-text-secondary dark:text-[#A6A6A6]" aria-label="打开菜单">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        <a
+          href="/posts/"
+          class="p-2 -mr-2 rounded-lg text-text-secondary dark:text-[#A6A6A6]"
+          aria-label="搜索"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path>
           </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- 手机端菜单 -->
-    <div id="navPanel" class="hidden md:hidden pb-4 max-h-[calc(100vh-4rem)] overflow-y-auto bg-white dark:bg-[#121212] -mx-4 px-4">
-      <div class="flex flex-col gap-1">
-        {items.map((item) => (
-          <div>
-            <a
-              href={item.href}
-              target={item.external ? '_blank' : undefined}
-              rel={item.external ? 'noopener' : undefined}
-              class="block px-3 py-2 rounded-lg text-sm text-text-secondary dark:text-[#A6A6A6] hover:bg-surface-card dark:hover:bg-[#1E1E1E]"
-            >
-              {item.label}
-            </a>
-            {navChildren(item.id).map((child) => (
-              <a
-                href={child.href}
-                target={child.external ? '_blank' : undefined}
-                rel={child.external ? 'noopener' : undefined}
-                class="block px-6 py-2 rounded-lg text-sm text-text-muted dark:text-[#A6A6A6] hover:bg-surface-card dark:hover:bg-[#1E1E1E]"
-              >
-                {child.label}
-              </a>
-            ))}
-          </div>
-        ))}
+        </a>
       </div>
     </div>
   </div>
 </nav>
 
+<!-- 手机端：点击右侧内容区关闭侧边栏 -->
+<div id="navOverlay" class="hidden md:hidden fixed inset-x-0 top-16 bottom-0 z-30 bg-black/25"></div>
+
+<!-- 手机端侧边栏：从左侧出现，不铺满屏宽，无动画 -->
+<aside
+  id="navPanel"
+  class="hidden md:hidden fixed top-16 left-0 bottom-0 z-40 w-56 max-w-[75vw] overflow-y-auto border-r border-surface-border dark:border-[#333333] bg-white dark:bg-[#121212]"
+>
+  <div class="flex flex-col gap-1 p-3">
+    {items.map((item) => (
+      <div>
+        <a
+          href={item.href}
+          target={item.external ? '_blank' : undefined}
+          rel={item.external ? 'noopener' : undefined}
+          class="block px-3 py-2 rounded-lg text-sm text-text-secondary dark:text-[#A6A6A6] hover:bg-surface-card dark:hover:bg-[#1E1E1E]"
+        >
+          {item.label}
+        </a>
+        {navChildren(item.id).map((child) => (
+          <a
+            href={child.href}
+            target={child.external ? '_blank' : undefined}
+            rel={child.external ? 'noopener' : undefined}
+            class="block px-6 py-2 rounded-lg text-sm text-text-muted dark:text-[#A6A6A6] hover:bg-surface-card dark:hover:bg-[#1E1E1E]"
+          >
+            {child.label}
+          </a>
+        ))}
+      </div>
+    ))}
+  </div>
+</aside>
+
 <script is:inline>
   (function () {
     var panel = document.getElementById('navPanel');
+    var overlay = document.getElementById('navOverlay');
     var toggle = document.getElementById('navToggle');
-    toggle &&
-      toggle.addEventListener('click', function () {
-        panel && panel.classList.toggle('hidden');
-      });
+    if (!panel || !overlay || !toggle) return;
+
+    function setOpen(open) {
+      panel.classList.toggle('hidden', !open);
+      overlay.classList.toggle('hidden', !open);
+      toggle.setAttribute('aria-expanded', String(open));
+    }
+
+    toggle.addEventListener('click', function () {
+      setOpen(panel.classList.contains('hidden'));
+    });
+
+    overlay.addEventListener('click', function () {
+      setOpen(false);
+    });
   })();
 </script>
