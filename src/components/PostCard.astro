@@ -134,10 +134,10 @@ const visibleResources = post.data.resources.filter((item) => item.visible).leng
           )}
           <span>📅 {new Date(post.data.date).toLocaleDateString('zh-CN')}</span>
           <span data-card-slug={post.id} class="card-view-count hidden">
-            👁️ <span class="card-view-num">0</span>
+            阅读（<span class="card-view-num">0</span>）
           </span>
         </div>
-        {visibleResources > 0 && <span class="text-primary">📦 {visibleResources} 个下载渠道</span>}
+        {visibleResources > 0 && <span class="text-primary">{visibleResources} 个下载渠道</span>}
       </div>
     </div>
   </a>
