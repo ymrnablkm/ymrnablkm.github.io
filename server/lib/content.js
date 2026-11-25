@@ -118,6 +118,7 @@ export function normalizePost(data, body, slug) {
     // 仅当两个新字段都未写入时才回退到旧 pinned（旧行为为首页与分类同时置顶）
     pinnedHome: hasPinFields(data) ? Boolean(data.pinnedHome) : Boolean(data.pinned),
     pinnedCategory: hasPinFields(data) ? Boolean(data.pinnedCategory) : Boolean(data.pinned),
+    hotPinned: Boolean(data.hotPinned),
     draft: Boolean(data.draft),
     resources: Array.isArray(data.resources) ? data.resources.map(normalizeResource) : [],
   };
@@ -142,6 +143,7 @@ export function serializePost(post) {
     pinned: post.pinned || undefined,
     pinnedHome: post.pinnedHome || undefined,
     pinnedCategory: post.pinnedCategory || undefined,
+    hotPinned: post.hotPinned || undefined,
     draft: post.draft || undefined,
     seoTitle: post.seoTitle || undefined,
     seoDescription: post.seoDescription || undefined,

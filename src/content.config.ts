@@ -36,6 +36,7 @@ const posts = defineCollection({
     pinned: z.boolean().optional(),
     pinnedHome: z.boolean().optional(),
     pinnedCategory: z.boolean().optional(),
+    hotPinned: z.boolean().default(false),
     draft: z.boolean().default(false),
     seoTitle: z.string().optional(),
     seoDescription: z.string().optional(),

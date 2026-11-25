@@ -1,0 +1,207 @@
+---
+interface HotPost {
+  slug: string;
+  title: string;
+  hotPinned: boolean;
+}
+
+interface Props {
+  posts: HotPost[];
+}
+
+const { posts } = Astro.props;
+const MAX = 10;
+---
+
+<section>
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-semibold text-text-primary dark:text-[#E5E6EB]">热门排行</h2>
+    <span class="text-xs text-text-muted dark:text-[#666666]">按阅读数实时更新</span>
+  </div>
+
+  <div class="rounded-card border border-surface-border dark:border-[#333333] bg-surface-card dark:bg-[#1E1E1E] px-2 py-1 sm:px-4 sm:py-2">
+    <p id="hotRankLoading" class="py-6 text-center text-sm text-text-muted dark:text-[#666666]">加载中…</p>
+    <p id="hotRankEmpty" class="hidden py-6 text-center text-sm text-text-muted dark:text-[#666666]">还没有阅读数据</p>
+    <ol id="hotRankList" class="hot-rank-list divide-y divide-[#F2F3F5] dark:divide-[#333333]">
+      {posts.map((post) => (
+        <li class="hidden" data-hot-slug={post.slug} data-hot-pinned={post.hotPinned ? '1' : '0'}>
+          <a
+            href={`/posts/${encodeURIComponent(post.slug)}`}
+            class="hot-rank-link group"
+          >
+            <span class="hot-rank-num">1</span>
+            <svg class="hot-rank-flame hot-flame-red" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M13.5 0.67s0.74 2.65 0.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l0.03-0.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5 0.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-0.36 3.6-1.21 4.62-2.58 0.39 1.29 0.59 2.65 0.59 4.04 0 2.65-2.15 4.8-4.8 4.8z" />
+            </svg>
+            <span class="hot-rank-title group-hover:text-primary">{post.title}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<script is:inline>
+  (function () {
+    var listEl = document.getElementById('hotRankList');
+    var loadingEl = document.getElementById('hotRankLoading');
+    var emptyEl = document.getElementById('hotRankEmpty');
+    if (!listEl) return;
+
+    var MAX = 10;
+    var items = Array.prototype.slice.call(listEl.querySelectorAll('[data-hot-slug]'));
+    if (!items.length) {
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (emptyEl) emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    var CF_DOMAIN = 'https://ymrnablkm-github-io.pages.dev';
+    var isGitHubPages = location.hostname.indexOf('github.io') !== -1;
+    var apiBase = isGitHubPages ? CF_DOMAIN : '';
+
+    var entries = items.map(function (li) {
+      var slug = li.getAttribute('data-hot-slug') || '';
+      return {
+        li: li,
+        slug: slug,
+        pinned: li.getAttribute('data-hot-pinned') === '1',
+        num: li.querySelector('.hot-rank-num'),
+        flame: li.querySelector('.hot-rank-flame'),
+      };
+    });
+
+    // 先用本机缓存的阅读数参与排序，接口返回后再覆盖，减少等待感
+    var views = {};
+    entries.forEach(function (entry) {
+      try {
+        var cached = parseInt(localStorage.getItem('ay_views_' + entry.slug) || '0', 10);
+        if (cached > 0) views[entry.slug] = cached;
+      } catch (e) {}
+    });
+
+    function applyRank(entry, index) {
+      if (entry.num) entry.num.textContent = String(index + 1);
+      if (entry.num) entry.num.classList.toggle('is-top', index < 3);
+      if (entry.flame) {
+        entry.flame.classList.remove('hot-flame-red', 'hot-flame-blue', 'hot-flame-white');
+        entry.flame.classList.add(index < 3 ? 'hot-flame-red' : index < 6 ? 'hot-flame-blue' : 'hot-flame-white');
+      }
+    }
+
+    function render() {
+      var sorted = entries.slice().sort(function (a, b) {
+        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+        return (views[b.slug] || 0) - (views[a.slug] || 0);
+      });
+
+      sorted.forEach(function (entry, index) {
+        if (index < MAX) {
+          entry.li.classList.remove('hidden');
+          applyRank(entry, index);
+          listEl.appendChild(entry.li);
+        } else {
+          entry.li.classList.add('hidden');
+        }
+      });
+
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (emptyEl && sorted.length === 0) emptyEl.classList.remove('hidden');
+    }
+
+    render();
+
+    fetch(apiBase + '/api/hot', { credentials: isGitHubPages ? 'omit' : 'same-origin' })
+      .then(function (response) { return response.json(); })
+      .then(function (data) {
+        if (!data || !Array.isArray(data.items)) return;
+        data.items.forEach(function (item) {
+          if (!item || typeof item.slug !== 'string') return;
+          var count = typeof item.views === 'number' ? item.views : 0;
+          views[item.slug] = count;
+          try { localStorage.setItem('ay_views_' + item.slug, String(count)); } catch (e) {}
+        });
+        render();
+      })
+      .catch(function () {
+        /* 接口失败时保留本机缓存排序结果 */
+      });
+  })();
+</script>
+
+<style>
+  .hot-rank-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .hot-rank-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 8px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+  }
+
+  .hot-rank-link:hover {
+    background-color: #f7f8fa;
+  }
+
+  :global(.dark) .hot-rank-link:hover {
+    background-color: #262626;
+  }
+
+  .hot-rank-num {
+    width: 20px;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #86909c;
+  }
+
+  .hot-rank-num.is-top {
+    color: #f53f3f;
+  }
+
+  .hot-rank-flame {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .hot-flame-red {
+    color: #f53f3f;
+  }
+
+  .hot-flame-blue {
+    color: #165dff;
+  }
+
+  .hot-flame-white {
+    color: #c9cdd4;
+  }
+
+  :global(.dark) .hot-flame-white {
+    color: #e5e6eb;
+  }
+
+  .hot-rank-title {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 14px;
+    color: #1d2129;
+    transition: color 0.15s ease;
+  }
+
+  :global(.dark) .hot-rank-title {
+    color: #e5e6eb;
+  }
+</style>

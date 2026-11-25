@@ -63,6 +63,7 @@ export interface Post {
   pinned: boolean;
   pinnedHome: boolean;
   pinnedCategory: boolean;
+  hotPinned: boolean;
   draft: boolean;
   resources: Resource[];
   sha?: string;

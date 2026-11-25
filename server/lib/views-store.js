@@ -21,6 +21,10 @@ function createMemoryStore() {
       return counts.get(slug) || 0;
     },
 
+    async getAllViewCounts() {
+      return Array.from(counts.entries()).map(([slug, views]) => ({ slug, views }));
+    },
+
     async recordView(slug, visitorId) {
       const seenKey = `${slug}:${visitorId}`;
       if (seen.has(seenKey)) {
@@ -42,6 +46,26 @@ function createKvStore(kv) {
     async getViewCount(slug) {
       const val = await kv.get(`view:${slug}`);
       return val ? parseInt(val, 10) || 0 : 0;
+    },
+
+    // 列出全部文章的浏览量，用于首页热门排行（按值排序需在内存中完成）
+    async getAllViewCounts() {
+      const items = [];
+      let cursor;
+      do {
+        const page = await kv.list({ prefix: 'view:', cursor });
+        const keys = page.keys || [];
+        const values = await Promise.all(keys.map((key) => kv.get(key.name)));
+        keys.forEach((key, index) => {
+          const raw = values[index];
+          items.push({
+            slug: key.name.slice('view:'.length),
+            views: raw ? parseInt(raw, 10) || 0 : 0,
+          });
+        });
+        cursor = page.list_complete ? undefined : page.cursor;
+      } while (cursor);
+      return items;
     },
 
     async recordView(slug, visitorId) {

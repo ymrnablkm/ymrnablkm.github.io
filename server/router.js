@@ -500,6 +500,36 @@ export async function handleApi(request, env, store) {
       return fail('方法不允许', 405);
     }
 
+    // ---------- 热门排行（公开接口，按浏览量倒序，支持跨域） ----------
+    if (path === 'hot' && method === 'GET') {
+      const allowedOrigins = [
+        'https://ymrnablkm.github.io',
+        'https://ymrnablkm-github-io.pages.dev',
+      ];
+      const origin = request.headers.get('origin') || '';
+      const corsHeaders = origin && allowedOrigins.includes(origin)
+        ? {
+            'Access-Control-Allow-Origin': origin,
+            'Access-Control-Allow-Methods': 'GET, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Max-Age': '86400',
+          }
+        : {};
+
+      const viewsStore = createViewsStore(env);
+      const counts = await viewsStore.getAllViewCounts();
+      counts.sort((a, b) => b.views - a.views);
+
+      const rawLimit = parseInt(url.searchParams.get('limit') || '', 10);
+      const limit = Math.min(Math.max(Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 200, 1), 500);
+
+      return json({ ok: true, items: counts.slice(0, limit) }, 200, {
+        ...corsHeaders,
+        'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=60',
+      });
+    }
+
     // ---------- 以下接口必须登录 ----------
     const session = await readSession(request, env);
     if (!session) return fail('未登录或登录已过期，请重新登录。', 401);

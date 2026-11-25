@@ -41,6 +41,7 @@ function emptyPost(): Post {
     pinned: false,
     pinnedHome: false,
     pinnedCategory: false,
+    hotPinned: false,
     draft: true,
     resources: [],
   };
@@ -460,12 +461,23 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
                       分类置顶
                     </label>
                     <label className="checkbox">
+                      <input
+                        type="checkbox"
+                        checked={post.hotPinned}
+                        onChange={(event) => update('hotPinned', event.target.checked)}
+                      />
+                      热门栏置顶
+                    </label>
+                    <label className="checkbox">
                       <input type="checkbox" checked={post.featured} onChange={(event) => update('featured', event.target.checked)} />
                       推荐到首页
                     </label>
                   </div>
                   <p className="muted" style={{ marginTop: 6 }}>
                     首页置顶只影响网站首页，分类置顶只影响该文章所属分类页，两者可独立开启。
+                  </p>
+                  <p className="muted" style={{ marginTop: 4 }}>
+                    热门栏置顶只影响首页「热门排行」，开启后固定排在榜单前列；未开启的文章按真实阅读数排序。
                   </p>
                 </div>
               )}

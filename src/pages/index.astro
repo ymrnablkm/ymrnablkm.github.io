@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import PostCard from '../components/PostCard.astro';
+import HotRanking from '../components/HotRanking.astro';
 import { getCollection } from 'astro:content';
 import { site, home, categories } from '../lib/site';
 
@@ -25,6 +26,12 @@ const featuredPosts = (home.featured || [])
   .filter((post): post is (typeof posts)[number] => Boolean(post));
 
 const modules = (home.modules || []).filter((item) => item.visible);
+const latestModuleIndex = modules.findIndex((item) => item.type === 'latest');
+const hotPosts = posts.map((post) => ({
+  slug: post.id,
+  title: post.data.title,
+  hotPinned: Boolean(post.data.hotPinned),
+}));
 const homeCategories = home.categories && home.categories.length
   ? categories.filter((item) => home.categories!.includes(item.slug))
   : categories;
@@ -91,26 +98,29 @@ const heroSubtitle = home.hero?.subtitle || site.subtitle;
 
   {/* 首页模块 */}
   <div class="space-y-12">
-    {modules.map((module) => {
+    {modules.map((module, moduleIndex) => {
       if (module.type === 'latest') {
         const list = posts.slice(0, module.limit || 12);
         return (
-          <section>
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-semibold text-text-primary dark:text-[#E5E6EB]">{module.title}</h2>
-              <a href="/posts" class="text-sm text-primary hover:underline">查看全部 →</a>
-            </div>
-            {list.length === 0 ? (
-              <div class="text-center py-16 text-text-muted dark:text-[#666666]">
-                <div class="text-5xl mb-3">📝</div>
-                <p>还没有文章</p>
+          <>
+            <section>
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-text-primary dark:text-[#E5E6EB]">{module.title}</h2>
+                <a href="/posts" class="text-sm text-primary hover:underline">查看全部 →</a>
               </div>
-            ) : (
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {list.map((post) => <PostCard post={post} showPinned={pinnedHome(post)} />)}
-              </div>
-            )}
-          </section>
+              {list.length === 0 ? (
+                <div class="text-center py-16 text-text-muted dark:text-[#666666]">
+                  <div class="text-5xl mb-3">📝</div>
+                  <p>还没有文章</p>
+                </div>
+              ) : (
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {list.map((post) => <PostCard post={post} showPinned={pinnedHome(post)} />)}
+                </div>
+              )}
+            </section>
+            {moduleIndex === latestModuleIndex && hotPosts.length > 0 && <HotRanking posts={hotPosts} />}
+          </>
         );
       }
 
@@ -211,6 +221,7 @@ const heroSubtitle = home.hero?.subtitle || site.subtitle;
 
       return null;
     })}
+    {latestModuleIndex === -1 && hotPosts.length > 0 && <HotRanking posts={hotPosts} />}
   </div>
 
   {home.footer && (
