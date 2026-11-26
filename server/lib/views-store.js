@@ -78,12 +78,12 @@ function createMemoryStore() {
         seen.set(slug, set);
       }
       if (set.has(visitor)) {
-        return { count: counts.get(slug) || 0, counted: false };
+        return { count: counts.get(slug) || 0, counted: false, stored: true };
       }
       set.add(visitor);
       const next = (counts.get(slug) || 0) + 1;
       counts.set(slug, next);
-      return { count: next, counted: true };
+      return { count: next, counted: true, stored: true };
     },
   };
 }
@@ -103,14 +103,14 @@ function createKvStore(kv) {
       const record = parseRecord(raw);
 
       if (record.seen.includes(visitor)) {
-        return { count: record.count, counted: false };
+        return { count: record.count, counted: false, stored: true };
       }
 
       // 兼容旧版去重标记（只读，不新增写入）：之前已计过数的访客不再 +1
       try {
         const legacy = await kv.get(`seen:${slug}:${visitorId}`);
         if (legacy !== null && legacy !== undefined) {
-          return { count: record.count, counted: false };
+          return { count: record.count, counted: false, stored: true };
         }
       } catch (error) {
         /* 旧标记读取失败不影响主流程 */
@@ -119,20 +119,25 @@ function createKvStore(kv) {
       const nextCount = record.count + 1;
       try {
         await kv.put(key, serializeRecord(nextCount, [...record.seen, visitor]));
-        return { count: nextCount, counted: true };
+        return { count: nextCount, counted: true, stored: true };
       } catch (error) {
         if (isQuotaError(error)) {
           // 额度耗尽时不再重试，保留已有计数并明确告知调用方未写入
-          return { count: record.count, counted: false, error: 'quota' };
+          return { count: record.count, counted: false, stored: false, error: 'quota' };
         }
         if (attempt === 2) {
-          return { count: record.count, counted: false, error: String((error && error.message) || error) };
+          return {
+            count: record.count,
+            counted: false,
+            stored: false,
+            error: String((error && error.message) || error),
+          };
         }
         await new Promise((resolve) => setTimeout(resolve, 30 + attempt * 40));
       }
     }
 
-    return { count: parseRecord(await kv.get(key)).count, counted: false };
+    return { count: parseRecord(await kv.get(key)).count, counted: false, stored: false };
   }
 
   return {
@@ -259,7 +264,7 @@ function createD1Store(db, legacyKv) {
 
       if (!changed) {
         const row = await db.prepare('SELECT views FROM view_counts WHERE slug = ?').bind(slug).first();
-        return { count: Number(row && row.views) || 0, counted: false };
+        return { count: Number(row && row.views) || 0, counted: false, stored: true };
       }
 
       // 保证旧 KV 历史值先迁移，再自增
@@ -274,7 +279,7 @@ function createD1Store(db, legacyKv) {
         )
         .bind(slug, now)
         .first();
-      return { count: Number(row && row.views) || 1, counted: true };
+      return { count: Number(row && row.views) || 1, counted: true, stored: true };
     },
   };
 }

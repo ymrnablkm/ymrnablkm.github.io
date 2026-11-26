@@ -319,8 +319,9 @@ const tocItems = headings.map((h) => {
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (data && typeof data.views === 'number') show(data.views);
-          // 写入成功或服务端确认已计数时，写入永久标记，后续访问不再上报
-          if (data && (data.ok === true || data.counted === false)) {
+          // 只有在服务端确实留痕（stored=true）时才写永久标记；
+          // 写入失败（如额度耗尽）不写标记，下次访问会重新尝试上报。
+          if (data && data.stored === true) {
             try { localStorage.setItem(countedKey, '1'); } catch (e) {}
           }
         })

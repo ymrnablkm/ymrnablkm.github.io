@@ -704,17 +704,21 @@ export async function handleApi(request, env, store) {
 
         if (!allowPublicRequest(`view:${slug}:${visitorId}`, 60)) {
           const current = await viewsStore.getViewCount(slug).catch(() => 0);
-          return json({ ok: true, slug, views: current }, 200, extraHeaders);
+          return json({ ok: true, slug, views: current, stored: false }, 200, extraHeaders);
         }
 
         try {
           const result = await viewsStore.recordView(slug, visitorId);
+          const views = typeof result === 'number' ? result : result.count;
           return json(
             {
               ok: true,
               slug,
-              views: typeof result === 'number' ? result : result.count,
+              views,
               counted: typeof result === 'number' ? true : Boolean(result.counted),
+              // stored=true 表示该次访问已在服务端留痕（含此前已计过数），前端可写永久标记；
+              // stored=false 表示这次写入失败（如额度耗尽），前端应保留重试机会。
+              stored: typeof result === 'number' ? true : result.stored !== false,
             },
             200,
             extraHeaders
@@ -723,7 +727,7 @@ export async function handleApi(request, env, store) {
           // 写入失败也必须返回 200 + 已知计数，避免前端显示异常
           const current = await viewsStore.getViewCount(slug).catch(() => 0);
           return json(
-            { ok: true, slug, views: current, counted: false },
+            { ok: true, slug, views: current, counted: false, stored: false },
             200,
             { ...extraHeaders, 'Cache-Control': 'no-store' }
           );
