@@ -251,61 +251,80 @@ const tocItems = headings.map((h) => {
 
     window.addEventListener('scroll', updateActiveToc, { passive: true });
     updateActiveToc();
+  </script>
 
+  <script is:inline>
     // 浏览量统计：localStorage 即时显示 + 后台异步更新
+    // 同一设备同一篇文章只上报一次（永久标记），重复刷新/重开浏览器都不再写入。
     (function () {
       var slugEl = document.querySelector('[data-post-slug]');
       var slug = slugEl ? slugEl.getAttribute('data-post-slug') : '';
       var wrap = document.getElementById('post-view-count-wrap');
       var countEl = document.getElementById('post-view-count');
-      if (!slug || !wrap) return;
+      if (!slug || !wrap || !countEl) return;
 
       var CF_DOMAIN = 'https://ymrnablkm-github-io.pages.dev';
       var isGitHubPages = location.hostname.indexOf('github.io') !== -1;
       var apiBase = isGitHubPages ? CF_DOMAIN : '';
-      var withCred = isGitHubPages;
-
-      function apiUrl(path) { return apiBase + path; }
-      var credOpts = withCred ? { credentials: 'include' } : {};
-      var postOpts = Object.assign({ method: 'POST' }, credOpts);
+      var credOpts = isGitHubPages ? { credentials: 'include' } : {};
       var cacheKey = 'ay_views_' + slug;
+      var countedKey = 'ay_view_counted_' + slug;
+      var visitorKey = 'ay_view_visitor';
 
-      // 1) 先从 localStorage 读取，立即显示（零延迟）
+      function show(value) {
+        if (typeof value !== 'number' || !isFinite(value) || value < 0) return;
+        countEl.textContent = String(value);
+        wrap.classList.remove('hidden');
+        try { localStorage.setItem(cacheKey, String(value)); } catch (e) {}
+      }
+
+      function getVisitor() {
+        try {
+          var vid = localStorage.getItem(visitorKey) || '';
+          if (!/^[A-Za-z0-9_-]{8,64}$/.test(vid)) {
+            vid = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+            localStorage.setItem(visitorKey, vid);
+          }
+          return vid;
+        } catch (e) {
+          return '';
+        }
+      }
+
+      // 1) 先读本地缓存，立即显示，避免闪 0
       try {
         var cached = parseInt(localStorage.getItem(cacheKey) || '0', 10);
-        if (cached > 0) {
-          countEl.textContent = String(cached);
-          wrap.classList.remove('hidden');
-        }
+        if (cached > 0) show(cached);
       } catch (e) {}
 
-      // 2) 异步 GET 拉取最新值，覆盖显示 + 回写缓存
-      fetch(apiUrl('/api/views/' + encodeURIComponent(slug)), credOpts)
+      // 2) 拉取服务端真实值（读取免费，用于刷新与多设备同步）
+      fetch(apiBase + '/api/views/' + encodeURIComponent(slug), credOpts)
+        .then(function (r) { return r.json(); })
+        .then(function (data) { if (data && typeof data.views === 'number') show(data.views); })
+        .catch(function () { /* 读取失败时保留本地缓存值 */ });
+
+      // 3) 仅首次阅读该文章时上报一次；已上报过直接跳过，节省写入额度
+      var alreadyCounted = false;
+      try { alreadyCounted = localStorage.getItem(countedKey) === '1'; } catch (e) {}
+      if (alreadyCounted) return;
+
+      var visitor = getVisitor();
+      fetch(apiBase + '/api/views/' + encodeURIComponent(slug), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visitor: visitor }),
+        keepalive: true,
+        credentials: isGitHubPages ? 'include' : 'same-origin',
+      })
         .then(function (r) { return r.json(); })
         .then(function (data) {
-          if (data && typeof data.views === 'number') {
-            countEl.textContent = String(data.views);
-            wrap.classList.remove('hidden');
-            try { localStorage.setItem(cacheKey, String(data.views)); } catch (e) {}
+          if (data && typeof data.views === 'number') show(data.views);
+          // 写入成功或服务端确认已计数时，写入永久标记，后续访问不再上报
+          if (data && (data.ok === true || data.counted === false)) {
+            try { localStorage.setItem(countedKey, '1'); } catch (e) {}
           }
         })
-        .catch(function () { /* 静默失败 */ });
-
-      // 3) 异步 POST 记录浏览
-      var sessionKey = 'ay_viewed_' + slug;
-      if (!sessionStorage.getItem(sessionKey)) {
-        sessionStorage.setItem(sessionKey, '1');
-        fetch(apiUrl('/api/views/' + encodeURIComponent(slug)), postOpts)
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            if (data && typeof data.views === 'number') {
-              countEl.textContent = String(data.views);
-              wrap.classList.remove('hidden');
-              try { localStorage.setItem(cacheKey, String(data.views)); } catch (e) {}
-            }
-          })
-          .catch(function () { /* 静默失败 */ });
-      }
+        .catch(function () { /* 上报失败时下次访问重试，不影响阅读 */ });
     })();
   </script>
 

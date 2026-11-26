@@ -663,25 +663,38 @@ export async function handleApi(request, env, store) {
       }
 
       const viewsStore = createViewsStore(env);
+      const corsWithVary = { ...corsHeaders, Vary: 'Origin' };
 
       if (method === 'GET') {
-        const count = await viewsStore.getViewCount(slug);
-        // CDN 缓存 5 秒：重复 GET 命中 Cloudflare 边缘缓存，延迟 <50ms
-        return json({ ok: true, slug, views: count }, 200, {
-          ...corsHeaders,
-          'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=30',
-        });
+        try {
+          const count = await viewsStore.getViewCount(slug);
+          // CDN 缓存 5 秒（浏览器不缓存，避免读到旧值）
+          return json({ ok: true, slug, views: count }, 200, {
+            ...corsWithVary,
+            'Cache-Control': 'public, max-age=0, s-maxage=5, stale-while-revalidate=30',
+          });
+        } catch (error) {
+          return json({ ok: false, slug, views: null, error: '读取阅读数失败' }, 200, {
+            ...corsWithVary,
+            'Cache-Control': 'no-store',
+          });
+        }
       }
 
       if (method === 'POST') {
-        // 获取或生成访客标识（Cookie 持久化 1 年）
-        // sameSite=None + Secure 允许跨域（GitHub Pages → Cloudflare Pages 调用）
+        // 访客标识优先级：Cookie → 请求体（浏览器 localStorage）→ 新生成
+        // GitHub Pages 跨域调用时第三方 Cookie 可能被浏览器拦截，因此必须支持请求体回退，
+        // 否则每次请求都会生成新标识，导致重复计数。
         const cookieName = 'ay_visitor_id';
-        let visitorId = getCookie(request, cookieName);
-        const extraHeaders = { ...corsHeaders };
+        let visitorId = getCookie(request, cookieName) || '';
+        const body = await readJson(request);
+        const bodyVisitor = body && typeof body.visitor === 'string' ? body.visitor : '';
 
-        if (!visitorId || visitorId.length < 8) {
-          visitorId = randomToken(16);
+        if (!/^[A-Za-z0-9_-]{8,64}$/.test(visitorId)) visitorId = '';
+        const extraHeaders = { ...corsWithVary };
+
+        if (!visitorId) {
+          visitorId = /^[A-Za-z0-9_-]{8,64}$/.test(bodyVisitor) ? bodyVisitor : randomToken(16);
           extraHeaders['Set-Cookie'] = serializeCookie(cookieName, visitorId, {
             maxAge: 365 * 24 * 60 * 60,
             secure: true,
@@ -689,8 +702,32 @@ export async function handleApi(request, env, store) {
           });
         }
 
-        const count = await viewsStore.recordView(slug, visitorId);
-        return json({ ok: true, slug, views: count }, 200, extraHeaders);
+        if (!allowPublicRequest(`view:${slug}:${visitorId}`, 60)) {
+          const current = await viewsStore.getViewCount(slug).catch(() => 0);
+          return json({ ok: true, slug, views: current }, 200, extraHeaders);
+        }
+
+        try {
+          const result = await viewsStore.recordView(slug, visitorId);
+          return json(
+            {
+              ok: true,
+              slug,
+              views: typeof result === 'number' ? result : result.count,
+              counted: typeof result === 'number' ? true : Boolean(result.counted),
+            },
+            200,
+            extraHeaders
+          );
+        } catch (error) {
+          // 写入失败也必须返回 200 + 已知计数，避免前端显示异常
+          const current = await viewsStore.getViewCount(slug).catch(() => 0);
+          return json(
+            { ok: true, slug, views: current, counted: false },
+            200,
+            { ...extraHeaders, 'Cache-Control': 'no-store' }
+          );
+        }
       }
 
       return fail('方法不允许', 405);
