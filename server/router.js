@@ -579,13 +579,15 @@ export async function handleApi(request, env, store) {
   const parts = path ? path.split('/') : [];
 
   if (method === 'OPTIONS') {
+    const requestOriginHeader = request.headers.get('origin');
     return new Response(null, {
       status: 204,
       headers: {
-        'Access-Control-Allow-Origin': requestOrigin(request),
+        'Access-Control-Allow-Origin': requestOriginHeader || requestOrigin(request),
         'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type,X-CSRF-Token',
         'Access-Control-Allow-Credentials': 'true',
+        Vary: 'Origin',
       },
     });
   }

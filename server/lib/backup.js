@@ -87,8 +87,11 @@ export async function buildBackup(store, { includeImages = true } = {}) {
         warnings.push('图片总量超过上限，其余图片未包含在本次备份中');
         break;
       }
-      const base64 = await store.getBase64(item.path);
-      if (!base64) continue;
+      const base64 = await store.getBase64(item.path).catch(() => null);
+      if (!base64) {
+        warnings.push(`图片读取失败已跳过：${item.path}`);
+        continue;
+      }
       const bytes = base64ToBytes(base64);
       imageBytes += bytes.length;
       files.push({ name: item.path, data: bytes });
