@@ -204,6 +204,72 @@ export function createGitHubStore(env) {
     }));
   }
 
+  // 原子提交多个文件（备份恢复用）：一次 commit，失败不会留下半套内容
+  async function commitFiles(files, message) {
+    if (!files || files.length === 0) return { commit: null };
+    const refResponse = await request(`/repos/${repo}/git/ref/heads/${branch}`);
+    if (!refResponse.ok) {
+      throw new Error(`读取分支失败（${refResponse.status}）`);
+    }
+    const refData = await refResponse.json();
+    const headSha = refData.object.sha;
+
+    const commitResponse = await request(`/repos/${repo}/git/commits/${headSha}`);
+    if (!commitResponse.ok) {
+      throw new Error(`读取提交失败（${commitResponse.status}）`);
+    }
+    const commitData = await commitResponse.json();
+
+    const tree = [];
+    for (const file of files) {
+      const blobResponse = await request(`/repos/${repo}/git/blobs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: file.base64, encoding: 'base64' }),
+      });
+      if (!blobResponse.ok) {
+        const detail = await blobResponse.text();
+        throw new Error(`写入 ${file.path} 失败（${blobResponse.status}）：${detail.slice(0, 150)}`);
+      }
+      const blob = await blobResponse.json();
+      tree.push({ path: file.path, mode: '100644', type: 'blob', sha: blob.sha });
+    }
+
+    const treeResponse = await request(`/repos/${repo}/git/trees`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base_tree: commitData.tree.sha, tree }),
+    });
+    if (!treeResponse.ok) {
+      const detail = await treeResponse.text();
+      throw new Error(`创建目录树失败（${treeResponse.status}）：${detail.slice(0, 150)}`);
+    }
+    const newTree = await treeResponse.json();
+
+    const newCommitResponse = await request(`/repos/${repo}/git/commits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, tree: newTree.sha, parents: [headSha] }),
+    });
+    if (!newCommitResponse.ok) {
+      const detail = await newCommitResponse.text();
+      throw new Error(`创建提交失败（${newCommitResponse.status}）：${detail.slice(0, 150)}`);
+    }
+    const newCommit = await newCommitResponse.json();
+
+    const updateResponse = await request(`/repos/${repo}/git/refs/heads/${branch}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sha: newCommit.sha, force: false }),
+    });
+    if (!updateResponse.ok) {
+      const detail = await updateResponse.text();
+      throw new Error(`更新分支失败（${updateResponse.status}）：${detail.slice(0, 150)}`);
+    }
+
+    return { commit: newCommit.sha };
+  }
+
   return {
     kind: 'github',
     repo,
@@ -215,6 +281,7 @@ export function createGitHubStore(env) {
     deleteFile,
     listDir,
     listTree,
+    commitFiles,
     commits,
     fileAtRef,
     repoInfo,

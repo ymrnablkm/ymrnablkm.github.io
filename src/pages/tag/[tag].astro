@@ -5,7 +5,7 @@ import { getCollection } from 'astro:content';
 import { tags, tagBySlug } from '../../lib/site';
 
 export async function getStaticPaths() {
-  const posts = (await getCollection('posts')).filter((post) => !post.data.draft);
+  const posts = (await getCollection('posts')).filter((post) => !post.data.draft && !post.data.offline);
   const slugs = new Set<string>();
   posts.forEach((post) => post.data.tags.forEach((tag) => slugs.add(tag)));
   tags.forEach((tag) => slugs.add(tag.slug));
@@ -18,7 +18,7 @@ export async function getStaticPaths() {
 
 const { slug, name } = Astro.props;
 const posts = (await getCollection('posts'))
-  .filter((post) => !post.data.draft && post.data.tags.includes(slug))
+  .filter((post) => !post.data.draft && !post.data.offline && post.data.tags.includes(slug))
   .sort((a, b) => {
     if (Boolean(a.data.pinned) !== Boolean(b.data.pinned)) return a.data.pinned ? -1 : 1;
     return b.data.date.getTime() - a.data.date.getTime();

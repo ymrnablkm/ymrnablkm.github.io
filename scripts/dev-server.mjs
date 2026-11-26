@@ -7,6 +7,8 @@ import { handleApi } from '../server/router.js';
 import { createLocalStore } from '../server/lib/local-store.js';
 import { createViewsStore } from '../server/lib/views-store.js';
 import { createDownloadsStore } from '../server/lib/downloads-store.js';
+import { createLinkcheckStore } from '../server/lib/linkcheck-store.js';
+import { createAnalyticsStore } from '../server/lib/analytics-store.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
@@ -20,6 +22,8 @@ const env = {
   GITHUB_BRANCH: 'main',
   VIEWS_STORE: createViewsStore({}), // 共享实例，进程内持久化浏览量
   DOWNLOADS_STORE: createDownloadsStore({}), // 共享实例，进程内持久化下载点击数
+  LINKCHECK_STORE: createLinkcheckStore({}),
+  ANALYTICS_STORE: createAnalyticsStore({}),
 };
 
 const store = createLocalStore(env);

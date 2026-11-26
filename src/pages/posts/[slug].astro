@@ -5,17 +5,20 @@ import { categoryBySlug, tagBySlug } from '../../lib/site';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
-  return posts.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+  // 草稿与定时未到点的文章不生成公开页面，也不会进入 Sitemap
+  return posts
+    .filter((post) => !post.data.draft && !post.data.offline)
+    .map((post) => ({
+      params: { slug: post.id },
+      props: { post },
+    }));
 }
 
 const { post } = Astro.props;
 const { Content } = await render(post);
 
 const allPosts = (await getCollection('posts'))
-  .filter((item) => !item.data.draft)
+  .filter((item) => !item.data.draft && !item.data.offline)
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 
 const currentIndex = allPosts.findIndex((p) => p.id === post.id);
@@ -106,6 +109,26 @@ const tocItems = headings.map((h) => {
           <Content />
         </div>
       </div>
+
+      <!-- 资源状态提示（后台可关闭；不展示后台备注） -->
+      {post.data.status !== 'normal' && post.data.showStatusNotice && (
+        <div class="mb-6 rounded-card border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-text-secondary dark:text-[#A6A6A6]">
+          <strong class="text-text-primary dark:text-[#E5E6EB]">
+            {post.data.status === 'paused'
+              ? '资源暂停下载'
+              : post.data.status === 'invalid'
+                ? '资源链接暂不可用'
+                : '资源已过期'}
+          </strong>
+          <span class="ml-2">
+            {post.data.status === 'paused'
+              ? '该资源的下载暂时关闭，请稍后再来看看。'
+              : post.data.status === 'invalid'
+                ? '当前下载链接可能已失效，管理员正在处理。'
+                : '该资源已过期，可能不再提供下载。'}
+          </span>
+        </div>
+      )}
 
       <!-- 资源下载区 -->
       {resources.length > 0 && (
@@ -283,6 +306,18 @@ const tocItems = headings.map((h) => {
           })
           .catch(function () { /* 静默失败 */ });
       }
+    })();
+  </script>
+
+  <script is:inline>
+    // 正文图片性能：首屏第一张保持立即加载，其余补充懒加载与异步解码
+    (function () {
+      var images = document.querySelectorAll('.markdown-body img');
+      images.forEach(function (img, index) {
+        if (index === 0) return;
+        if (!img.getAttribute('loading')) img.setAttribute('loading', 'lazy');
+        if (!img.getAttribute('decoding')) img.setAttribute('decoding', 'async');
+      });
     })();
   </script>
 

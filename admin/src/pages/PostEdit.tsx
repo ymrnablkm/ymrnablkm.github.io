@@ -6,6 +6,20 @@ import { MediaPicker } from '../components/MediaPicker';
 import { RichEditor, markdownToHtml } from '../components/RichEditor';
 import { navigate, useConfirm, useToast } from '../components/ui';
 
+const STATUS_LABELS: Record<Post['status'], string> = {
+  normal: '正常',
+  paused: '暂停下载',
+  invalid: '链接失效',
+  expired: '已过期',
+};
+
+// 定时发布时间按北京时间（UTC+8）解释
+function beijingTime(value: string) {
+  if (!value) return NaN;
+  const base = value.length === 16 ? `${value}:00` : value;
+  return new Date(`${base}+08:00`).getTime();
+}
+
 function emptyResource(index: number): Resource {
   return {
     name: `下载渠道 ${index + 1}`,
@@ -42,7 +56,12 @@ function emptyPost(): Post {
     pinnedHome: false,
     pinnedCategory: false,
     hotPinned: false,
+    status: 'normal',
+    statusNote: '',
+    showStatusNotice: true,
+    scheduledAt: '',
     draft: true,
+    offline: false,
     resources: [],
   };
 }
@@ -88,6 +107,7 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
   const [autoSavedAt, setAutoSavedAt] = useState('');
   const [lastSyncedAt, setLastSyncedAt] = useState('');
   const [backup, setBackup] = useState<Post | null>(null);
+  const scheduledFuture = Boolean(post.scheduledAt) && beijingTime(post.scheduledAt) > Date.now();
   const initialSnapshot = useRef(JSON.stringify(original || emptyPost()));
   const dirty = JSON.stringify(post) !== initialSnapshot.current;
   const backupKey = `cms-post-${isNew ? 'new' : slug}`;
@@ -162,6 +182,11 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
       }
     }
     const nextPost = { ...post, draft: publish === undefined ? post.draft : !publish };
+    // 手动发布时清除定时时间，避免定时任务重复处理
+    if (publish) {
+      nextPost.scheduledAt = '';
+      nextPost.offline = false;
+    }
     setSaving(true);
     setError('');
     try {
@@ -197,6 +222,20 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
     } finally {
       setSaving(false);
     }
+  };
+
+  // 保存为定时发布：本质是草稿 + 未来时间，到点由 GitHub Actions 自动发布
+  const saveScheduled = async () => {
+    const time = beijingTime(post.scheduledAt);
+    if (!post.scheduledAt || Number.isNaN(time)) {
+      toast('请先选择定时发布时间', 'error');
+      return;
+    }
+    if (time <= Date.now()) {
+      toast('定时发布时间必须晚于当前时间（北京时间）', 'error');
+      return;
+    }
+    await save(false);
   };
 
   const remove = async () => {
@@ -267,7 +306,9 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
       <div className="card">
         <div className="card-head">
           <h2>{isNew ? '新建文章' : '编辑文章'}</h2>
-          <span className={`badge ${post.draft ? 'gray' : 'green'}`}>{post.draft ? '草稿' : '已发布'}</span>
+          <span className={`badge ${post.offline ? 'gray' : post.draft ? (scheduledFuture ? 'orange' : 'gray') : 'green'}`}>
+            {post.offline ? '已下架' : post.draft ? (scheduledFuture ? '定时发布' : '草稿') : '已发布'}
+          </span>
           {saving ? (
             <span className="badge orange">正在保存到 GitHub…</span>
           ) : dirty ? (
@@ -479,6 +520,71 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
                   <p className="muted" style={{ marginTop: 4 }}>
                     热门栏置顶只影响首页「热门排行」，开启后固定排在榜单前列；未开启的文章按真实阅读数排序。
                   </p>
+
+                  <div className="grid-2">
+                    <div className="field">
+                      <label>资源状态</label>
+                      <select
+                        className="select"
+                        value={post.status}
+                        onChange={(event) => update('status', event.target.value as Post['status'])}
+                      >
+                        {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label>状态备注（仅后台可见）</label>
+                      <input
+                        className="input"
+                        value={post.statusNote}
+                        placeholder="例如：网盘维护中，预计下周恢复"
+                        onChange={(event) => update('statusNote', event.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <label className="checkbox">
+                    <input
+                      type="checkbox"
+                      checked={post.showStatusNotice}
+                      onChange={(event) => update('showStatusNotice', event.target.checked)}
+                    />
+                    在前台显示状态提示（状态为「正常」时不显示）
+                  </label>
+                  <label className="checkbox">
+                    <input
+                      type="checkbox"
+                      checked={post.offline}
+                      onChange={(event) => {
+                        const checked = event.target.checked;
+                        setPost((prev) => ({ ...prev, offline: checked, draft: checked ? false : prev.draft }));
+                      }}
+                    />
+                    已下架（前台隐藏，保留内容、评论与统计数据）
+                  </label>
+
+                  <div className="field">
+                    <label>定时发布时间（北京时间，留空表示不定时）</label>
+                    <div className="row">
+                      <input
+                        className="input"
+                        type="datetime-local"
+                        value={post.scheduledAt.slice(0, 16)}
+                        onChange={(event) => update('scheduledAt', event.target.value)}
+                      />
+                      {post.scheduledAt && (
+                        <button className="btn btn-sm" type="button" onClick={() => update('scheduledAt', '')}>
+                          清除定时
+                        </button>
+                      )}
+                    </div>
+                    <p className="muted" style={{ marginTop: 4 }}>
+                      保存为「定时发布」后，到点由 GitHub Actions 自动发布（通常延迟不超过 15 分钟）。
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -668,6 +774,11 @@ function PostEditor({ slug, original }: { slug: string; original: Post | null })
           <button className="btn" onClick={() => save()} disabled={saving}>
             {saving ? '保存中…' : '保存'}
           </button>
+          {post.scheduledAt && (
+            <button className="btn" onClick={saveScheduled} disabled={saving}>
+              保存为定时发布
+            </button>
+          )}
           <button className="btn btn-primary" onClick={() => save(true)} disabled={saving}>
             {saving ? '发布中…' : '保存并发布'}
           </button>

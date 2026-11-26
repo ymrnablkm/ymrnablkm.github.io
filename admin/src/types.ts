@@ -64,7 +64,12 @@ export interface Post {
   pinnedHome: boolean;
   pinnedCategory: boolean;
   hotPinned: boolean;
+  status: 'normal' | 'paused' | 'invalid' | 'expired';
+  statusNote: string;
+  showStatusNotice: boolean;
+  scheduledAt: string;
   draft: boolean;
+  offline: boolean;
   resources: Resource[];
   sha?: string;
 }

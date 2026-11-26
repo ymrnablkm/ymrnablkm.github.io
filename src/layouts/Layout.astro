@@ -228,5 +228,34 @@ const absoluteImage = image?.startsWith('http') ? image : `${base.replace(/\/$/,
       }
     })();
     </script>
+
+    <script is:inline>
+      // 全站访问统计：只上报匿名标识，不采集正文、IP 或第三方脚本
+      (function () {
+        if (location.pathname.indexOf('/admin') === 0) return;
+        if (navigator.doNotTrack === '1') return;
+        var CF_DOMAIN = 'https://ymrnablkm-github-io.pages.dev';
+        var isGitHubPages = location.hostname.indexOf('github.io') !== -1;
+        var apiBase = isGitHubPages ? CF_DOMAIN : '';
+        var vidKey = 'ay_visit_vid';
+        var vid = '';
+        try {
+          vid = localStorage.getItem(vidKey) || '';
+          if (!/^[A-Za-z0-9_-]{8,64}$/.test(vid)) {
+            vid = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+            localStorage.setItem(vidKey, vid);
+          }
+        } catch (e) {
+          return;
+        }
+        if (!vid) return;
+        fetch(apiBase + '/api/visit', {
+          method: 'POST',
+          body: JSON.stringify({ visitor: vid }),
+          credentials: isGitHubPages ? 'include' : 'same-origin',
+          keepalive: true,
+        }).catch(function () {});
+      })();
+    </script>
   </body>
 </html>

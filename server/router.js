@@ -3,6 +3,11 @@ import { json, fail, ok, readJson, getCookie, serializeCookie, requestOrigin, is
 import { createSession, readSession, sessionCookieName, sessionMaxAge, randomToken } from './lib/session.js';
 import { createViewsStore } from './lib/views-store.js';
 import { createDownloadsStore } from './lib/downloads-store.js';
+import { createLinkcheckStore } from './lib/linkcheck-store.js';
+import { createAnalyticsStore } from './lib/analytics-store.js';
+import { buildBackup, inspectBackup, restoreBackup } from './lib/backup.js';
+// content 工具统一在下方导入
+// eslint-disable-next-line
 import {
   POSTS_DIR,
   PAGES_DIR,
@@ -58,6 +63,29 @@ const DEFAULT_HOME = {
 const MEDIA_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'ico'];
 const MAX_MEDIA_BYTES = 4 * 1024 * 1024;
 
+// 图片上传内容校验：扩展名与文件头必须一致，SVG 不允许内联脚本
+function decodeBase64Head(base64, length = 24) {
+  try {
+    return atob(String(base64).replace(/\s/g, '').slice(0, Math.ceil(length / 3) * 4));
+  } catch (error) {
+    return '';
+  }
+}
+
+function matchesImageSignature(ext, base64) {
+  const head = decodeBase64Head(base64, 16);
+  if (!head) return false;
+  const code = (index) => head.charCodeAt(index) || 0;
+  if (ext === 'jpg' || ext === 'jpeg') return code(0) === 0xff && code(1) === 0xd8 && code(2) === 0xff;
+  if (ext === 'png') return code(0) === 0x89 && head.slice(1, 4) === 'PNG';
+  if (ext === 'gif') return head.slice(0, 3) === 'GIF';
+  if (ext === 'webp') return head.slice(0, 4) === 'RIFF' && head.slice(8, 12) === 'WEBP';
+  if (ext === 'avif') return head.slice(4, 8) === 'ftyp' && /avif|avis/.test(head.slice(8, 16));
+  if (ext === 'ico') return code(0) === 0 && code(1) === 0 && code(2) === 1 && code(3) === 0;
+  if (ext === 'svg') return /<svg/i.test(decodeBase64Head(base64, 400));
+  return false;
+}
+
 // 下载统计公开接口：CORS 与文章可下载性校验（构建时生成的清单）
 const PUBLIC_ORIGINS = ['https://ymrnablkm.github.io', 'https://ymrnablkm-github-io.pages.dev'];
 let downloadManifestCache = { slugs: null, at: 0 };
@@ -91,6 +119,135 @@ async function isDownloadableSlug(request, slug) {
     }
   }
   return Boolean(downloadManifestCache.slugs && downloadManifestCache.slugs.has(slug));
+}
+
+// 公开接口的轻量限流（单 isolate 内存计数，不落地存储 IP）
+const rateBuckets = new Map();
+function allowPublicRequest(key, limit = 120, windowMs = 60 * 1000) {
+  const bucket = Math.floor(Date.now() / windowMs);
+  const mapKey = `${key}:${bucket}`;
+  const current = rateBuckets.get(mapKey) || 0;
+  if (current >= limit) return false;
+  rateBuckets.set(mapKey, current + 1);
+  if (rateBuckets.size > 5000) {
+    const cutoff = bucket - 1;
+    for (const [k] of rateBuckets) {
+      if (k.endsWith(`:${cutoff}`)) rateBuckets.delete(k);
+    }
+  }
+  return true;
+}
+
+function isMobileUserAgent(userAgent) {
+  return /Android|iPhone|iPad|iPod|Mobile|HarmonyOS|Windows Phone/i.test(userAgent || '');
+}
+
+// 禁止检测内网/本机地址，避免链接检测被用作 SSRF
+function isBlockedHost(hostname) {
+  const host = String(hostname || '').toLowerCase();
+  if (!host) return true;
+  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host.endsWith('.internal')) {
+    return true;
+  }
+  if (host === '::1' || host === '[::1]') return true;
+  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const a = Number(ipv4[1]);
+    const b = Number(ipv4[2]);
+    if (a === 0 || a === 10 || a === 127) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+  }
+  return false;
+}
+
+// ---------- 链接有效性检测 ----------
+const BAD_LINK_WORDS = [
+  '链接不存在',
+  '分享的文件已经被取消',
+  '分享已失效',
+  '分享已取消',
+  '分享内容已被删除',
+  '文件已删除',
+  '文件不存在',
+  '链接已失效',
+  '链接已过期',
+  '该分享已被取消',
+  '你访问的页面不存在',
+];
+const RISKY_LINK_WORDS = ['请输入提取码', '提取码', '访问码', '验证码', '安全验证', '请先登录', '登录后'];
+
+async function checkOneLink(url) {
+  const started = Date.now();
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch (error) {
+    return { status: 'invalid', message: '链接格式不正确', ms: 0 };
+  }
+  if (!/^https?:$/.test(parsed.protocol)) {
+    return { status: 'invalid', message: '仅支持 http/https 链接', ms: 0 };
+  }
+  if (isBlockedHost(parsed.hostname)) {
+    return { status: 'invalid', message: '不支持检测内网或本机地址', ms: 0 };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch(parsed.toString(), {
+      method: 'GET',
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+    });
+
+    const ms = Date.now() - started;
+    if (response.status === 404 || response.status === 410) {
+      return { status: 'invalid', message: `页面不存在（HTTP ${response.status}）`, ms };
+    }
+    if (response.status === 401 || response.status === 403) {
+      return { status: 'unknown', message: `需要登录或触发风控（HTTP ${response.status}）`, ms };
+    }
+    if (response.status === 429) {
+      return { status: 'unknown', message: '请求过于频繁（HTTP 429），无法判断', ms };
+    }
+    if (response.status >= 500) {
+      return { status: 'unknown', message: `网盘服务器错误（HTTP ${response.status}）`, ms };
+    }
+    if (!response.ok) {
+      return { status: 'unknown', message: `HTTP ${response.status}`, ms };
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    let text = '';
+    if (contentType.includes('text/html') || contentType.includes('text/plain')) {
+      text = (await response.text()).slice(0, 200000);
+    }
+    const bad = BAD_LINK_WORDS.find((word) => text.includes(word));
+    if (bad) return { status: 'invalid', message: `页面提示「${bad}」`, ms };
+    const risky = RISKY_LINK_WORDS.find((word) => text.includes(word));
+    if (risky) return { status: 'unknown', message: `需要提取码或登录确认（${risky}）`, ms };
+    return { status: 'ok', message: '页面可正常访问', ms };
+  } catch (error) {
+    const ms = Date.now() - started;
+    const timedOut = error && error.name === 'AbortError';
+    return { status: 'failed', message: timedOut ? '检测超时（8 秒）' : `检测失败：${error.message || '网络错误'}`, ms };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function mergeLinkStatus(links) {
+  if (links.some((item) => item.status === 'invalid')) return 'invalid';
+  if (links.some((item) => item.status === 'failed')) return 'failed';
+  if (links.some((item) => item.status === 'unknown')) return 'unknown';
+  return 'ok';
 }
 
 
@@ -607,11 +764,58 @@ export async function handleApi(request, env, store) {
         });
       }
 
+      if (!allowPublicRequest(`download:${visitorId}`, 120)) {
+        return json({ ok: true }, 200, corsHeaders);
+      }
+
       try {
         const downloadsStore = createDownloadsStore(env);
         await downloadsStore.recordHit(slug, visitorId);
       } catch (error) {
         return json({ ok: false, error: '统计暂时不可用' }, 500, corsHeaders);
+      }
+      const headers = { ...corsHeaders };
+      if (setCookie) headers['Set-Cookie'] = setCookie;
+      return json({ ok: true }, 200, headers);
+    }
+
+    // ---------- 全站访问统计上报（公开接口：只上报，不返回统计数据） ----------
+    if (path === 'visit' && method === 'POST') {
+      const corsHeaders = publicCorsHeaders(request);
+      const origin = request.headers.get('origin') || '';
+      if (origin && !corsHeaders['Access-Control-Allow-Origin']) {
+        return json({ ok: false, error: '请求来源不合法，已拒绝。' }, 403, corsHeaders);
+      }
+
+      const cookieName = 'ay_visitor_id';
+      let visitorId = getCookie(request, cookieName) || '';
+      if (!/^[A-Za-z0-9_-]{8,64}$/.test(visitorId)) visitorId = '';
+
+      const body = await readJson(request);
+      const bodyVisitor = body && typeof body.visitor === 'string' ? body.visitor : '';
+
+      let setCookie = '';
+      if (!visitorId) {
+        visitorId = /^[A-Za-z0-9_-]{8,64}$/.test(bodyVisitor) ? bodyVisitor : randomToken(16);
+        setCookie = serializeCookie(cookieName, visitorId, {
+          maxAge: 365 * 24 * 60 * 60,
+          secure: true,
+          sameSite: 'None',
+        });
+      }
+
+      if (!allowPublicRequest(`visit:${visitorId}`, 120)) {
+        return json({ ok: true }, 200, corsHeaders);
+      }
+
+      try {
+        const analytics = createAnalyticsStore(env);
+        await analytics.recordVisit({
+          visitorId,
+          isMobile: isMobileUserAgent(request.headers.get('user-agent')),
+        });
+      } catch (error) {
+        /* 统计失败不影响访客体验 */
       }
 
       const headers = { ...corsHeaders };
@@ -698,6 +902,151 @@ export async function handleApi(request, env, store) {
       const items = await downloadsStore.getAllCounts();
       for (const item of items) counts[item.slug] = item.count;
       return ok({ source: downloadsStore.kind, counts });
+    }
+
+    // ---------- 访问统计（仅后台可读） ----------
+    if (path === 'analytics' && method === 'GET') {
+      const rawDays = parseInt(url.searchParams.get('days') || '30', 10);
+      const days = Math.min(Math.max(Number.isFinite(rawDays) ? rawDays : 30, 7), 90);
+      const analytics = createAnalyticsStore(env);
+      const overview = await analytics.getOverview(days);
+
+      let topArticles = [];
+      try {
+        const viewsStore = createViewsStore(env);
+        topArticles = (await viewsStore.getAllViewCounts())
+          .sort((a, b) => b.views - a.views)
+          .slice(0, 20);
+      } catch (error) {
+        console.warn('[analytics] 文章阅读量读取失败：', error.message);
+      }
+
+      return ok({ source: analytics.kind, overview, topArticles });
+    }
+
+    // ---------- 链接有效性检测 ----------
+    if (path === 'linkcheck' && method === 'GET') {
+      const linkcheckStore = createLinkcheckStore(env);
+      return ok({ source: linkcheckStore.kind, results: await linkcheckStore.getAll() });
+    }
+
+    if (path === 'linkcheck' && method === 'POST') {
+      const body = await readJson(request);
+      const slug = String((body && body.slug) || '').trim();
+      if (!slug || slug.length > 120 || /[\/\\\u0000-\u001f]/.test(slug)) {
+        return fail('文章标识不合法', 400);
+      }
+
+      const file = await store.getFile(`content/posts/${slug}.md`);
+      if (!file || typeof file.text !== 'string') return fail('文章不存在', 404);
+
+      const post = parsePostFile(file.text, slug);
+      const resources = (post.resources || [])
+        .filter((item) => item.visible && item.url)
+        .slice(0, 6);
+
+      const links = [];
+      for (const resource of resources) {
+        const check = await checkOneLink(resource.url);
+        links.push({
+          name: resource.name || '下载渠道',
+          url: resource.url,
+          status: check.status,
+          message: check.message,
+          ms: check.ms,
+        });
+      }
+
+      const status = links.length ? mergeLinkStatus(links) : 'none';
+      const bad = links.find((item) => item.status === 'invalid' || item.status === 'failed');
+      const missing = links.filter((item) => item.status !== 'ok').length;
+      const message =
+        status === 'none'
+          ? '没有可检测的下载链接'
+          : bad
+            ? `${bad.name}：${bad.message}`
+            : missing
+              ? `${missing}/${links.length} 个链接无法确认`
+              : `${links.length} 个链接均可访问`;
+
+      const result = {
+        slug,
+        status,
+        message,
+        checkedAt: new Date().toISOString(),
+        links,
+      };
+      await createLinkcheckStore(env).save(result);
+      return ok({ result });
+    }
+
+    // ---------- 整站备份与恢复 ----------
+    if (path === 'backup/export' && method === 'GET') {
+      const includeImages = url.searchParams.get('images') !== '0';
+      const { zip, manifest } = await buildBackup(store, { includeImages });
+      const stamp = new Date().toISOString().slice(0, 10);
+      return new Response(zip, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/zip',
+          'Content-Disposition': `attachment; filename="ymrnablkm-backup-${stamp}.zip"`,
+          'Cache-Control': 'no-store',
+          'X-Backup-Counts': `${manifest.counts.posts}/${manifest.counts.pages}/${manifest.counts.images}`,
+        },
+      });
+    }
+
+    if (path === 'backup/preview' && method === 'POST') {
+      const buffer = await request.arrayBuffer();
+      if (buffer.byteLength > 25 * 1024 * 1024) {
+        return fail('备份文件过大（上限 25MB）', 413);
+      }
+      if (buffer.byteLength === 0) return fail('没有收到备份文件', 400);
+
+      try {
+        const inspected = await inspectBackup(store, buffer);
+        return ok({
+          preview: {
+            manifest: inspected.manifest,
+            counts: {
+              posts: inspected.posts.length,
+              pages: inspected.pages.length,
+              configs: inspected.configs.length,
+              images: inspected.images.length,
+            },
+            posts: inspected.posts.slice(0, 50),
+            conflicts: inspected.conflicts.slice(0, 100),
+            conflictCount: inspected.conflicts.length,
+            missingImages: inspected.missingImages.slice(0, 50),
+            warnings: inspected.warnings,
+          },
+        });
+      } catch (error) {
+        return fail(error.message || '备份文件校验失败', 400);
+      }
+    }
+
+    if (path === 'backup/restore' && method === 'POST') {
+      if (request.headers.get('x-backup-confirm') !== 'RESTORE') {
+        return fail('缺少恢复确认标记，已拒绝执行。', 400);
+      }
+      const overwrite = url.searchParams.get('overwrite') === '1';
+      const buffer = await request.arrayBuffer();
+      if (buffer.byteLength > 25 * 1024 * 1024) {
+        return fail('备份文件过大（上限 25MB）', 413);
+      }
+      if (buffer.byteLength === 0) return fail('没有收到备份文件', 400);
+
+      try {
+        const inspected = await inspectBackup(store, buffer);
+        const result = await restoreBackup(store, inspected, {
+          overwrite,
+          actor: session.login || '',
+        });
+        return ok({ ...result, warnings: inspected.warnings });
+      } catch (error) {
+        return fail(error.message || '恢复失败', 500);
+      }
     }
 
     if (path === 'status' && method === 'GET') {
@@ -1079,6 +1428,15 @@ export async function handleApi(request, env, store) {
         const bytes = Math.floor((base64.length * 3) / 4);
         if (bytes > MAX_MEDIA_BYTES) {
           return fail(`图片过大（${(bytes / 1024 / 1024).toFixed(1)} MB），请压缩到 4 MB 以内。`, 413);
+        }
+        if (!matchesImageSignature(ext, base64)) {
+          return fail('文件内容与图片格式不一致，已拒绝上传。', 400);
+        }
+        if (ext === 'svg') {
+          const svgText = decodeBase64Head(base64, 200000);
+          if (/<script|javascript:|onload\s*=|onerror\s*=|<foreignObject/i.test(svgText)) {
+            return fail('SVG 中包含不安全脚本内容，已拒绝上传。', 400);
+          }
         }
         const existing = await store.getFile(target);
         const isReplace = body.replace === true;

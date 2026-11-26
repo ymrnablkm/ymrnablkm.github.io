@@ -15,7 +15,7 @@ const pinnedHome = (post: (typeof allPosts)[number]) => {
 };
 
 const posts = allPosts
-  .filter((post) => !post.data.draft)
+  .filter((post) => !post.data.draft && !post.data.offline)
   .sort((a, b) => {
     if (pinnedHome(a) !== pinnedHome(b)) return pinnedHome(a) ? -1 : 1;
     return b.data.date.getTime() - a.data.date.getTime();

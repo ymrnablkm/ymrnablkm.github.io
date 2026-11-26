@@ -13,7 +13,7 @@ function escapeXml(value) {
 export async function GET() {
   const base = (site.domain || 'https://example.com').replace(/\/$/, '');
   const posts = (await getCollection('posts'))
-    .filter((post) => !post.data.draft)
+    .filter((post) => !post.data.draft && !post.data.offline)
     .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 
   const items = posts

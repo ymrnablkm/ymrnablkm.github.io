@@ -15,7 +15,7 @@ function sortPosts<T extends { data: any }>(posts: T[]) {
 
 export async function getStaticPaths({ paginate }) {
   const allPosts = (await getCollection('posts'))
-    .filter((post) => !post.data.draft)
+    .filter((post) => !post.data.draft && !post.data.offline)
     .sort((a, b) => {
       if (Boolean(a.data.pinned) !== Boolean(b.data.pinned)) return a.data.pinned ? -1 : 1;
       return b.data.date.getTime() - a.data.date.getTime();
@@ -38,7 +38,7 @@ function toPlainText(markdown: string) {
 const { page } = Astro.props;
 const posts = page.data;
 
-const searchIndex = sortPosts((await getCollection('posts')).filter((post) => !post.data.draft)).map((post) => ({
+const searchIndex = sortPosts((await getCollection('posts')).filter((post) => !post.data.draft && !post.data.offline)).map((post) => ({
   t: post.data.title,
   u: `/posts/${post.id}`,
   d: post.data.description || '',
@@ -196,6 +196,18 @@ const searchIndex = sortPosts((await getCollection('posts')).filter((post) => !p
       input.addEventListener('input', function () {
         if (!input.value.trim()) reset();
       });
+
+      // 支持从 404 页等入口带 ?q= 关键词直接搜索
+      var initialQuery = '';
+      try {
+        initialQuery = new URLSearchParams(location.search).get('q') || '';
+      } catch (error) {
+        initialQuery = '';
+      }
+      if (initialQuery.trim()) {
+        input.value = initialQuery.trim();
+        search();
+      }
     })();
   </script>
 </Layout>

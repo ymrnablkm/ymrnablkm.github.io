@@ -37,7 +37,15 @@ const posts = defineCollection({
     pinnedHome: z.boolean().optional(),
     pinnedCategory: z.boolean().optional(),
     hotPinned: z.boolean().default(false),
+    // 资源状态（后台管理，前台可按开关展示提示）
+    status: z.enum(['normal', 'paused', 'invalid', 'expired']).default('normal'),
+    statusNote: z.string().optional(),
+    showStatusNotice: z.boolean().default(true),
+    // 定时发布时间（北京时间，格式 YYYY-MM-DDTHH:mm），到点后由 GitHub Actions 自动发布
+    scheduledAt: optionalText,
     draft: z.boolean().default(false),
+    // 已下架：已发布过但主动隐藏，前台不展示，内容与统计保留
+    offline: z.boolean().default(false),
     seoTitle: z.string().optional(),
     seoDescription: z.string().optional(),
     keywords: z.array(z.string()).default([]),

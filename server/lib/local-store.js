@@ -181,6 +181,16 @@ export function createLocalStore(env) {
     }
   }
 
+  // 本地环境没有原子提交，按顺序写入（仅开发调试使用）
+  async function commitFiles(files, message) {
+    for (const file of files) {
+      const absolute = abs(file.path);
+      await fs.mkdir(path.dirname(absolute), { recursive: true });
+      await fs.writeFile(absolute, Buffer.from(file.base64, 'base64'));
+    }
+    return { commit: null };
+  }
+
   return {
     kind: 'local',
     repo: 'local',
@@ -192,6 +202,7 @@ export function createLocalStore(env) {
     deleteFile,
     listDir,
     listTree,
+    commitFiles,
     commits,
     fileAtRef,
     repoInfo,

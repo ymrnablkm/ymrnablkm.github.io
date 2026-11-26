@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 import { categories, site } from '../lib/site';
 
-const posts = (await getCollection('posts')).filter((post) => !post.data.draft);
+const posts = (await getCollection('posts')).filter((post) => !post.data.draft && !post.data.offline);
 ---
 
 <Layout title="全部分类" description={`${site.name} 的全部分类`}>

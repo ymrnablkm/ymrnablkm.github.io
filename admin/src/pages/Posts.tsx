@@ -7,6 +7,19 @@ import { navigate, useConfirm, useToast } from '../components/ui';
 // 列表页只做快速开关：任一置顶开启即视为置顶
 const isPinned = (post: Post) => Boolean(post.pinnedHome || post.pinnedCategory || post.pinned);
 
+const RESOURCE_STATUS: Record<Post['status'], { label: string; badge: string }> = {
+  normal: { label: '正常', badge: '' },
+  paused: { label: '暂停下载', badge: 'orange' },
+  invalid: { label: '链接失效', badge: 'red' },
+  expired: { label: '已过期', badge: 'gray' },
+};
+
+const isScheduledPost = (post: Post) => {
+  if (!post.draft || !post.scheduledAt) return false;
+  const base = post.scheduledAt.length === 16 ? `${post.scheduledAt}:00` : post.scheduledAt;
+  return new Date(`${base}+08:00`).getTime() > Date.now();
+};
+
 export function PostsPage() {
   const { data, refresh } = useData();
   const toast = useToast();
@@ -14,6 +27,7 @@ export function PostsPage() {
   const [keyword, setKeyword] = useState('');
   const [category, setCategory] = useState('');
   const [status, setStatus] = useState('');
+  const [resourceStatus, setResourceStatus] = useState('');
   const [sort, setSort] = useState('new');
   const [dateFrom, setDateFrom] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
@@ -38,12 +52,14 @@ export function PostsPage() {
     if (status === 'published') list = list.filter((post) => !post.draft);
     if (status === 'pinned') list = list.filter(isPinned);
     if (status === 'featured') list = list.filter((post) => post.featured);
+    if (status === 'offline') list = list.filter((post) => post.offline);
+    if (resourceStatus) list = list.filter((post) => (post.status || 'normal') === resourceStatus);
     if (dateFrom) list = list.filter((post) => post.date.slice(0, 10) >= dateFrom);
     if (sort === 'old') list.sort((a, b) => a.date.localeCompare(b.date));
     else if (sort === 'title') list.sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
     else list.sort((a, b) => b.date.localeCompare(a.date));
     return list;
-  }, [data.posts, keyword, category, status, sort, dateFrom]);
+  }, [data.posts, keyword, category, status, resourceStatus, sort, dateFrom]);
 
   const allSelected = filtered.length > 0 && filtered.every((post) => selected.includes(post.slug));
 
@@ -196,8 +212,21 @@ export function PostsPage() {
                 <option value="">全部状态</option>
                 <option value="published">已发布</option>
                 <option value="draft">草稿</option>
+                <option value="offline">已下架</option>
                 <option value="pinned">置顶</option>
                 <option value="featured">推荐</option>
+              </select>
+              <select
+                className="select"
+                value={resourceStatus}
+                onChange={(event) => setResourceStatus(event.target.value)}
+              >
+                <option value="">全部资源状态</option>
+                {Object.entries(RESOURCE_STATUS).map(([value, item]) => (
+                  <option key={value} value={value}>
+                    {item.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="row">
@@ -292,7 +321,14 @@ export function PostsPage() {
                 </div>
               </div>
               <div className="meta">
-                <span className={`badge ${post.draft ? 'gray' : 'green'}`}>{post.draft ? '草稿' : '已发布'}</span>
+                <span className={`badge ${post.offline ? 'gray' : post.draft ? (isScheduledPost(post) ? 'orange' : 'gray') : 'green'}`}>
+                  {post.offline ? '已下架' : post.draft ? (isScheduledPost(post) ? '定时发布' : '草稿') : '已发布'}
+                </span>
+                {(post.status || 'normal') !== 'normal' && (
+                  <span className={`badge ${RESOURCE_STATUS[post.status || 'normal'].badge}`}>
+                    {RESOURCE_STATUS[post.status || 'normal'].label}
+                  </span>
+                )}
                 {isPinned(post) && <span className="badge orange">置顶</span>}
                 {post.featured && <span className="badge">推荐</span>}
                 <span className="muted">
@@ -372,7 +408,14 @@ export function PostsPage() {
                   <td className="muted">{data.downloadCounts?.[post.slug] || 0}</td>
                   <td>
                     <div className="row" style={{ gap: 4 }}>
-                      <span className={`badge ${post.draft ? 'gray' : 'green'}`}>{post.draft ? '草稿' : '发布'}</span>
+                      <span className={`badge ${post.offline ? 'gray' : post.draft ? (isScheduledPost(post) ? 'orange' : 'gray') : 'green'}`}>
+                        {post.offline ? '下架' : post.draft ? (isScheduledPost(post) ? '定时' : '草稿') : '发布'}
+                      </span>
+                      {(post.status || 'normal') !== 'normal' && (
+                        <span className={`badge ${RESOURCE_STATUS[post.status || 'normal'].badge}`}>
+                          {RESOURCE_STATUS[post.status || 'normal'].label}
+                        </span>
+                      )}
                       {isPinned(post) && <span className="badge orange">置顶</span>}
                       {post.featured && <span className="badge">推荐</span>}
                     </div>

@@ -4,7 +4,7 @@ import { getCollection } from 'astro:content';
 export async function GET() {
   const posts = await getCollection('posts');
   const slugs = posts
-    .filter((post) => !post.data.draft)
+    .filter((post) => !post.data.draft && !post.data.offline)
     .filter((post) => (post.data.resources || []).some((item) => item.visible && item.url))
     .map((post) => post.id);
 

@@ -13,7 +13,7 @@ export async function getStaticPaths({ paginate }) {
     return hasNewFields ? Boolean(data.pinnedCategory) : Boolean(data.pinned);
   };
   const allPosts = (await getCollection('posts'))
-    .filter((post) => !post.data.draft)
+    .filter((post) => !post.data.draft && !post.data.offline)
     .sort((a, b) => {
       if (pinnedCategory(a) !== pinnedCategory(b)) return pinnedCategory(a) ? -1 : 1;
       return b.data.date.getTime() - a.data.date.getTime();
