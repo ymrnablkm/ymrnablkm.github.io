@@ -16,6 +16,7 @@ import { PagesPage } from './pages/PagesPage';
 import { PageEdit } from './pages/PageEdit';
 import { MediaPage } from './pages/MediaPage';
 import { ResourcesPage } from './pages/ResourcesPage';
+import { DownloadStatsPage } from './pages/DownloadStats';
 import { SettingsPage } from './pages/SettingsPage';
 import { SeoPage } from './pages/SeoPage';
 import { TrashPage } from './pages/TrashPage';
@@ -128,6 +129,7 @@ export default function App() {
   else if (route.startsWith('/pages/')) page = <PageEdit key={route} slug={decodeURIComponent(route.slice(7))} />;
   else if (route === '/media') page = <MediaPage />;
   else if (route === '/resources') page = <ResourcesPage />;
+  else if (route === '/downloads') page = <DownloadStatsPage />;
   else if (route === '/settings') page = <SettingsPage />;
   else if (route === '/seo') page = <SeoPage />;
   else if (route === '/trash') page = <TrashPage />;

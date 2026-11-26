@@ -2,6 +2,7 @@
 import { json, fail, ok, readJson, getCookie, serializeCookie, requestOrigin, isSecureRequest } from './lib/http.js';
 import { createSession, readSession, sessionCookieName, sessionMaxAge, randomToken } from './lib/session.js';
 import { createViewsStore } from './lib/views-store.js';
+import { createDownloadsStore } from './lib/downloads-store.js';
 import {
   POSTS_DIR,
   PAGES_DIR,
@@ -56,6 +57,42 @@ const DEFAULT_HOME = {
 
 const MEDIA_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'ico'];
 const MAX_MEDIA_BYTES = 4 * 1024 * 1024;
+
+// 下载统计公开接口：CORS 与文章可下载性校验（构建时生成的清单）
+const PUBLIC_ORIGINS = ['https://ymrnablkm.github.io', 'https://ymrnablkm-github-io.pages.dev'];
+let downloadManifestCache = { slugs: null, at: 0 };
+
+function publicCorsHeaders(request) {
+  const origin = request.headers.get('origin') || '';
+  const isLocal = /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(origin);
+  if (!origin || (!PUBLIC_ORIGINS.includes(origin) && !isLocal)) return {};
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Max-Age': '86400',
+  };
+}
+
+async function isDownloadableSlug(request, slug) {
+  const now = Date.now();
+  if (!downloadManifestCache.slugs || now - downloadManifestCache.at > 5 * 60 * 1000) {
+    try {
+      const response = await fetch(new URL('/download-manifest.json', request.url));
+      if (response.ok) {
+        const data = await response.json();
+        if (data && Array.isArray(data.slugs)) {
+          downloadManifestCache = { slugs: new Set(data.slugs), at: now };
+        }
+      }
+    } catch (error) {
+      /* 清单获取失败时保持上一份缓存（若没有缓存则拒绝计数） */
+    }
+  }
+  return Boolean(downloadManifestCache.slugs && downloadManifestCache.slugs.has(slug));
+}
+
 
 function toBodyText(store, path, fallback) {
   return store
@@ -530,6 +567,58 @@ export async function handleApi(request, env, store) {
       });
     }
 
+    // ---------- 下载点击统计上报（公开接口：只记录，不返回任何统计数据） ----------
+    if (parts[0] === 'download' && method === 'POST') {
+      const corsHeaders = publicCorsHeaders(request);
+      const origin = request.headers.get('origin') || '';
+      if (origin && !corsHeaders['Access-Control-Allow-Origin']) {
+        return json({ ok: false, error: '请求来源不合法，已拒绝。' }, 403, corsHeaders);
+      }
+
+      let slug = '';
+      try {
+        slug = decodeURIComponent(parts[1] || '');
+      } catch (error) {
+        slug = '';
+      }
+      if (!slug || slug.length > 120 || /[\/\\\u0000-\u001f]/.test(slug) || slug === '.' || slug === '..') {
+        return json({ ok: false, error: '文章标识不合法' }, 400, corsHeaders);
+      }
+
+      const downloadable = await isDownloadableSlug(request, slug);
+      if (!downloadable) {
+        return json({ ok: false, error: '文章不存在或没有可用的下载地址' }, 404, corsHeaders);
+      }
+
+      const cookieName = 'ay_visitor_id';
+      let visitorId = getCookie(request, cookieName) || '';
+      if (!/^[A-Za-z0-9_-]{8,64}$/.test(visitorId)) visitorId = '';
+
+      const body = await readJson(request);
+      const bodyVisitor = body && typeof body.visitor === 'string' ? body.visitor : '';
+
+      let setCookie = '';
+      if (!visitorId) {
+        visitorId = /^[A-Za-z0-9_-]{8,64}$/.test(bodyVisitor) ? bodyVisitor : randomToken(16);
+        setCookie = serializeCookie(cookieName, visitorId, {
+          maxAge: 365 * 24 * 60 * 60,
+          secure: true,
+          sameSite: 'None',
+        });
+      }
+
+      try {
+        const downloadsStore = createDownloadsStore(env);
+        await downloadsStore.recordHit(slug, visitorId);
+      } catch (error) {
+        return json({ ok: false, error: '统计暂时不可用' }, 500, corsHeaders);
+      }
+
+      const headers = { ...corsHeaders };
+      if (setCookie) headers['Set-Cookie'] = setCookie;
+      return json({ ok: true }, 200, headers);
+    }
+
     // ---------- 以下接口必须登录 ----------
     const session = await readSession(request, env);
     if (!session) return fail('未登录或登录已过期，请重新登录。', 401);
@@ -568,6 +657,19 @@ export async function handleApi(request, env, store) {
         loadMedia(store),
         loadStatus(store),
       ]);
+
+      // 下载统计读取失败时不影响后台其它功能
+      let downloadCounts = {};
+      let downloadSource = 'unavailable';
+      try {
+        const downloadsStore = createDownloadsStore(env);
+        const items = await downloadsStore.getAllCounts();
+        for (const item of items) downloadCounts[item.slug] = item.count;
+        downloadSource = downloadsStore.kind;
+      } catch (error) {
+        console.warn('[bootstrap] 下载统计读取失败：', error.message);
+      }
+
       return ok({
         me: publicMe(session),
         site: siteFile.data,
@@ -585,7 +687,17 @@ export async function handleApi(request, env, store) {
         trash,
         media,
         status,
+        downloadCounts,
+        downloadSource,
       });
+    }
+
+    if (path === 'downloads/stats' && method === 'GET') {
+      const downloadsStore = createDownloadsStore(env);
+      const counts = {};
+      const items = await downloadsStore.getAllCounts();
+      for (const item of items) counts[item.slug] = item.count;
+      return ok({ source: downloadsStore.kind, counts });
     }
 
     if (path === 'status' && method === 'GET') {

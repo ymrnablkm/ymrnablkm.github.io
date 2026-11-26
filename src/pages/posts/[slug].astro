@@ -285,6 +285,67 @@ const tocItems = headings.map((h) => {
       }
     })();
   </script>
+
+  <script is:inline>
+    // 下载点击统计：不改变按钮外观与跳转方式，统计失败也不影响下载
+    (function () {
+      var slugEl = document.querySelector('[data-post-slug]');
+      var slug = slugEl ? slugEl.getAttribute('data-post-slug') : '';
+      var links = document.querySelectorAll('.download-btn');
+      if (!slug || !links.length) return;
+
+      var CF_DOMAIN = 'https://ymrnablkm-github-io.pages.dev';
+      var isGitHubPages = location.hostname.indexOf('github.io') !== -1;
+      var apiBase = isGitHubPages ? CF_DOMAIN : '';
+      var credMode = isGitHubPages ? 'include' : 'same-origin';
+      var flagKey = 'ay_dl_' + slug;
+      var vidKey = 'ay_dl_vid';
+
+      function getVisitor() {
+        try {
+          var vid = localStorage.getItem(vidKey) || '';
+          if (!/^[A-Za-z0-9_-]{8,64}$/.test(vid)) {
+            vid = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+            localStorage.setItem(vidKey, vid);
+          }
+          return vid;
+        } catch (e) {
+          return '';
+        }
+      }
+
+      function alreadyCounted() {
+        try {
+          return localStorage.getItem(flagKey) === '1';
+        } catch (e) {
+          return false;
+        }
+      }
+
+      links.forEach(function (link) {
+        link.addEventListener('click', function () {
+          if (alreadyCounted()) return;
+          fetch(apiBase + '/api/download/' + encodeURIComponent(slug), {
+            method: 'POST',
+            body: JSON.stringify({ visitor: getVisitor() }),
+            credentials: credMode,
+            keepalive: true,
+          })
+            .then(function (response) {
+              if (response.ok) {
+                try {
+                  localStorage.setItem(flagKey, '1');
+                } catch (e) {}
+              }
+            })
+            .catch(function () {
+              /* 统计失败时不做任何处理，继续按原链接跳转 */
+            });
+          // 不调用 preventDefault：按钮外观、文字、跳转方式与原来完全一致
+        });
+      });
+    })();
+  </script>
 </Layout>
 
 <style>

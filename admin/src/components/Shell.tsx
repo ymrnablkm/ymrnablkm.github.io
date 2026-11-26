@@ -11,6 +11,7 @@ export const MENU: { path: string; label: string; icon: string }[] = [
   { path: '/pages', label: '页面管理', icon: '📄' },
   { path: '/media', label: '媒体库', icon: '📷' },
   { path: '/resources', label: '资源管理', icon: '📦' },
+  { path: '/downloads', label: '下载统计', icon: '📥' },
   { path: '/settings', label: '网站设置', icon: '⚙️' },
   { path: '/seo', label: 'SEO 管理', icon: '🔍' },
   { path: '/trash', label: '回收站', icon: '🗑' },

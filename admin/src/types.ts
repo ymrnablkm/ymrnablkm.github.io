@@ -200,4 +200,6 @@ export interface Bootstrap {
   trash: TrashItem[];
   media: MediaItem[];
   status: StatusInfo;
+  downloadCounts: Record<string, number>;
+  downloadSource: string;
 }

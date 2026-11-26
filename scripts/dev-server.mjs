@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { handleApi } from '../server/router.js';
 import { createLocalStore } from '../server/lib/local-store.js';
 import { createViewsStore } from '../server/lib/views-store.js';
+import { createDownloadsStore } from '../server/lib/downloads-store.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
@@ -18,6 +19,7 @@ const env = {
   GITHUB_REPO: 'ymrnablkm/ymrnablkm.github.io',
   GITHUB_BRANCH: 'main',
   VIEWS_STORE: createViewsStore({}), // 共享实例，进程内持久化浏览量
+  DOWNLOADS_STORE: createDownloadsStore({}), // 共享实例，进程内持久化下载点击数
 };
 
 const store = createLocalStore(env);

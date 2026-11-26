@@ -299,6 +299,7 @@ export function PostsPage() {
                   {data.categories.find((item) => item.slug === post.category)?.name || '未分类'}
                 </span>
                 <span className="muted">{formatDate(post.date)}</span>
+                <span className="muted">下载 {data.downloadCounts?.[post.slug] || 0}</span>
               </div>
               <div className="actions">
                 <button className="btn btn-sm" onClick={() => navigate(`/posts/${post.slug}`)}>
@@ -335,6 +336,7 @@ export function PostsPage() {
                 <th>分类</th>
                 <th>标签</th>
                 <th>发布时间</th>
+                <th style={{ width: 90 }}>下载点击</th>
                 <th>状态</th>
                 <th style={{ width: 200 }}>操作</th>
               </tr>
@@ -367,6 +369,7 @@ export function PostsPage() {
                     <span className="muted">{post.tags.slice(0, 3).join('、') || '—'}</span>
                   </td>
                   <td className="muted">{formatDate(post.date)}</td>
+                  <td className="muted">{data.downloadCounts?.[post.slug] || 0}</td>
                   <td>
                     <div className="row" style={{ gap: 4 }}>
                       <span className={`badge ${post.draft ? 'gray' : 'green'}`}>{post.draft ? '草稿' : '发布'}</span>
