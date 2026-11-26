@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { api } from '../api';
+import { api, downloadFile } from '../api';
 import { useData } from '../context';
 
 interface DailyItem {
@@ -37,6 +37,28 @@ const EMPTY: Overview = {
   devices: { mobile: 0, desktop: 0 },
 };
 
+interface StorageInfo {
+  kind: string;
+  d1Bound: boolean;
+  kvAvailable: boolean;
+  bindingName: string;
+  d1Count: number;
+  d1Total: number;
+  kvCount: number;
+  kvTotal: number;
+}
+
+const EMPTY_STORAGE: StorageInfo = {
+  kind: 'unknown',
+  d1Bound: false,
+  kvAvailable: false,
+  bindingName: '',
+  d1Count: 0,
+  d1Total: 0,
+  kvCount: 0,
+  kvTotal: 0,
+};
+
 export function AnalyticsPage() {
   const { data } = useData();
   const [days, setDays] = useState(30);
@@ -44,6 +66,39 @@ export function AnalyticsPage() {
   const [top, setTop] = useState<{ slug: string; views: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [storage, setStorage] = useState<StorageInfo>(EMPTY_STORAGE);
+  const [migrating, setMigrating] = useState('');
+  const [migrateResult, setMigrateResult] = useState('');
+
+  const loadStorage = () => {
+    api<StorageInfo>('views/storage')
+      .then((res) => setStorage({ ...EMPTY_STORAGE, ...res }))
+      .catch(() => setStorage(EMPTY_STORAGE));
+  };
+
+  const runMigrate = async (dryRun: boolean) => {
+    setMigrating(dryRun ? 'dry' : 'run');
+    setMigrateResult('');
+    try {
+      const res = await api<{ result: any }>('views/migrate', { method: 'POST', body: { dryRun } });
+      const r = res.result || {};
+      setMigrateResult(
+        `${dryRun ? '预演结果' : '迁移完成'}：KV 文章 ${r.kvArticles} 篇 / 阅读数 ${r.kvTotalViews}；` +
+          `D1 现有 ${r.d1Articles} 篇 / 阅读数 ${r.d1TotalViews}；` +
+          `本次写入 ${r.inserted} 篇、更新 ${r.updated} 篇、无需变更 ${r.unchanged} 篇。`
+      );
+      if (!dryRun) loadStorage();
+    } catch (err: any) {
+      setMigrateResult(err.message || '迁移失败');
+    } finally {
+      setMigrating('');
+    }
+  };
+
+  useEffect(() => {
+    loadStorage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -201,6 +256,57 @@ export function AnalyticsPage() {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-head">
+          <h2>阅读数存储</h2>
+          <span className={`badge ${storage.kind === 'd1' ? 'green' : 'orange'}`}>
+            {storage.kind === 'd1' ? 'D1 数据库' : storage.kind === 'kv' ? 'KV（旧）' : '本地内存'}
+          </span>
+        </div>
+        <div className="card-body">
+          <div className="row-between">
+            <span>当前写入后端</span>
+            <strong>{storage.kind === 'd1' ? `D1（绑定名 ${storage.bindingName}）` : storage.kind === 'kv' ? 'Cloudflare KV' : '本地内存'}</strong>
+          </div>
+          <div className="row-between" style={{ marginTop: 6 }}>
+            <span>D1 文章数 / 阅读数</span>
+            <strong>{storage.d1Count} / {storage.d1Total}</strong>
+          </div>
+          <div className="row-between" style={{ marginTop: 6 }}>
+            <span>旧 KV 文章数 / 阅读数</span>
+            <strong>{storage.kvCount} / {storage.kvTotal}</strong>
+          </div>
+          {!storage.d1Bound && (
+            <p className="muted" style={{ marginTop: 8 }}>
+              尚未绑定 D1（变量名 VIEWS_DB），阅读数仍在用 KV，受每日 1000 次写入限制。绑定后此处会显示「D1 数据库」。
+            </p>
+          )}
+          <div className="row" style={{ marginTop: 10 }}>
+            <button
+              className="btn"
+              disabled={Boolean(migrating) || !storage.kvAvailable}
+              onClick={() =>
+                downloadFile('views/export', `kv-views-backup-${new Date().toISOString().slice(0, 10)}.json`).catch(
+                  (err: any) => setMigrateResult(err.message || '导出失败')
+                )
+              }
+            >
+              导出旧 KV 备份
+            </button>
+            <button className="btn" disabled={Boolean(migrating) || !storage.d1Bound} onClick={() => runMigrate(true)}>
+              {migrating === 'dry' ? '预演中…' : '预演迁移'}
+            </button>
+            <button className="btn btn-primary" disabled={Boolean(migrating) || !storage.d1Bound} onClick={() => runMigrate(false)}>
+              {migrating === 'run' ? '迁移中…' : '迁移历史阅读数到 D1'}
+            </button>
+          </div>
+          {migrateResult && <div className="alert" style={{ marginTop: 10 }}>{migrateResult}</div>}
+          <p className="muted" style={{ marginTop: 8 }}>
+            迁移只升不降：D1 中已有更高值时不会被覆盖，旧 KV 数据不会被删除。
+          </p>
         </div>
       </div>
     </div>

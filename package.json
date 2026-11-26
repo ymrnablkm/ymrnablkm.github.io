@@ -12,6 +12,9 @@
     "preview": "astro preview",
     "dev:admin": "vite --config admin/vite.config.ts",
     "dev:local": "node scripts/dev-server.mjs",
+    "db:create": "wrangler d1 create ymrnablkm-views",
+    "db:init": "wrangler d1 execute ymrnablkm-views --remote --file=./migrations/0001_views.sql",
+    "db:info": "wrangler d1 execute ymrnablkm-views --remote --command=\"SELECT COUNT(*) AS articles, SUM(views) AS total FROM view_counts\"",
     "astro": "astro"
   },
   "dependencies": {

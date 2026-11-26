@@ -1,21 +1,23 @@
-// 浏览量存储层：KV（默认）+ D1（可选，绑定后自动启用）+ 本地内存（开发）
+// 浏览量存储层：Cloudflare D1（主）+ KV（历史数据兼容/只读兜底）+ 本地内存（开发）
 //
-// 设计目标：
-//   1) 每次「新访客首次阅读某篇文章」只写 1 次存储，避免 KV 免费额度（1000 写/天）被占满；
-//   2) 同一访客重复阅读同一篇、刷新、重开浏览器都不再写入；
-//   3) 完全兼容旧的 view:<slug> 纯数字值，历史阅读数原样保留。
-//
-// KV key 设计：
-//   view:<slug> → JSON {"c": 计数, "v": ["访客哈希", ...]}；旧数据为纯数字字符串，读取时自动兼容
-//   seen:<slug>:<vid> → 旧版去重标记，仅读取用于兼容，不再新增写入
-//
-// D1 表结构（绑定 VIEWS_DB 或 STATS_DB 后启用）：
+// D1 表结构见 migrations/0001_views.sql：
 //   view_counts(slug PRIMARY KEY, views INTEGER, updated_at TEXT)
 //   view_seen(slug, visitor, created_at, PRIMARY KEY (slug, visitor))
+//
+// 统计规则：
+//   - 同一访客对同一篇文章只计一次（view_seen 主键唯一约束，并发安全）
+//   - 同一访客访问不同文章分别统计
+//   - 不同访客访问同一篇文章分别统计
+//
+// 兼容策略：
+//   - D1 中不存在该文章记录时，先读取旧 KV 的 view:<slug>（纯数字或新 JSON 格式），
+//     把历史阅读数写入 D1 后再自增，绝不清零；
+//   - D1 读取失败时退回 KV 读取；两者都不可用时返回 null（前端保留原显示，不显示 0）；
+//   - 旧 KV 数据只读不删。
 
 const MAX_SEEN_HASHES = 5000;
 
-// 访客标识做稳定哈希后再存储，避免原始标识出现在键值里
+// 访客标识做稳定哈希后再存储，避免原始标识出现在数据库里
 export function hashVisitor(visitorId) {
   const source = String(visitorId || '');
   let h1 = 0x811c9dc5;
@@ -28,7 +30,7 @@ export function hashVisitor(visitorId) {
   return h1.toString(36) + h2.toString(36);
 }
 
-// 兼容：纯数字（旧格式）、JSON 对象（新格式）
+// 兼容：纯数字（旧 KV 格式）、JSON 对象（上一版 KV 格式）
 function parseRecord(raw) {
   if (raw === null || raw === undefined || raw === '') return { count: 0, seen: [] };
   const text = typeof raw === 'string' ? raw : String(raw);
@@ -48,6 +50,11 @@ function parseRecord(raw) {
 
 function serializeRecord(count, seen) {
   return JSON.stringify({ c: count, v: seen.slice(-MAX_SEEN_HASHES) });
+}
+
+// 供后台展示旧 KV 数值时复用同一套解析规则
+export function parseViewValue(raw) {
+  return parseRecord(raw);
 }
 
 function isQuotaError(error) {
@@ -88,67 +95,14 @@ function createMemoryStore() {
   };
 }
 
-// ---------- Cloudflare KV ----------
-function createKvStore(kv) {
-  // 同一实例内对「同一文章 + 同一访客」的并发请求合并为一次写入，
-  // 避免快速刷新/双击导致同一访客被重复计数。
-  const inflight = new Map();
-
-  async function doRecord(slug, visitorId) {
-    const key = `view:${slug}`;
-    const visitor = hashVisitor(visitorId);
-
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const raw = await kv.get(key);
-      const record = parseRecord(raw);
-
-      if (record.seen.includes(visitor)) {
-        return { count: record.count, counted: false, stored: true };
-      }
-
-      // 兼容旧版去重标记（只读，不新增写入）：之前已计过数的访客不再 +1
-      try {
-        const legacy = await kv.get(`seen:${slug}:${visitorId}`);
-        if (legacy !== null && legacy !== undefined) {
-          return { count: record.count, counted: false, stored: true };
-        }
-      } catch (error) {
-        /* 旧标记读取失败不影响主流程 */
-      }
-
-      const nextCount = record.count + 1;
-      try {
-        await kv.put(key, serializeRecord(nextCount, [...record.seen, visitor]));
-        return { count: nextCount, counted: true, stored: true };
-      } catch (error) {
-        if (isQuotaError(error)) {
-          // 额度耗尽时不再重试，保留已有计数并明确告知调用方未写入
-          return { count: record.count, counted: false, stored: false, error: 'quota' };
-        }
-        if (attempt === 2) {
-          return {
-            count: record.count,
-            counted: false,
-            stored: false,
-            error: String((error && error.message) || error),
-          };
-        }
-        await new Promise((resolve) => setTimeout(resolve, 30 + attempt * 40));
-      }
-    }
-
-    return { count: parseRecord(await kv.get(key)).count, counted: false, stored: false };
-  }
-
+// ---------- Cloudflare KV（只读兜底 + 历史数据来源） ----------
+function createKvReader(kv) {
   return {
-    kind: 'kv',
-
-    async getViewCount(slug) {
+    async count(slug) {
       const raw = await kv.get(`view:${slug}`);
       return parseRecord(raw).count;
     },
-
-    async getAllViewCounts() {
+    async all() {
       const items = [];
       let cursor;
       do {
@@ -165,90 +119,175 @@ function createKvStore(kv) {
       } while (cursor);
       return items;
     },
+  };
+}
+
+function createKvStore(kv) {
+  const inflight = new Map();
+
+  async function doRecord(slug, visitorId) {
+    const key = `view:${slug}`;
+    const visitor = hashVisitor(visitorId);
+
+    const raw = await kv.get(key);
+    const record = parseRecord(raw);
+    if (record.seen.includes(visitor)) {
+      return { count: record.count, counted: false, stored: true };
+    }
+    try {
+      const legacy = await kv.get(`seen:${slug}:${visitorId}`);
+      if (legacy !== null && legacy !== undefined) {
+        return { count: record.count, counted: false, stored: true };
+      }
+    } catch (error) {
+      /* 旧标记读取失败不影响主流程 */
+    }
+
+    const nextCount = record.count + 1;
+    try {
+      await kv.put(key, serializeRecord(nextCount, [...record.seen, visitor]));
+      return { count: nextCount, counted: true, stored: true };
+    } catch (error) {
+      if (isQuotaError(error)) {
+        return { count: record.count, counted: false, stored: false, error: 'quota' };
+      }
+      return {
+        count: record.count,
+        counted: false,
+        stored: false,
+        error: String((error && error.message) || error),
+      };
+    }
+  }
+
+  return {
+    kind: 'kv',
+
+    async getViewCount(slug) {
+      return parseRecord(await kv.get(`view:${slug}`)).count;
+    },
+
+    async getAllViewCounts() {
+      return createKvReader(kv).all();
+    },
 
     async recordView(slug, visitorId) {
       const dedupeKey = `${slug}:${hashVisitor(visitorId)}`;
       const running = inflight.get(dedupeKey);
       if (running) return running;
-
-      const task = doRecord(slug, visitorId).finally(() => {
-        inflight.delete(dedupeKey);
-      });
+      const task = doRecord(slug, visitorId).finally(() => inflight.delete(dedupeKey));
       inflight.set(dedupeKey, task);
       return task;
     },
   };
 }
 
-// ---------- Cloudflare D1（绑定 VIEWS_DB / STATS_DB 时启用） ----------
+// ---------- Cloudflare D1 ----------
+export const D1_SCHEMA = [
+  `CREATE TABLE IF NOT EXISTS view_counts (
+     slug TEXT PRIMARY KEY,
+     views INTEGER NOT NULL DEFAULT 0,
+     updated_at TEXT NOT NULL
+   )`,
+  `CREATE TABLE IF NOT EXISTS view_seen (
+     slug TEXT NOT NULL,
+     visitor TEXT NOT NULL,
+     created_at TEXT NOT NULL,
+     PRIMARY KEY (slug, visitor)
+   )`,
+  `CREATE INDEX IF NOT EXISTS idx_view_seen_slug ON view_seen (slug)`,
+];
+
 function createD1Store(db, legacyKv) {
   let schemaReady = null;
+  let legacySeedTried = false;
 
   const ensureSchema = () => {
     if (!schemaReady) {
-      schemaReady = db
-        .batch([
-          db.prepare(
-            `CREATE TABLE IF NOT EXISTS view_counts (
-               slug TEXT PRIMARY KEY,
-               views INTEGER NOT NULL DEFAULT 0,
-               updated_at TEXT NOT NULL
-             )`
-          ),
-          db.prepare(
-            `CREATE TABLE IF NOT EXISTS view_seen (
-               slug TEXT NOT NULL,
-               visitor TEXT NOT NULL,
-               created_at TEXT NOT NULL,
-               PRIMARY KEY (slug, visitor)
-             )`
-          ),
-        ])
-        .catch((error) => {
-          schemaReady = null;
-          throw error;
-        });
+      schemaReady = db.batch(D1_SCHEMA.map((sql) => db.prepare(sql))).catch((error) => {
+        schemaReady = null;
+        throw error;
+      });
     }
     return schemaReady;
   };
 
-  // 首次从旧 KV 迁移历史阅读数，避免清零
-  const seedFromLegacy = async (slug, current) => {
-    if (current > 0 || !legacyKv) return current;
+  const readCount = async (slug) => {
+    const row = await db.prepare('SELECT views FROM view_counts WHERE slug = ?').bind(slug).first();
+    if (!row) return null;
+    return Number(row.views) || 0;
+  };
+
+  // D1 中没有该文章时，把旧 KV 的历史阅读数迁进来，避免从 0 开始
+  const seedFromLegacy = async (slug) => {
+    if (!legacyKv) return null;
+    let legacy = 0;
     try {
-      const raw = await legacyKv.get(`view:${slug}`);
-      const legacy = parseRecord(raw).count;
-      if (legacy <= 0) return current;
-      await db
-        .prepare(
-          `INSERT INTO view_counts (slug, views, updated_at) VALUES (?, ?, ?)
-           ON CONFLICT(slug) DO UPDATE SET views = excluded.views, updated_at = excluded.updated_at`
-        )
-        .bind(slug, legacy, new Date().toISOString())
-        .run();
-      return legacy;
+      legacy = parseRecord(await legacyKv.get(`view:${slug}`)).count;
     } catch (error) {
-      return current;
+      return null;
     }
+    if (legacy <= 0) return null;
+    await db
+      .prepare(
+        `INSERT INTO view_counts (slug, views, updated_at) VALUES (?, ?, ?)
+         ON CONFLICT(slug) DO NOTHING`
+      )
+      .bind(slug, legacy, new Date().toISOString())
+      .run();
+    return legacy;
   };
 
   return {
     kind: 'd1',
 
     async getViewCount(slug) {
-      await ensureSchema();
-      const row = await db.prepare('SELECT views FROM view_counts WHERE slug = ?').bind(slug).first();
-      const views = Number(row && row.views) || 0;
-      return seedFromLegacy(slug, views);
+      try {
+        await ensureSchema();
+        const existing = await readCount(slug);
+        if (existing !== null) return existing;
+        const seeded = await seedFromLegacy(slug);
+        if (seeded !== null) return seeded;
+        return (await readCount(slug)) ?? 0;
+      } catch (error) {
+        if (!legacyKv) throw error;
+        // D1 暂时不可用时退回旧 KV 读取，避免显示为 0
+        try {
+          return parseRecord(await legacyKv.get(`view:${slug}`)).count;
+        } catch (inner) {
+          return null;
+        }
+      }
     },
 
     async getAllViewCounts() {
       await ensureSchema();
-      const result = await db.prepare('SELECT slug, views FROM view_counts').all();
-      return ((result && result.results) || []).map((row) => ({
-        slug: row.slug,
-        views: Number(row.views) || 0,
-      }));
+      let rows = ((await db.prepare('SELECT slug, views FROM view_counts').all()).results) || [];
+
+      // D1 还是空的（刚绑定 / 刚清库）时，自动把旧 KV 历史数据整体导入，
+      // 保证热门榜、后台排行在绑定后立刻正确，不需要手动迁移。
+      if (rows.length === 0 && legacyKv && !legacySeedTried) {
+        legacySeedTried = true;
+        try {
+          const items = (await createKvReader(legacyKv).all()).slice(0, 500);
+          for (const item of items) {
+            if (item.views > 0) {
+              await db
+                .prepare(
+                  `INSERT INTO view_counts (slug, views, updated_at) VALUES (?, ?, ?)
+                   ON CONFLICT(slug) DO NOTHING`
+                )
+                .bind(item.slug, item.views, new Date().toISOString())
+                .run();
+            }
+          }
+          rows = ((await db.prepare('SELECT slug, views FROM view_counts').all()).results) || [];
+        } catch (error) {
+          /* 自动导入失败时保持空结果，管理员仍可用迁移按钮重试 */
+        }
+      }
+
+      return rows.map((row) => ({ slug: row.slug, views: Number(row.views) || 0 }));
     },
 
     async recordView(slug, visitorId) {
@@ -256,6 +295,7 @@ function createD1Store(db, legacyKv) {
       const visitor = hashVisitor(visitorId);
       const now = new Date().toISOString();
 
+      // 唯一约束去重：并发时只有一个请求能插入成功
       const hit = await db
         .prepare('INSERT OR IGNORE INTO view_seen (slug, visitor, created_at) VALUES (?, ?, ?)')
         .bind(slug, visitor, now)
@@ -263,23 +303,38 @@ function createD1Store(db, legacyKv) {
       const changed = Number(hit && hit.meta && hit.meta.changes) || 0;
 
       if (!changed) {
-        const row = await db.prepare('SELECT views FROM view_counts WHERE slug = ?').bind(slug).first();
-        return { count: Number(row && row.views) || 0, counted: false, stored: true };
+        const current = await readCount(slug);
+        if (current !== null) return { count: current, counted: false, stored: true };
+        const seeded = await seedFromLegacy(slug);
+        return { count: seeded ?? (await readCount(slug)) ?? 0, counted: false, stored: true };
       }
 
-      // 保证旧 KV 历史值先迁移，再自增
-      const existing = await db.prepare('SELECT views FROM view_counts WHERE slug = ?').bind(slug).first();
-      if (!existing) await seedFromLegacy(slug, 0);
+      // 首次统计该文章时，先把旧 KV 历史值迁移过来（DO NOTHING 不会覆盖 D1 已有值）
+      const existing = await readCount(slug);
+      if (existing === null) await seedFromLegacy(slug);
 
-      const row = await db
-        .prepare(
-          `INSERT INTO view_counts (slug, views, updated_at) VALUES (?, 1, ?)
-           ON CONFLICT(slug) DO UPDATE SET views = views + 1, updated_at = excluded.updated_at
-           RETURNING views`
-        )
-        .bind(slug, now)
-        .first();
-      return { count: Number(row && row.views) || 1, counted: true, stored: true };
+      try {
+        const row = await db
+          .prepare(
+            `INSERT INTO view_counts (slug, views, updated_at) VALUES (?, 1, ?)
+             ON CONFLICT(slug) DO UPDATE SET views = views + 1, updated_at = excluded.updated_at
+             RETURNING views`
+          )
+          .bind(slug, now)
+          .first();
+        return { count: Number(row && row.views) || 1, counted: true, stored: true };
+      } catch (error) {
+        // 自增失败时撤销去重标记，保证下次访问还能补记，不会永久漏计
+        try {
+          await db
+            .prepare('DELETE FROM view_seen WHERE slug = ? AND visitor = ?')
+            .bind(slug, visitor)
+            .run();
+        } catch (inner) {
+          /* 撤销失败时保留现状即可 */
+        }
+        throw error;
+      }
     },
   };
 }
@@ -299,4 +354,90 @@ export function createViewsStore(env) {
 
   if (env && env.VIEWS_KV) return createKvStore(env.VIEWS_KV);
   return createMemoryStore();
+}
+
+// 存储状态：供后台确认当前是否真的在用 D1
+export function getViewsStorageInfo(env) {
+  const d1Bound = Boolean(env && (env.VIEWS_DB || env.STATS_DB));
+  const kvAvailable = Boolean(env && env.VIEWS_KV);
+  return {
+    kind: d1Bound ? 'd1' : kvAvailable ? 'kv' : 'memory',
+    d1Bound,
+    kvAvailable,
+    bindingName: env && env.VIEWS_DB ? 'VIEWS_DB' : env && env.STATS_DB ? 'STATS_DB' : '',
+  };
+}
+
+// 历史数据迁移：KV → D1，只升不降，绝不清零
+// 返回逐篇对比结果，便于核对迁移前后数量与阅读数。
+export async function migrateViewsFromKv(env, { dryRun = false } = {}) {
+  const db = env && (env.VIEWS_DB || env.STATS_DB);
+  if (!db) throw new Error('尚未绑定 D1（VIEWS_DB），无法迁移。');
+  if (!env.VIEWS_KV) throw new Error('当前环境没有可读取的旧 KV（VIEWS_KV）。');
+
+  await db.batch(D1_SCHEMA.map((sql) => db.prepare(sql)));
+
+  const legacyItems = await createKvReader(env.VIEWS_KV).all();
+  const currentRows = ((await db.prepare('SELECT slug, views FROM view_counts').all()).results) || [];
+  const current = new Map(currentRows.map((row) => [row.slug, Number(row.views) || 0]));
+
+  const plan = [];
+  let inserted = 0;
+  let updated = 0;
+  let unchanged = 0;
+  let legacyTotal = 0;
+  let targetTotal = 0;
+
+  for (const item of legacyItems) {
+    legacyTotal += item.views;
+    const before = current.has(item.slug) ? current.get(item.slug) : null;
+    let after = before;
+    let action = 'unchanged';
+
+    if (before === null) {
+      after = item.views;
+      action = 'insert';
+      inserted += 1;
+    } else if (item.views > before) {
+      after = item.views;
+      action = 'update';
+      updated += 1;
+    } else {
+      unchanged += 1;
+    }
+
+    targetTotal += after || 0;
+    plan.push({ slug: item.slug, kv: item.views, d1Before: before, d1After: after, action });
+
+    if (!dryRun && action !== 'unchanged') {
+      await db
+        .prepare(
+          `INSERT INTO view_counts (slug, views, updated_at) VALUES (?, ?, ?)
+           ON CONFLICT(slug) DO UPDATE SET
+             views = MAX(view_counts.views, excluded.views),
+             updated_at = excluded.updated_at`
+        )
+        .bind(item.slug, item.views, new Date().toISOString())
+        .run();
+    }
+  }
+
+  // 迁移后核对
+  const afterRows = dryRun
+    ? currentRows
+    : ((await db.prepare('SELECT slug, views FROM view_counts').all()).results) || [];
+  let d1Total = 0;
+  for (const row of afterRows) d1Total += Number(row.views) || 0;
+
+  return {
+    dryRun,
+    kvArticles: legacyItems.length,
+    kvTotalViews: legacyTotal,
+    d1Articles: afterRows.length,
+    d1TotalViews: d1Total,
+    inserted,
+    updated,
+    unchanged,
+    plan: plan.slice(0, 200),
+  };
 }

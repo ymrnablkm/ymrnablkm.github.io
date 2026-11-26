@@ -1,7 +1,7 @@
 // 管理后台 API 路由：所有写入都在服务端完成身份校验、CSRF 校验和 SHA 并发校验
 import { json, fail, ok, readJson, getCookie, serializeCookie, requestOrigin, isSecureRequest } from './lib/http.js';
 import { createSession, readSession, sessionCookieName, sessionMaxAge, randomToken } from './lib/session.js';
-import { createViewsStore } from './lib/views-store.js';
+import { createViewsStore, getViewsStorageInfo, migrateViewsFromKv, parseViewValue } from './lib/views-store.js';
 import { createDownloadsStore } from './lib/downloads-store.js';
 import { createLinkcheckStore } from './lib/linkcheck-store.js';
 import { createAnalyticsStore } from './lib/analytics-store.js';
@@ -638,7 +638,8 @@ export async function handleApi(request, env, store) {
     }
 
     // ---------- 浏览量统计（公开接口，无需登录，支持跨域） ----------
-    if (parts[0] === 'views') {
+    // views/storage、views/migrate、views/export 属于后台接口，交由下方登录校验分支处理
+    if (parts[0] === 'views' && !['storage', 'migrate', 'export'].includes(parts[1])) {
       const slug = parts[1] ? decodeURIComponent(parts[1]) : '';
       if (!slug) return fail('缺少文章标识', 400);
 
@@ -669,11 +670,12 @@ export async function handleApi(request, env, store) {
         try {
           const count = await viewsStore.getViewCount(slug);
           // CDN 缓存 5 秒（浏览器不缓存，避免读到旧值）
-          return json({ ok: true, slug, views: count }, 200, {
+          return json({ ok: true, slug, views: typeof count === 'number' ? count : null }, 200, {
             ...corsWithVary,
             'Cache-Control': 'public, max-age=0, s-maxage=5, stale-while-revalidate=30',
           });
         } catch (error) {
+          // 读取失败时返回 null，前端保留原显示，绝不显示为 0
           return json({ ok: false, slug, views: null, error: '读取阅读数失败' }, 200, {
             ...corsWithVary,
             'Cache-Control': 'no-store',
@@ -945,6 +947,75 @@ export async function handleApi(request, env, store) {
       const items = await downloadsStore.getAllCounts();
       for (const item of items) counts[item.slug] = item.count;
       return ok({ source: downloadsStore.kind, counts });
+    }
+
+    // ---------- 阅读数存储状态与历史数据迁移 ----------
+    if (path === 'views/storage' && method === 'GET') {
+      const info = getViewsStorageInfo(env);
+      let d1Count = 0;
+      let d1Total = 0;
+      let kvCount = 0;
+      let kvTotal = 0;
+      try {
+        const items = await createViewsStore(env).getAllViewCounts();
+        d1Count = items.length;
+        d1Total = items.reduce((sum, item) => sum + (item.views || 0), 0);
+      } catch (error) {
+        /* 读取失败时保持 0，由前端提示 */
+      }
+      if (env && env.VIEWS_KV) {
+        try {
+          const page = await env.VIEWS_KV.list({ prefix: 'view:' });
+          const keys = page.keys || [];
+          const values = await Promise.all(keys.map((key) => env.VIEWS_KV.get(key.name)));
+          kvCount = keys.length;
+          kvTotal = values.reduce((sum, raw) => sum + parseViewValue(raw).count, 0);
+        } catch (error) {
+          /* 旧 KV 读取失败不影响状态展示 */
+        }
+      }
+      return ok({ ...info, d1Count, d1Total, kvCount, kvTotal });
+    }
+
+    if (path === 'views/migrate' && method === 'POST') {
+      const body = await readJson(request);
+      const dryRun = Boolean(body && body.dryRun);
+      try {
+        const result = await migrateViewsFromKv(env, { dryRun });
+        return ok({ result });
+      } catch (error) {
+        return fail(error.message || '迁移失败', 400);
+      }
+    }
+
+    // 迁移前的只读备份：导出旧 KV 中全部 view:<slug> 原始值
+    if (path === 'views/export' && method === 'GET') {
+      if (!env || !env.VIEWS_KV) return fail('当前环境没有可读取的旧 KV（VIEWS_KV）', 400);
+      const items = [];
+      let cursor;
+      try {
+        do {
+          const page = await env.VIEWS_KV.list({ prefix: 'view:', cursor });
+          const keys = page.keys || [];
+          const values = await Promise.all(keys.map((key) => env.VIEWS_KV.get(key.name)));
+          keys.forEach((key, index) => {
+            const raw = values[index];
+            items.push({
+              slug: key.name.slice('view:'.length),
+              views: parseViewValue(raw).count,
+              raw,
+            });
+          });
+          cursor = page.list_complete ? undefined : page.cursor;
+        } while (cursor);
+      } catch (error) {
+        return fail(`读取旧 KV 失败：${error.message || error}`, 500);
+      }
+      return json(
+        { ok: true, exportedAt: new Date().toISOString(), count: items.length, items },
+        200,
+        { 'Cache-Control': 'no-store' }
+      );
     }
 
     // ---------- 访问统计（仅后台可读） ----------

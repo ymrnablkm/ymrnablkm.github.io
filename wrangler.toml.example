@@ -1,0 +1,13 @@
+# 示例配置（文件名 wrangler.toml.example，不会被自动加载，避免影响现有线上构建）
+# 需要时重命名为 wrangler.toml，并把 database_id 换成真实的 D1 数据库 ID。
+# 推荐方式：不建 wrangler.toml，直接在 Cloudflare 控制台为 Pages 项目添加 D1 绑定（更稳妥）。
+
+name = "ymrnablkm-github-io"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-11-01"
+
+[[d1_databases]]
+binding = "VIEWS_DB"
+database_name = "ymrnablkm-views"
+database_id = "在此填入 D1 数据库 ID"
+migrations_dir = "migrations"

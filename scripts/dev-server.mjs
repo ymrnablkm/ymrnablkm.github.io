@@ -9,6 +9,7 @@ import { createViewsStore } from '../server/lib/views-store.js';
 import { createDownloadsStore } from '../server/lib/downloads-store.js';
 import { createLinkcheckStore } from '../server/lib/linkcheck-store.js';
 import { createAnalyticsStore } from '../server/lib/analytics-store.js';
+import { createLocalD1 } from '../server/lib/local-d1.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dist = path.join(root, 'dist');
@@ -20,13 +21,21 @@ const env = {
   SESSION_SECRET: process.env.SESSION_SECRET || 'local-dev-secret-change-me',
   GITHUB_REPO: 'ymrnablkm/ymrnablkm.github.io',
   GITHUB_BRANCH: 'main',
-  VIEWS_STORE: createViewsStore({}), // 共享实例，进程内持久化浏览量
   DOWNLOADS_STORE: createDownloadsStore({}), // 共享实例，进程内持久化下载点击数
   LINKCHECK_STORE: createLinkcheckStore({}),
   ANALYTICS_STORE: createAnalyticsStore({}),
 };
 
 const store = createLocalStore(env);
+
+// 本地也走 D1 逻辑（Node 内置 SQLite），与线上 SQL 行为一致；
+// 若当前 Node 不支持 node:sqlite，阅读数自动退回内存存储。
+try {
+  env.VIEWS_DB = await createLocalD1(path.join(root, '.data', 'views.db'));
+  console.log('阅读数存储：本地 D1（.data/views.db）');
+} catch (error) {
+  console.warn('本地 D1 不可用，阅读数改用内存存储：', error.message);
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
