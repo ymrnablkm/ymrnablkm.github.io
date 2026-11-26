@@ -264,14 +264,15 @@ function createD1Store(db, legacyKv) {
       await ensureSchema();
       let rows = ((await db.prepare('SELECT slug, views FROM view_counts').all()).results) || [];
 
-      // D1 还是空的（刚绑定 / 刚清库）时，自动把旧 KV 历史数据整体导入，
+      // 首次访问时把旧 KV 中（D1 里还没有的）文章历史阅读数补齐，
       // 保证热门榜、后台排行在绑定后立刻正确，不需要手动迁移。
-      if (rows.length === 0 && legacyKv && !legacySeedTried) {
+      if (legacyKv && !legacySeedTried) {
         legacySeedTried = true;
         try {
+          const exist = new Set(rows.map((row) => row.slug));
           const items = (await createKvReader(legacyKv).all()).slice(0, 500);
           for (const item of items) {
-            if (item.views > 0) {
+            if (item.views > 0 && !exist.has(item.slug)) {
               await db
                 .prepare(
                   `INSERT INTO view_counts (slug, views, updated_at) VALUES (?, ?, ?)
@@ -283,7 +284,7 @@ function createD1Store(db, legacyKv) {
           }
           rows = ((await db.prepare('SELECT slug, views FROM view_counts').all()).results) || [];
         } catch (error) {
-          /* 自动导入失败时保持空结果，管理员仍可用迁移按钮重试 */
+          /* 自动导入失败时保持已有结果，管理员仍可用迁移按钮重试 */
         }
       }
 
